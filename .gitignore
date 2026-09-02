@@ -1,0 +1,32 @@
+# Raw federal data never gets committed. Sample fixtures under
+# ingest/sample/ are the exception, capped at a few thousand rows.
+data/
+*.csv
+*.parquet
+!ingest/sample/**
+
+# Secrets
+.env
+*.tfvars
+!*.tfvars.example
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Python
+__pycache__/
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+coverage.lcov
+target/
+dbt_packages/
+logs/
