@@ -1,0 +1,7 @@
+region                       = "us-east-1"
+environment                  = "dev"
+terraform_operator_role_name = "AccountFullAccessRole"
+
+# Whoever runs the ingestion locally. Find yours with:
+#   aws sts get-caller-identity --query Arn --output text
+# additional_ingest_principals = ["arn:aws:iam::<account-id>:user/<your-user>"]

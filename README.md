@@ -7,9 +7,9 @@ records that were actually available on the date the decision would have been ma
 
 Freight brokers can face negligent hiring liability when a carrier they dispatch
 is involved in a crash. The Federal Motor Carrier Safety Administration (FMCSA)
-publishes carrier inspection, violation, and crash histories. This project turns
-that public data into a carrier risk score, helping brokers assess safety risk
-before dispatching a load.
+publishes carrier inspection and crash histories. Inspection rows already include
+violation and out-of-service totals. This project turns that public data into a
+carrier risk score, helping brokers assess safety risk before dispatching a load.
 
 ## The problem it solves
 
@@ -41,9 +41,11 @@ right and miss the second.
 
 ## Approach
 
-* Ingest three federal data feeds on their native schedules, ranging from daily to monthly
-* Maintain carrier attributes as Type 2 history, so any scoring date resolves to the
-  carrier record that was current at the time
+* Ingest daily inspection and crash feeds as immutable snapshots
+* Preserve corrected event versions so historical scoring uses the version that
+  was knowable at the time
+* Exclude present-day carrier attributes from historical features because no
+  confirmed public archive provides their past versions
 * Generate features for each carrier and scoring date using both the occurrence and
   reporting-date filters above
 * Build labels from a forward-looking window, and only admit a row into training once
@@ -53,11 +55,36 @@ right and miss the second.
 * Make every load idempotent, since carriers can dispute records and federal history
   can change after publication
 
+## Architecture
+
+![Carrier Risk Platform architecture](docs/architecture.svg)
+
 ## Data
 
-FMCSA publishes carrier census, inspection, violation, and crash files through the
-DOT open data portal. US government work, public domain. Raw data is not committed;
-`ingest/` downloads it and a small sample is kept for offline tests.
+V0 uses FMCSA's Vehicle Inspection File and Crash File from the DOT open data
+portal. Violation and out-of-service features come from totals on each inspection
+row, so a separate violation feed is not ingested. US government work, public
+domain. Raw data is not committed; tests use generated fixtures instead.
+
+## Landing a snapshot
+
+Authenticate to AWS and create an account-level budget before provisioning the
+Phase 0 resources. Then:
+
+```bash
+python3.12 -m venv .venv
+.venv/bin/pip install -e '.[dev]'
+terraform -chdir=infra/base init
+terraform -chdir=infra/base apply
+export CARRIER_RISK_RAW_BUCKET="$(terraform -chdir=infra/base output -raw raw_bucket_name)"
+export CARRIER_RISK_INGEST_ROLE_ARN="$(terraform -chdir=infra/base output -raw ingest_role_arn)"
+.venv/bin/python -m ingest.landing --feed inspections
+.venv/bin/python -m ingest.landing --feed crashes
+```
+
+Each feed is written to a deterministic UTC-day partition. The data object is
+checksummed and validated before its manifest is published as the commit marker;
+rerunning a completed partition is a no-op.
 
 ## Stack
 
@@ -66,7 +93,9 @@ Athena).
 
 ## Status
 
-Early. Nothing here runs yet.
+Phase 0 is complete. The tested landing workflow and Terraform baseline have
+landed both full event feeds in AWS and passed a completed-partition no-op rerun.
+Warehouse loading and temporal models begin in Phase 1.
 
 ## License
 

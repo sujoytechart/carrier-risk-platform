@@ -21,11 +21,12 @@ project.
 
 ## Decision
 
-Exclude carrier attributes from `v0` features entirely. Model events only:
-inspections, violations, and crashes, each carrying its own occurrence date and
-its own knowledge time.
+Exclude carrier attributes from `v0` features entirely. Model inspections and
+crashes only, each carrying its own occurrence date and knowledge time.
+Violation and out-of-service totals are attributes of the inspection row; v0
+does not ingest a separate violation feed.
 
-Begin daily immutable snapshots of all three event feeds in Phase 0. This does
+Begin daily immutable snapshots of both event feeds in Phase 0. This does
 not recover missing history, but it starts building trustworthy observed history
 from day one.
 

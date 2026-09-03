@@ -1,0 +1,184 @@
+<?xml version="1.0"?>
+<mxfile host="drawio-plugin" modified="2026-09-02T18:06:15.209Z" etag="yyeHY2htJVEhzLA57SNO" version="20.5.3" type="embed">
+  <diagram id="carrier-risk-architecture" name="Architecture">
+    <mxGraphModel dx="1321" dy="904" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="950" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="title" value="Carrier Risk Platform &#x2014; Architecture" style="text;html=1;align=left;verticalAlign=middle;fontSize=26;fontStyle=1;fontColor=#172B4D;" parent="1" vertex="1">
+          <mxGeometry x="40" y="20" width="700" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="subtitle" value="Point-in-time correct risk features from mutable FMCSA event data" style="text;html=1;align=left;verticalAlign=middle;fontSize=14;fontColor=#5E6C84;" parent="1" vertex="1">
+          <mxGeometry x="40" y="58" width="700" height="28" as="geometry"/>
+        </mxCell>
+        <mxCell id="localBoundary" value="Local container runtime" style="swimlane;html=1;rounded=1;startSize=34;horizontal=1;fillColor=#F4F8FF;strokeColor=#4C78A8;fontColor=#234361;fontStyle=1;fontSize=14;dashed=1;" parent="1" vertex="1">
+          <mxGeometry x="210" y="105" width="610" height="750" as="geometry"/>
+        </mxCell>
+        <mxCell id="dbt" value="dbt transformations + tests&#10;&#10;raw &#x2192; clean &#x2192; event_versions&#10;as-of features + mature labels" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D9EAD3;strokeColor=#5B8C5A;fontColor=#17351F;fontStyle=1;fontSize=13;spacing=8;" parent="localBoundary" vertex="1">
+          <mxGeometry x="350" y="250" width="210" height="115" as="geometry"/>
+        </mxCell>
+        <mxCell id="training" value="Monthly training job&#10;&#10;Purged time split&#10;Label-maturity watermark&#10;Baseline comparison" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EAE6FF;strokeColor=#7766A6;fontColor=#352C52;fontStyle=1;fontSize=13;spacing=8;" parent="localBoundary" vertex="1">
+          <mxGeometry x="40" y="570" width="200" height="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="temporal" value="Temporal gate&#10;&#10;Version valid at scoring date&#10;event_date &lt; scoring_date&#10;reported_date &lt; scoring_date" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6A700;fontColor=#5C4600;fontStyle=1;fontSize=13;spacing=8;" parent="localBoundary" vertex="1">
+          <mxGeometry x="40" y="285" width="200" height="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="e7" value="apply" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#D6A700;fontSize=11;" parent="localBoundary" source="temporal" target="dbt" edge="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="awsBoundary" value="AWS &#xB7; us-east-1 &#xB7; provisioned by Terraform" style="swimlane;html=1;rounded=1;startSize=34;horizontal=1;fillColor=#FFF8EE;strokeColor=#E58B2A;fontColor=#7A4700;fontStyle=1;fontSize=14;dashed=1;" parent="1" vertex="1">
+          <mxGeometry x="850" y="105" width="480" height="750" as="geometry"/>
+        </mxCell>
+        <mxCell id="sqs" value="SQS&#10;&#10;File-arrival queue&#10;Dead-letter queue" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE3C2;strokeColor=#E58B2A;fontColor=#5C3700;fontStyle=1;fontSize=13;spacing=8;" parent="awsBoundary" vertex="1">
+          <mxGeometry x="300" y="70" width="155" height="95" as="geometry"/>
+        </mxCell>
+        <mxCell id="fmcsa" value="FMCSA Open Data&#10;&#10;Inspection File&#10;Crash File" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F4F5F7;strokeColor=#6B778C;fontColor=#172B4D;fontStyle=1;fontSize=14;spacing=8;" parent="1" vertex="1">
+          <mxGeometry x="30" y="270" width="145" height="105" as="geometry"/>
+        </mxCell>
+        <mxCell id="ingest" value="Daily ingestion&#10;&#10;Validate complete file&#10;Checksum + schema fingerprint" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DEEBFF;strokeColor=#4C78A8;fontColor=#172B4D;fontStyle=1;fontSize=13;spacing=8;" parent="1" vertex="1">
+          <mxGeometry x="250" y="270" width="200" height="105" as="geometry"/>
+        </mxCell>
+        <mxCell id="airflow" value="Apache Airflow &#x2014; orchestration / control plane&#10;Schedules ingestion &#xB7; coordinates loads and dbt &#xB7; runs tests and training&#10;Dashed arrows = control &#xB7; solid arrows = data" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DEEBFF;strokeColor=#4C78A8;strokeWidth=2;fontColor=#172B4D;fontStyle=1;fontSize=14;spacing=10;" parent="1" vertex="1">
+          <mxGeometry x="235" y="150" width="560" height="90" as="geometry"/>
+        </mxCell>
+        <mxCell id="mlflow" value="MLflow&#10;&#10;Run tracking&#10;Training fingerprint&#10;Promotion gate" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EAE6FF;strokeColor=#7766A6;fontColor=#352C52;fontStyle=1;fontSize=13;spacing=8;" parent="1" vertex="1">
+          <mxGeometry x="570" y="560" width="190" height="115" as="geometry"/>
+        </mxCell>
+        <mxCell id="api" value="FastAPI&#10;&#10;Promoted model&#10;Online feature lookup&#10;Prometheus metrics" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3FCEF;strokeColor=#36B37E;fontColor=#164B35;fontStyle=1;fontSize=13;spacing=8;" parent="1" vertex="1">
+          <mxGeometry x="570" y="725" width="190" height="105" as="geometry"/>
+        </mxCell>
+        <mxCell id="s3" value="S3 raw snapshots&#10;&#10;Immutable daily objects&#10;Partitioned by feed + load date" style="shape=cylinder;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;fillColor=#FFE3C2;strokeColor=#E58B2A;fontColor=#5C3700;fontStyle=1;fontSize=13;spacing=8;" parent="1" vertex="1">
+          <mxGeometry x="885" y="165" width="180" height="115" as="geometry"/>
+        </mxCell>
+        <mxCell id="rds" value="RDS Postgres&#10;&#10;Event-version history&#10;As-of training features&#10;Online feature table" style="shape=cylinder;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;fillColor=#D9EAD3;strokeColor=#5B8C5A;fontColor=#17351F;fontStyle=1;fontSize=13;spacing=8;" parent="1" vertex="1">
+          <mxGeometry x="1000" y="350" width="190" height="125" as="geometry"/>
+        </mxCell>
+        <mxCell id="athena" value="Glue Catalog + Athena&#10;&#10;Query raw snapshots&#10;Report-lag profiling" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE3C2;strokeColor=#E58B2A;fontColor=#5C3700;fontStyle=1;fontSize=13;spacing=8;" parent="1" vertex="1">
+          <mxGeometry x="885" y="555" width="180" height="105" as="geometry"/>
+        </mxCell>
+        <mxCell id="ecr" value="ECR&#10;&#10;Versioned API image" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE3C2;strokeColor=#E58B2A;fontColor=#5C3700;fontStyle=1;fontSize=13;spacing=8;" parent="1" vertex="1">
+          <mxGeometry x="1130" y="565" width="155" height="85" as="geometry"/>
+        </mxCell>
+        <mxCell id="awsControl" value="IAM + remote Terraform state&#10;&#10;Least privilege &#xB7; S3 lockfile&#10;AWS Budget &#xB7; lifecycle policies" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#E58B2A;fontColor=#5C3700;fontSize=12;spacing=8;dashed=1;" parent="1" vertex="1">
+          <mxGeometry x="955" y="715" width="230" height="105" as="geometry"/>
+        </mxCell>
+        <mxCell id="snowflake" value="Snowflake trial&#10;&#10;Secondary dbt target&#10;Portability validation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EAE6FF;strokeColor=#7766A6;fontColor=#352C52;fontStyle=1;fontSize=13;spacing=8;" parent="1" vertex="1">
+          <mxGeometry x="1380" y="350" width="175" height="110" as="geometry"/>
+        </mxCell>
+        <mxCell id="broker" value="Broker client&#10;&#10;GET /score/{usdot}" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F4F5F7;strokeColor=#6B778C;fontColor=#172B4D;fontStyle=1;fontSize=13;spacing=8;" parent="1" vertex="1">
+          <mxGeometry x="1380" y="735" width="175" height="85" as="geometry"/>
+        </mxCell>
+        <mxCell id="e1" value="HTTPS" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#4C78A8;fontSize=11;" parent="1" source="fmcsa" target="ingest" edge="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e2" value="complete snapshot" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#E58B2A;fontSize=11;" parent="1" source="ingest" target="s3" edge="1">
+          <mxGeometry x="0.0853" relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="455" y="322"/>
+              <mxPoint x="860" y="322"/>
+              <mxPoint x="860" y="222"/>
+            </Array>
+            <mxPoint as="offset"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e3" value="object event" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#E58B2A;fontSize=11;" parent="1" source="s3" target="sqs" edge="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e4" value="event trigger" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#4C78A8;fontSize=11;dashed=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" parent="1" source="sqs" target="airflow" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1228" y="150"/>
+              <mxPoint x="815" y="150"/>
+              <mxPoint x="815" y="195"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e5" value="load raw" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#5B8C5A;fontSize=11;" parent="1" source="s3" target="rds" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="975" y="315"/>
+              <mxPoint x="1095" y="315"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e6" value="run dbt + tests" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#4C78A8;fontSize=11;dashed=1;exitX=0.767;exitY=1.003;exitDx=0;exitDy=0;exitPerimeter=0;" parent="1" source="airflow" target="dbt" edge="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e8" value="build + test" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#5B8C5A;fontSize=11;" parent="1" source="dbt" target="rds" edge="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e9" value="same project" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#7766A6;fontSize=11;dashed=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" parent="1" source="dbt" target="snowflake" edge="1">
+          <mxGeometry x="0.3706" relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="665" y="490"/>
+              <mxPoint x="1345" y="490"/>
+              <mxPoint x="1345" y="405"/>
+            </Array>
+            <mxPoint as="offset"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e10" value="raw SQL" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#E58B2A;fontSize=11;" parent="1" source="s3" target="athena" edge="1">
+          <mxGeometry x="-0.3455" relative="1" as="geometry">
+            <mxPoint as="offset"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e11" value="mature training set" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#5B8C5A;fontSize=11;" parent="1" source="rds" target="training" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1095" y="510"/>
+              <mxPoint x="470" y="510"/>
+              <mxPoint x="470" y="620"/>
+              <mxPoint x="350" y="620"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e12" value="runs + candidate" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#7766A6;fontSize=11;" parent="1" source="training" target="mlflow" edge="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e13" value="promoted model" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#7766A6;fontSize=11;" parent="1" source="mlflow" target="api" edge="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e14" value="features" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#36B37E;fontSize=11;" parent="1" source="rds" target="api" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1095" y="690"/>
+              <mxPoint x="760" y="690"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e15" value="image" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#E58B2A;fontSize=11;dashed=1;" parent="1" source="ecr" target="api" edge="1">
+          <mxGeometry x="0.3845" relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="870" y="608"/>
+              <mxPoint x="870" y="790"/>
+            </Array>
+            <mxPoint as="offset"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e16" value="risk score" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#36B37E;fontSize=11;" parent="1" source="api" target="broker" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="800" y="778"/>
+              <mxPoint x="800" y="840"/>
+              <mxPoint x="1360" y="840"/>
+              <mxPoint x="1360" y="778"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e17" value="schedule" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#4C78A8;fontSize=11;dashed=1;exitX=0.2;exitY=1;exitDx=0;exitDy=0;" parent="1" source="airflow" target="ingest" edge="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e18" value="run training" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#4C78A8;fontSize=11;dashed=1;exitX=0.08;exitY=1;exitDx=0;exitDy=0;" parent="1" source="airflow" target="training" edge="1">
+          <mxGeometry x="0.5679" relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="280" y="255"/>
+              <mxPoint x="220" y="255"/>
+              <mxPoint x="220" y="620"/>
+            </Array>
+            <mxPoint as="offset"/>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

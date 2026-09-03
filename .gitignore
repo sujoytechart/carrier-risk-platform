@@ -20,9 +20,14 @@ data/
 .vscode/
 *.iml
 
+# macOS
+.DS_Store
+
 # Python
 __pycache__/
 .venv/
+*.egg-info/
+.coverage
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/

@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "carrier-risk-platform"
+version = "0.1.0"
+description = "Point-in-time correct carrier risk data platform"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "boto3>=1.35,<2",
+]
+
+[project.optional-dependencies]
+dev = [
+    "mypy>=1.13,<2",
+    "pytest>=8.3,<9",
+    "pytest-cov>=6,<7",
+    "ruff>=0.8,<1",
+    "types-boto3[s3,sts]>=1.35,<2",
+]
+
+[tool.setuptools.packages.find]
+include = ["ingest*"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+
+[tool.pytest.ini_options]
+addopts = "--strict-config --strict-markers"
+testpaths = ["tests"]
+
+[tool.coverage.run]
+branch = true
+source = ["ingest"]

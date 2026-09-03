@@ -15,7 +15,8 @@ time-based train and test split.
 
 ## Decision
 
-- Inspection and violation features: previous **6 months**
+- Inspection features, including violation and out-of-service totals already on
+  each inspection row: previous **6 months**
 - Crash features and the naive baseline: previous **24 months**
 - Label: at least one deduplicated federal-recordable crash in the following
   **6 months**
