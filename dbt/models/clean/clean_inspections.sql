@@ -36,7 +36,12 @@ with source_rows as (
                  then 'invalid_violation_count' end,
             case when nullif(btrim(oos_total), '') is not null
                        and parsed_oos_count is null
-                 then 'invalid_oos_violation_count' end
+                 then 'invalid_oos_violation_count' end,
+            case when parsed_event_date is not null
+                       and parsed_source_add_at is not null
+                       and (parsed_source_add_at + interval '1 day')::date
+                           <= parsed_event_date
+                 then 'impossible_event_chronology' end
         ]::text[], null) as parse_reasons
     from source_rows
 

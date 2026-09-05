@@ -1,0 +1,75 @@
+version: 2
+
+models:
+  - name: event_versions
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: event_version_key
+        data_type: bigint
+        data_tests: [not_null, unique]
+      - name: feed_name
+        data_type: text
+        data_tests: [not_null]
+      - name: source_record_key
+        data_type: text
+        data_tests: [not_null]
+      - name: usdot_number
+        data_type: text
+        data_tests: [not_null]
+      - name: event_date
+        data_type: date
+        data_tests: [not_null]
+      - name: reported_date
+        data_type: date
+        data_tests: [not_null]
+      - name: knowledge_valid_from
+        data_type: timestamptz
+        data_tests: [not_null]
+      - name: knowledge_valid_to
+        data_type: timestamptz
+      - name: availability_quality
+        data_type: text
+        data_tests: [not_null]
+      - name: is_current
+        data_type: boolean
+        data_tests: [not_null]
+      - name: is_deleted
+        data_type: boolean
+        data_tests: [not_null]
+      - name: deletion_reason
+        data_type: text
+      - name: record_hash
+        data_type: text
+        data_tests: [not_null]
+      - name: first_seen_batch_id
+        data_type: text
+        data_tests: [not_null]
+      - name: last_seen_batch_id
+        data_type: text
+        data_tests: [not_null]
+      - name: predecessor_version_key
+        data_type: bigint
+      - name: superseded_by_version_key
+        data_type: bigint
+      - name: state
+        data_type: text
+      - name: violation_count
+        data_type: integer
+      - name: oos_violation_count
+        data_type: integer
+      - name: report_state
+        data_type: text
+      - name: report_number
+        data_type: text
+      - name: report_time
+        data_type: integer
+      - name: report_seq_no
+        data_type: integer
+      - name: fatalities
+        data_type: integer
+      - name: injuries
+        data_type: integer
+      - name: tow_away
+        data_type: boolean

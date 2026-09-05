@@ -4,6 +4,7 @@ data/
 *.csv
 *.parquet
 !ingest/sample/**
+!dbt/seeds/*.csv
 
 # Secrets
 .env

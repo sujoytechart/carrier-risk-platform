@@ -50,7 +50,12 @@ with source_rows as (
                  then 'invalid_source_add_at' end,
             case when nullif(btrim(federal_recordable), '') is not null
                        and parsed_federal_recordable is null
-                 then 'invalid_federal_recordable' end
+                 then 'invalid_federal_recordable' end,
+            case when parsed_event_date is not null
+                       and parsed_source_add_at is not null
+                       and (parsed_source_add_at + interval '1 day')::date
+                           <= parsed_event_date
+                 then 'impossible_event_chronology' end
         ]::text[], null) as parse_reasons
     from source_rows
 

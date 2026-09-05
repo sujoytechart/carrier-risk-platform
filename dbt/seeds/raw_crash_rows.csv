@@ -1,0 +1,8 @@
+batch_id,source_row_number,crash_id,report_state,report_number,report_date,report_time,report_seq_no,dot_number,add_date,change_date,fatalities,injuries,tow_away,federal_recordable
+bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb,1,2001,MI,C-2001,20260115,930,1,123,20260120 1000,20260120 1000,1,2,Y,Y
+bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb,2,2002,IN,C-2002,20260116,1030,1,,20260121 1100,20260121 1100,0,1,N,Y
+bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb,3,2003,OH,C-2003,20261340,1130,1,456,20260122 1200,20260122 1200,0,0,N,Y
+bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb,4,2005,MI,C-2005,20260201,1230,1,123,20260202 0900,20260202 0900,0,1,N,Y
+bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb,5,2006,MI,C-2006,20260210,1230,1,123,20260201 0900,20260201 0900,0,1,N,Y
+dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd,1,2001,MI,C-2001,20260115,930,1,123,20260120 1000,20260504 1000,2,2,Y,Y
+dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd,2,2004,IL,C-2004,20260420,830,1,789,20260421 1000,20260421 1000,0,1,N,Y
