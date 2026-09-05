@@ -84,7 +84,8 @@ export CARRIER_RISK_INGEST_ROLE_ARN="$(terraform -chdir=infra/base output -raw i
 
 Each feed is written to a deterministic UTC-day partition. The data object is
 checksummed and validated before its manifest is published as the commit marker;
-rerunning a completed partition is a no-op.
+rerunning a completed partition is a no-op. Manifests include a deterministic
+batch identifier used by warehouse loads and backfills.
 
 ## Stack
 

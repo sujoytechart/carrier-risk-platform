@@ -2,10 +2,39 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from typing import Self, cast
+
+
+def derive_batch_id(
+    *,
+    feed_name: str,
+    dataset_id: str,
+    observed_at: str,
+    object_key: str,
+    object_sha256: str,
+) -> str:
+    """Return the stable identity of one immutable snapshot acquisition.
+
+    Components are length-prefixed before hashing so different tuple boundaries
+    can never produce the same input document. The object checksum participates
+    in identity, while event payload hashes remain change detectors only.
+    """
+    digest = hashlib.sha256()
+    for component in (
+        feed_name,
+        dataset_id,
+        observed_at,
+        object_key,
+        object_sha256,
+    ):
+        encoded = component.encode("utf-8")
+        digest.update(f"{len(encoded)}:".encode())
+        digest.update(encoded)
+    return digest.hexdigest()
 
 
 @dataclass(frozen=True)
@@ -85,6 +114,21 @@ class SnapshotManifest:
     object_sha256: str
     schema_fingerprint: str
     columns: tuple[str, ...]
+    batch_id: str = ""
+
+    def __post_init__(self) -> None:
+        """Derive legacy batch identities and reject inconsistent manifests."""
+        expected_batch_id = derive_batch_id(
+            feed_name=self.feed_name,
+            dataset_id=self.dataset_id,
+            observed_at=self.observed_at,
+            object_key=self.object_key,
+            object_sha256=self.object_sha256,
+        )
+        if not self.batch_id:
+            object.__setattr__(self, "batch_id", expected_batch_id)
+        elif self.batch_id != expected_batch_id:
+            raise ValueError("batch_id does not match the immutable manifest fields")
 
     @classmethod
     def from_download(
@@ -130,4 +174,5 @@ class SnapshotManifest:
             object_sha256=cast(str, payload["object_sha256"]),
             schema_fingerprint=cast(str, payload["schema_fingerprint"]),
             columns=tuple(cast(list[str], payload["columns"])),
+            batch_id=cast(str, payload.get("batch_id", "")),
         )

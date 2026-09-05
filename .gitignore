@@ -19,6 +19,7 @@ data/
 .idea/
 .vscode/
 *.iml
+.worktrees/
 
 # macOS
 .DS_Store

@@ -9,11 +9,23 @@ description = "Point-in-time correct carrier risk data platform"
 requires-python = ">=3.12,<3.13"
 dependencies = [
     "boto3>=1.35,<2",
+    "psycopg[binary]>=3.2,<4",
 ]
 
 [project.optional-dependencies]
+airflow = [
+    "apache-airflow>=3.1,<4",
+    "apache-airflow-providers-amazon>=9,<10",
+]
+dbt = [
+    "dbt-core>=1.10,<2",
+    "dbt-postgres>=1.9,<2",
+]
 dev = [
+    "dbt-core>=1.10,<2",
+    "dbt-postgres>=1.9,<2",
     "mypy>=1.13,<2",
+    "psycopg[binary]>=3.2,<4",
     "pytest>=8.3,<9",
     "pytest-cov>=6,<7",
     "ruff>=0.8,<1",
@@ -22,6 +34,9 @@ dev = [
 
 [tool.setuptools.packages.find]
 include = ["ingest*"]
+
+[tool.setuptools.package-data]
+ingest = ["schemas/*.json", "sql/*.sql"]
 
 [tool.ruff]
 line-length = 88
@@ -40,4 +55,4 @@ testpaths = ["tests"]
 
 [tool.coverage.run]
 branch = true
-source = ["ingest"]
+source = ["ingest", "orchestration"]

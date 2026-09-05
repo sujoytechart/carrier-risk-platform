@@ -137,7 +137,11 @@ def test_concurrent_manifest_publish_returns_the_first_commit() -> None:
     store = S3SnapshotStore("raw-bucket", cast(S3Client, client))
     location, first_manifest = _snapshot()
     client.objects[location.manifest_key] = (first_manifest.to_json(), {})
-    later_observation = replace(first_manifest, observed_at="2026-09-02T13:00:00+00:00")
+    later_observation = replace(
+        first_manifest,
+        observed_at="2026-09-02T13:00:00+00:00",
+        batch_id="",
+    )
 
     committed = store.publish_manifest(location, later_observation)
 
@@ -149,7 +153,11 @@ def test_concurrent_manifest_publish_rejects_different_snapshot() -> None:
     store = S3SnapshotStore("raw-bucket", cast(S3Client, client))
     location, first_manifest = _snapshot()
     client.objects[location.manifest_key] = (first_manifest.to_json(), {})
-    different_snapshot = replace(first_manifest, object_sha256="different")
+    different_snapshot = replace(
+        first_manifest,
+        object_sha256="different",
+        batch_id="",
+    )
 
     with pytest.raises(RuntimeError, match="different daily manifest"):
         store.publish_manifest(location, different_snapshot)
