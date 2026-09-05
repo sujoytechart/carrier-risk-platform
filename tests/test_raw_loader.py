@@ -11,15 +11,24 @@ from pathlib import Path
 
 import psycopg
 import pytest
+from psycopg.conninfo import conninfo_to_dict
 
 from ingest.contracts import FeedSchema
 from ingest.models import FEEDS, DownloadedSnapshot, SnapshotLocation, SnapshotManifest
 from ingest.object_store import FileSnapshotObjectStore
 
-POSTGRES_DSN = os.getenv(
-    "CARRIER_RISK_TEST_DATABASE_URL",
-    "postgresql://carrier_risk:carrier_risk@localhost:5432/carrier_risk",
-)
+POSTGRES_DSN = os.environ["CARRIER_RISK_TEST_DATABASE_URL"]
+POSTGRES_PARAMETERS = conninfo_to_dict(POSTGRES_DSN)
+if POSTGRES_PARAMETERS != {
+    "dbname": "carrier_risk_raw_test",
+    "host": "localhost",
+    "port": "5432",
+    "user": "carrier_risk",
+}:
+    raise RuntimeError(
+        "Raw-loader tests require exact libpq conninfo for carrier_risk_raw_test "
+        "on localhost:5432 as carrier_risk"
+    )
 
 
 @pytest.fixture(autouse=True)
@@ -115,3 +124,39 @@ def test_row_count_mismatch_rolls_back_the_entire_batch(tmp_path: Path) -> None:
         assert connection.execute(
             "select to_regclass('raw.snapshot_batches')"
         ).fetchone() == (None,)
+
+
+@pytest.mark.parametrize(
+    ("change", "message"),
+    [
+        ({"content_sha256": "0" * 64}, "content checksum"),
+        ({"uncompressed_bytes": 1}, "content byte count"),
+    ],
+)
+def test_uncompressed_integrity_failure_rolls_back_the_batch(
+    tmp_path: Path,
+    change: dict[str, object],
+    message: str,
+) -> None:
+    raw_loader = importlib.import_module("ingest.raw_loader")
+    schema, manifest = _snapshot_fixture(tmp_path)
+    loader = raw_loader.RawSnapshotLoader(
+        connection_factory=lambda: psycopg.connect(POSTGRES_DSN),
+        object_store=FileSnapshotObjectStore(tmp_path),
+        schemas={"crashes": schema},
+    )
+
+    with pytest.raises(ValueError, match=message):
+        loader.load(replace(manifest, **change))
+
+    with psycopg.connect(POSTGRES_DSN) as connection:
+        registry_exists = connection.execute(
+            "select to_regclass('raw.snapshot_batches')"
+        ).fetchone()
+        if registry_exists != (None,):
+            assert connection.execute(
+                "select count(*) from raw.snapshot_batches"
+            ).fetchone() == (0,)
+            assert connection.execute(
+                "select count(*) from raw.crash_rows"
+            ).fetchone() == (0,)

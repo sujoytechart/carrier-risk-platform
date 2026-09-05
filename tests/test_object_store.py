@@ -15,20 +15,53 @@ from ingest.object_store import FileSnapshotObjectStore, S3SnapshotObjectStore
 class FakeS3Client:
     """Serve one object with the metadata shape returned by S3."""
 
-    def __init__(self, payload: bytes, object_sha256: str) -> None:
+    def __init__(
+        self,
+        payload: bytes,
+        object_sha256: str,
+        *,
+        head_content_length: int | None = None,
+        head_version_id: str | None = None,
+        get_version_id: str | None = None,
+    ) -> None:
         self.payload = payload
         self.object_sha256 = object_sha256
+        self.head_content_length = head_content_length
+        self.head_version_id = head_version_id
+        self.get_version_id = get_version_id
+        self.get_requests: list[dict[str, str]] = []
+        self.body: io.BytesIO | None = None
 
     def head_object(self, *, Bucket: str, Key: str) -> dict[str, object]:
         del Bucket, Key
-        return {
-            "ContentLength": len(self.payload),
+        response: dict[str, object] = {
+            "ContentLength": (
+                len(self.payload)
+                if self.head_content_length is None
+                else self.head_content_length
+            ),
             "Metadata": {"object-sha256": self.object_sha256},
         }
+        if self.head_version_id is not None:
+            response["VersionId"] = self.head_version_id
+        return response
 
-    def get_object(self, *, Bucket: str, Key: str) -> dict[str, object]:
-        del Bucket, Key
-        return {"Body": io.BytesIO(self.payload)}
+    def get_object(
+        self,
+        *,
+        Bucket: str,
+        Key: str,
+        VersionId: str | None = None,
+    ) -> dict[str, object]:
+        request = {"Bucket": Bucket, "Key": Key}
+        if VersionId is not None:
+            request["VersionId"] = VersionId
+        self.get_requests.append(request)
+        self.body = io.BytesIO(self.payload)
+        response: dict[str, object] = {"Body": self.body}
+        if self.get_version_id is not None:
+            response["VersionId"] = self.get_version_id
+        return response
 
 
 def _manifest(payload: bytes) -> SnapshotManifest:
@@ -135,3 +168,109 @@ def test_s3_store_rejects_metadata_mismatch(
         ).open_snapshot(manifest),
     ):
         pass
+
+
+def test_s3_store_rejects_changed_bytes_despite_retained_checksum_metadata() -> None:
+    committed_payload = b"compressed snapshot"
+    changed_payload = b"compressed snapshou"
+    manifest = _manifest(committed_payload)
+    client = FakeS3Client(changed_payload, manifest.object_sha256)
+
+    with (
+        pytest.raises(ValueError, match="checksum"),
+        S3SnapshotObjectStore("raw-bucket", client).open_snapshot(manifest) as snapshot,
+    ):
+        assert snapshot.read() == changed_payload
+
+    assert client.body is not None
+    assert client.body.closed
+
+
+def test_s3_store_drains_and_verifies_after_normal_partial_consumption() -> None:
+    committed_payload = b"same prefix: committed"
+    changed_payload = b"same prefix: corruptee"
+    manifest = _manifest(committed_payload)
+    client = FakeS3Client(changed_payload, manifest.object_sha256)
+
+    with (
+        pytest.raises(ValueError, match="checksum"),
+        S3SnapshotObjectStore("raw-bucket", client).open_snapshot(manifest) as snapshot,
+    ):
+        assert snapshot.read(13) == b"same prefix: "
+
+
+def test_s3_store_verifies_actual_bytes_when_head_size_is_incorrect() -> None:
+    committed_payload = b"compressed snapshot"
+    truncated_payload = committed_payload[:-1]
+    manifest = _manifest(committed_payload)
+    client = FakeS3Client(
+        truncated_payload,
+        manifest.object_sha256,
+        head_content_length=manifest.compressed_bytes,
+    )
+
+    with (
+        pytest.raises(ValueError, match="byte count"),
+        S3SnapshotObjectStore("raw-bucket", client).open_snapshot(manifest) as snapshot,
+    ):
+        snapshot.read()
+
+
+def test_s3_store_binds_get_to_the_head_version() -> None:
+    payload = b"compressed snapshot"
+    manifest = _manifest(payload)
+    client = FakeS3Client(
+        payload,
+        manifest.object_sha256,
+        head_version_id="version-17",
+        get_version_id="version-17",
+    )
+
+    with S3SnapshotObjectStore("raw-bucket", client).open_snapshot(
+        manifest
+    ) as snapshot:
+        snapshot.read()
+
+    assert client.get_requests == [
+        {
+            "Bucket": "raw-bucket",
+            "Key": manifest.object_key,
+            "VersionId": "version-17",
+        }
+    ]
+
+
+def test_s3_store_rejects_a_different_returned_version() -> None:
+    payload = b"compressed snapshot"
+    manifest = _manifest(payload)
+    client = FakeS3Client(
+        payload,
+        manifest.object_sha256,
+        head_version_id="version-17",
+        get_version_id="version-18",
+    )
+
+    with (
+        pytest.raises(ValueError, match="version"),
+        S3SnapshotObjectStore("raw-bucket", client).open_snapshot(manifest),
+    ):
+        pass
+
+    assert client.body is not None
+    assert client.body.closed
+
+
+def test_s3_store_closes_body_when_consumer_raises() -> None:
+    payload = b"compressed snapshot"
+    manifest = _manifest(payload)
+    client = FakeS3Client(payload, manifest.object_sha256)
+
+    with (
+        pytest.raises(RuntimeError, match="consumer failed"),
+        S3SnapshotObjectStore("raw-bucket", client).open_snapshot(manifest) as snapshot,
+    ):
+        snapshot.read(1)
+        raise RuntimeError("consumer failed")
+
+    assert client.body is not None
+    assert client.body.closed

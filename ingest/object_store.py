@@ -3,16 +3,82 @@
 from __future__ import annotations
 
 import hashlib
-from collections.abc import Iterator
+from collections.abc import Buffer, Iterator
 from contextlib import AbstractContextManager, contextmanager
+from io import RawIOBase
 from pathlib import Path
-from typing import BinaryIO, Protocol, cast
-
-from types_boto3_s3 import S3Client
+from typing import TYPE_CHECKING, BinaryIO, Protocol, cast
 
 from ingest.models import SnapshotManifest
 
+if TYPE_CHECKING:
+    from types_boto3_s3 import S3Client
+
 HASH_BUFFER_BYTES = 1024 * 1024
+
+
+class _BinaryReadStream(Protocol):
+    def read(self, size: int = -1) -> bytes:
+        """Read at most size bytes, or all remaining bytes for a negative size."""
+
+
+class ContentIntegrityStream(RawIOBase):
+    """Measure bytes as they are read and verify the complete stream on demand."""
+
+    def __init__(
+        self,
+        source: _BinaryReadStream,
+        *,
+        expected_bytes: int,
+        expected_sha256: str,
+        content_name: str,
+    ) -> None:
+        self._source = source
+        self._expected_bytes = expected_bytes
+        self._expected_sha256 = expected_sha256
+        self._content_name = content_name
+        self._bytes_read = 0
+        self._digest = hashlib.sha256()
+
+    def read(self, size: int = -1) -> bytes:
+        """Read from the source while updating byte-count and checksum evidence."""
+        if self.closed:
+            raise ValueError("I/O operation on closed integrity stream")
+        chunk = self._source.read(size)
+        self._record(chunk)
+        return chunk
+
+    def readinto(self, buffer: Buffer, /) -> int:
+        """Support buffered consumers without bypassing integrity measurements."""
+        if self.closed:
+            raise ValueError("I/O operation on closed integrity stream")
+        destination = memoryview(buffer).cast("B")
+        chunk = self._source.read(len(destination))
+        destination[: len(chunk)] = chunk
+        self._record(chunk)
+        return len(chunk)
+
+    def readable(self) -> bool:
+        """Report that the integrity wrapper supports reads."""
+        return True
+
+    def verify_complete(self) -> None:
+        """Drain unread bytes in bounded chunks, then verify their measurements."""
+        while self.read(HASH_BUFFER_BYTES):
+            pass
+        if self._bytes_read != self._expected_bytes:
+            raise ValueError(
+                f"{self._content_name} byte count does not match its manifest: "
+                f"expected={self._expected_bytes}, actual={self._bytes_read}"
+            )
+        if self._digest.hexdigest() != self._expected_sha256:
+            raise ValueError(
+                f"{self._content_name} checksum does not match its manifest"
+            )
+
+    def _record(self, chunk: bytes) -> None:
+        self._bytes_read += len(chunk)
+        self._digest.update(chunk)
 
 
 class SnapshotObjectStore(Protocol):
@@ -69,15 +135,38 @@ class S3SnapshotObjectStore:
                 "Snapshot object checksum metadata does not match manifest"
             )
 
-        response = self._client.get_object(
-            Bucket=self._bucket,
-            Key=manifest.object_key,
-        )
+        version_id = metadata.get("VersionId")
+        if version_id is None:
+            response = self._client.get_object(
+                Bucket=self._bucket,
+                Key=manifest.object_key,
+            )
+        elif isinstance(version_id, str):
+            response = self._client.get_object(
+                Bucket=self._bucket,
+                Key=manifest.object_key,
+                VersionId=version_id,
+            )
+        else:
+            raise ValueError("Snapshot object version metadata must be a string")
+
         body = cast(BinaryIO, response["Body"])
+        verified_body = ContentIntegrityStream(
+            body,
+            expected_bytes=manifest.compressed_bytes,
+            expected_sha256=manifest.object_sha256,
+            content_name="Snapshot object",
+        )
         try:
-            yield body
+            if version_id is not None and response.get("VersionId") != version_id:
+                raise ValueError("Snapshot GET returned a different object version")
+            yield cast(BinaryIO, verified_body)
+            verified_body.verify_complete()
         finally:
-            body.close()
+            try:
+                verified_body.close()
+            finally:
+                body.close()
 
 
 def _file_sha256(path: Path) -> str:

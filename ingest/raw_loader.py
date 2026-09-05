@@ -8,7 +8,7 @@ import json
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from datetime import datetime
-from io import TextIOWrapper
+from io import BufferedReader, TextIOWrapper
 
 from ingest.contracts import FeedSchema, validate_manifest
 from ingest.database import (
@@ -18,7 +18,7 @@ from ingest.database import (
     raw_copy_statement,
 )
 from ingest.models import SnapshotManifest
-from ingest.object_store import SnapshotObjectStore
+from ingest.object_store import ContentIntegrityStream, SnapshotObjectStore
 
 ConnectionFactory = Callable[[], DatabaseConnection]
 
@@ -146,7 +146,14 @@ class RawSnapshotLoader:
         with (
             self._object_store.open_snapshot(manifest) as object_stream,
             gzip.GzipFile(fileobj=object_stream, mode="rb") as archive,
-            TextIOWrapper(archive, encoding="utf-8-sig", newline="") as text,
+            ContentIntegrityStream(
+                archive,
+                expected_bytes=manifest.uncompressed_bytes,
+                expected_sha256=manifest.content_sha256,
+                content_name="Snapshot content",
+            ) as verified_content,
+            BufferedReader(verified_content) as buffered_content,
+            TextIOWrapper(buffered_content, encoding="utf-8-sig", newline="") as text,
         ):
             reader = csv.reader(text)
             header = tuple(next(reader))
@@ -162,4 +169,5 @@ class RawSnapshotLoader:
                         )
                     copy.write_row((manifest.batch_id, source_row_number, *row))
                     inserted_rows += 1
+            verified_content.verify_complete()
         return inserted_rows
