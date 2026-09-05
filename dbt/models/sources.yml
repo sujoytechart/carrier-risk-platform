@@ -1,0 +1,9 @@
+version: 2
+
+sources:
+  - name: raw
+    schema: raw
+    tables:
+      - name: snapshot_batches
+      - name: inspection_rows
+      - name: crash_rows

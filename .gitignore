@@ -7,6 +7,7 @@ data/
 
 # Secrets
 .env
+profiles.yml
 *.tfvars
 !*.tfvars.example
 

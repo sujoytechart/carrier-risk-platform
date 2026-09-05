@@ -1,0 +1,23 @@
+version: 2
+
+models:
+  - name: clean_inspections
+    columns:
+      - name: batch_id
+        data_tests: [not_null]
+      - name: source_row_number
+        data_tests: [not_null]
+      - name: record_hash
+        data_tests: [not_null]
+  - name: clean_crashes
+    columns:
+      - name: batch_id
+        data_tests: [not_null]
+      - name: source_row_number
+        data_tests: [not_null]
+      - name: record_hash
+        data_tests: [not_null]
+  - name: clean_row_quarantine
+    columns:
+      - name: parse_reasons
+        data_tests: [not_null]

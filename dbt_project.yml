@@ -1,0 +1,65 @@
+name: carrier_risk_platform
+version: 1.0.0
+config-version: 2
+
+profile: carrier_risk_platform
+
+model-paths: ["dbt/models"]
+seed-paths: ["dbt/seeds"]
+test-paths: ["dbt/tests"]
+macro-paths: ["dbt/macros"]
+clean-targets: ["target", "dbt_packages"]
+
+models:
+  carrier_risk_platform:
+    clean:
+      +materialized: table
+      +schema: clean
+    modeled:
+      +materialized: table
+      +schema: modeled
+
+seeds:
+  carrier_risk_platform:
+    +schema: raw
+    raw_snapshot_batches:
+      +alias: snapshot_batches
+      +column_types:
+        batch_id: text
+        feed_name: text
+        dataset_id: text
+        observed_at: timestamptz
+        status: text
+        row_count: bigint
+    raw_inspection_rows:
+      +alias: inspection_rows
+      +column_types:
+        batch_id: text
+        source_row_number: bigint
+        inspection_id: text
+        dot_number: text
+        report_state: text
+        report_number: text
+        insp_date: text
+        mcmis_add_date: text
+        change_date: text
+        viol_total: text
+        oos_total: text
+    raw_crash_rows:
+      +alias: crash_rows
+      +column_types:
+        batch_id: text
+        source_row_number: bigint
+        crash_id: text
+        report_state: text
+        report_number: text
+        report_date: text
+        report_time: text
+        report_seq_no: text
+        dot_number: text
+        add_date: text
+        change_date: text
+        fatalities: text
+        injuries: text
+        tow_away: text
+        federal_recordable: text
