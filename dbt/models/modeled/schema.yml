@@ -12,6 +12,9 @@ models:
       - name: feed_name
         data_type: text
         data_tests: [not_null]
+      - name: event_type
+        data_type: text
+        data_tests: [not_null]
       - name: source_record_key
         data_type: text
         data_tests: [not_null]
@@ -31,6 +34,13 @@ models:
         data_type: timestamptz
       - name: availability_quality
         data_type: text
+        data_tests: [not_null]
+      - name: source_add_at
+        data_type: timestamptz
+      - name: source_change_at
+        data_type: timestamptz
+      - name: first_observed_at
+        data_type: timestamptz
         data_tests: [not_null]
       - name: is_current
         data_type: boolean
@@ -73,3 +83,114 @@ models:
         data_type: integer
       - name: tow_away
         data_type: boolean
+
+  - name: inspections
+    config: &enforced_contract
+      contract:
+        enforced: true
+    columns:
+      - {name: event_key, data_type: bigint, data_tests: [not_null]}
+      - {name: event_version_key, data_type: bigint, data_tests: [not_null, unique]}
+      - {name: source_record_key, data_type: text, data_tests: [not_null]}
+      - {name: usdot_number, data_type: text, data_tests: [not_null]}
+      - {name: event_date, data_type: date, data_tests: [not_null]}
+      - {name: reported_date, data_type: date, data_tests: [not_null]}
+      - {name: report_lag_days, data_type: integer, data_tests: [not_null]}
+      - {name: state, data_type: text}
+      - {name: violation_count, data_type: integer}
+      - {name: oos_violation_count, data_type: integer}
+      - {name: knowledge_valid_from, data_type: timestamptz, data_tests: [not_null]}
+      - {name: knowledge_valid_to, data_type: timestamptz}
+      - {name: is_current, data_type: boolean, data_tests: [not_null]}
+      - {name: is_deleted, data_type: boolean, data_tests: [not_null]}
+      - {name: deletion_reason, data_type: text}
+      - {name: record_hash, data_type: text, data_tests: [not_null]}
+
+  - name: crashes
+    config: *enforced_contract
+    columns:
+      - {name: event_key, data_type: bigint, data_tests: [not_null]}
+      - {name: event_version_key, data_type: bigint, data_tests: [not_null, unique]}
+      - {name: source_record_key, data_type: text, data_tests: [not_null]}
+      - {name: usdot_number, data_type: text, data_tests: [not_null]}
+      - {name: event_date, data_type: date, data_tests: [not_null]}
+      - {name: reported_date, data_type: date, data_tests: [not_null]}
+      - {name: report_lag_days, data_type: integer, data_tests: [not_null]}
+      - {name: state, data_type: text}
+      - {name: report_number, data_type: text}
+      - {name: report_time, data_type: integer}
+      - {name: report_seq_no, data_type: integer}
+      - {name: fatalities, data_type: integer}
+      - {name: injuries, data_type: integer}
+      - {name: tow_away, data_type: boolean}
+      - {name: knowledge_valid_from, data_type: timestamptz, data_tests: [not_null]}
+      - {name: knowledge_valid_to, data_type: timestamptz}
+      - {name: is_current, data_type: boolean, data_tests: [not_null]}
+      - {name: is_deleted, data_type: boolean, data_tests: [not_null]}
+      - {name: deletion_reason, data_type: text}
+      - {name: record_hash, data_type: text, data_tests: [not_null]}
+
+  - name: crash_incidents
+    config: *enforced_contract
+    columns:
+      - {name: event_key, data_type: bigint, data_tests: [not_null]}
+      - {name: event_version_key, data_type: bigint, data_tests: [not_null]}
+      - {name: carrier_crash_key, data_type: text, data_tests: [not_null]}
+      - {name: usdot_number, data_type: text, data_tests: [not_null]}
+      - {name: event_date, data_type: date, data_tests: [not_null]}
+      - {name: reported_date, data_type: date, data_tests: [not_null]}
+      - {name: report_lag_days, data_type: integer, data_tests: [not_null]}
+      - {name: state, data_type: text}
+      - {name: report_number, data_type: text}
+      - {name: report_time, data_type: integer}
+      - {name: fatalities, data_type: integer}
+      - {name: injuries, data_type: integer}
+      - {name: tow_away, data_type: boolean}
+      - {name: knowledge_valid_from, data_type: timestamptz, data_tests: [not_null]}
+      - {name: knowledge_valid_to, data_type: timestamptz}
+      - {name: is_current, data_type: boolean, data_tests: [not_null]}
+      - {name: is_deleted, data_type: boolean, data_tests: [not_null]}
+      - {name: deletion_reason, data_type: text}
+      - {name: record_hash, data_type: text, data_tests: [not_null]}
+
+  - name: events_union
+    config: *enforced_contract
+    columns: &union_columns
+      - {name: event_key, data_type: bigint, data_tests: [not_null]}
+      - {name: event_version_key, data_type: bigint, data_tests: [not_null]}
+      - {name: event_type, data_type: text, data_tests: [not_null]}
+      - {name: carrier_crash_key, data_type: text}
+      - {name: usdot_number, data_type: text, data_tests: [not_null]}
+      - {name: event_date, data_type: date, data_tests: [not_null]}
+      - {name: reported_date, data_type: date, data_tests: [not_null]}
+      - {name: report_lag_days, data_type: integer, data_tests: [not_null]}
+      - {name: state, data_type: text}
+      - {name: violation_count, data_type: integer}
+      - {name: oos_violation_count, data_type: integer}
+      - {name: fatalities, data_type: integer}
+      - {name: injuries, data_type: integer}
+      - {name: tow_away, data_type: boolean}
+      - {name: knowledge_valid_from, data_type: timestamptz, data_tests: [not_null]}
+      - {name: knowledge_valid_to, data_type: timestamptz}
+      - {name: is_current, data_type: boolean, data_tests: [not_null]}
+      - {name: is_deleted, data_type: boolean, data_tests: [not_null]}
+      - {name: deletion_reason, data_type: text}
+      - {name: record_hash, data_type: text, data_tests: [not_null]}
+
+  - name: current_events
+    config: *enforced_contract
+    columns: *union_columns
+
+  - name: training_features
+    config: *enforced_contract
+    columns:
+      - {name: usdot_number, data_type: text, data_tests: [not_null]}
+      - {name: scoring_date, data_type: date, data_tests: [not_null]}
+      - {name: inspections_6m, data_type: bigint, data_tests: [not_null]}
+      - {name: violations_6m, data_type: bigint, data_tests: [not_null]}
+      - {name: oos_violations_6m, data_type: bigint, data_tests: [not_null]}
+      - {name: crashes_24m, data_type: bigint, data_tests: [not_null]}
+      - {name: violations_per_inspection, data_type: numeric}
+      - {name: oos_violation_rate, data_type: numeric}
+      - {name: days_since_last_inspection, data_type: integer}
+      - {name: last_inspection_date, data_type: date}

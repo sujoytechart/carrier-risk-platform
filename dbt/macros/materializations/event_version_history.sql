@@ -7,6 +7,7 @@
         create table if not exists {{ target }} (
             event_version_key bigint generated always as identity primary key,
             feed_name text not null,
+            event_type text not null check (event_type in ('inspection', 'crash')),
             source_record_key text not null,
             usdot_number text not null,
             event_date date not null,
@@ -15,6 +16,9 @@
             knowledge_valid_to timestamptz,
             availability_quality text not null
                 check (availability_quality in ('source_proxy', 'observed')),
+            source_add_at timestamptz,
+            source_change_at timestamptz,
+            first_observed_at timestamptz not null,
             is_current boolean not null,
             is_deleted boolean not null,
             deletion_reason text,
@@ -127,12 +131,16 @@
 
                 insert into {{ target }} (
                     feed_name,
+                    event_type,
                     source_record_key,
                     usdot_number,
                     event_date,
                     reported_date,
                     knowledge_valid_from,
                     availability_quality,
+                    source_add_at,
+                    source_change_at,
+                    first_observed_at,
                     is_current,
                     is_deleted,
                     deletion_reason,
@@ -153,6 +161,7 @@
                 )
                 select
                     candidates.feed_name,
+                    candidates.event_type,
                     candidates.source_record_key,
                     candidates.usdot_number,
                     candidates.event_date,
@@ -168,6 +177,9 @@
                         when feed_has_history then 'observed'
                         else 'source_proxy'
                     end,
+                    candidates.source_add_at,
+                    candidates.source_change_at,
+                    pending_batch.observed_at,
                     true,
                     false,
                     null,
@@ -200,12 +212,16 @@
 
                 insert into {{ target }} (
                     feed_name,
+                    event_type,
                     source_record_key,
                     usdot_number,
                     event_date,
                     reported_date,
                     knowledge_valid_from,
                     availability_quality,
+                    source_add_at,
+                    source_change_at,
+                    first_observed_at,
                     is_current,
                     is_deleted,
                     deletion_reason,
@@ -226,12 +242,16 @@
                 )
                 select
                     prior.feed_name,
+                    prior.event_type,
                     prior.source_record_key,
                     prior.usdot_number,
                     prior.event_date,
                     pending_batch.observed_at::date,
                     pending_batch.observed_at,
                     'observed',
+                    prior.source_add_at,
+                    prior.source_change_at,
+                    pending_batch.observed_at,
                     true,
                     true,
                     'source_deleted',
