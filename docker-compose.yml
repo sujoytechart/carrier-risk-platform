@@ -11,7 +11,7 @@ services:
       timeout: 5s
       retries: 12
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
 
@@ -22,10 +22,81 @@ services:
       MINIO_ROOT_USER: minio
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?set MINIO_ROOT_PASSWORD in .env}
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"
     volumes:
       - minio-data:/data
+
+  minio-init:
+    image: minio/mc:RELEASE.2025-07-21T05-28-08Z
+    depends_on:
+      - minio
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?set MINIO_ROOT_PASSWORD in .env}
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - >-
+        until mc alias set local http://minio:9000 "$${MINIO_ROOT_USER}"
+        "$${MINIO_ROOT_PASSWORD}"; do sleep 2; done;
+        mc mb --ignore-existing local/carrier-risk-raw
+
+  elasticmq:
+    image: softwaremill/elasticmq-native:1.6.16
+    ports:
+      - "127.0.0.1:9324:9324"
+    volumes:
+      - ./docker/elasticmq.conf:/opt/elasticmq.conf:ro
+
+  airflow:
+    build:
+      context: .
+      dockerfile: docker/airflow/Dockerfile
+    command: ["airflow", "standalone"]
+    user: "50000:0"
+    working_dir: /opt/carrier-risk
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+      elasticmq:
+        condition: service_started
+    environment:
+      AIRFLOW__CORE__DAGS_FOLDER: /opt/carrier-risk/dags
+      PATH: /home/airflow/.local/bin:/usr/python/bin:/usr/local/bin:/usr/bin:/bin
+      AIRFLOW_HOME: /opt/airflow
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: >-
+        postgresql+psycopg2://carrier_risk:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@postgres/carrier_risk
+      AWS_ACCESS_KEY_ID: minio
+      AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:?set MINIO_ROOT_PASSWORD in .env}
+      AWS_REGION: us-east-1
+      AIRFLOW_CONN_AWS_DEFAULT: >-
+        {"conn_type":"aws","extra":{"region_name":"us-east-1","endpoint_url":"http://elasticmq:9324"}}
+      CARRIER_RISK_DATABASE_URL: >-
+        postgresql://carrier_risk:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@postgres/carrier_risk
+      CARRIER_RISK_DBT_PROFILES_DIR: /opt/carrier-risk/config
+      CARRIER_RISK_PROJECT_DIR: /opt/carrier-risk
+      CARRIER_RISK_QUEUE_URL: >-
+        http://elasticmq:9324/000000000000/carrier-risk-arrivals
+      CARRIER_RISK_RAW_BUCKET: carrier-risk-raw
+      CARRIER_RISK_S3_ENDPOINT_URL: http://minio:9000
+      CARRIER_RISK_SQS_ENDPOINT_URL: http://elasticmq:9324
+      POSTGRES_DB: carrier_risk
+      POSTGRES_HOST: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_PORT: "5432"
+      POSTGRES_SSLMODE: disable
+      POSTGRES_USER: carrier_risk
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - ./dags:/opt/carrier-risk/dags:ro
+      - ./dbt:/opt/carrier-risk/dbt:ro
+      - ./dbt_project.yml:/opt/carrier-risk/dbt_project.yml:ro
+      - ./profiles.yml.example:/opt/carrier-risk/config/profiles.yml:ro
 
 volumes:
   postgres-data:

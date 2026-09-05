@@ -14,8 +14,9 @@ dependencies = [
 
 [project.optional-dependencies]
 airflow = [
-    "apache-airflow>=3.1,<4",
+    "apache-airflow[postgres]>=3.3,<3.4",
     "apache-airflow-providers-amazon>=9,<10",
+    "aiobotocore>=3,<4",
 ]
 dbt = [
     "dbt-core>=1.10,<2",
@@ -29,11 +30,11 @@ dev = [
     "pytest>=8.3,<9",
     "pytest-cov>=6,<7",
     "ruff>=0.8,<1",
-    "types-boto3[s3,sts]>=1.35,<2",
+    "types-boto3[s3,sqs,sts]>=1.35,<2",
 ]
 
 [tool.setuptools.packages.find]
-include = ["ingest*"]
+include = ["ingest*", "orchestration*"]
 
 [tool.setuptools.package-data]
 ingest = ["schemas/*.json", "sql/*.sql"]
