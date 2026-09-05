@@ -47,7 +47,7 @@ def test_modeled_features_enforce_both_clocks_and_deduplicate_incidents(
     with psycopg.connect(POSTGRES_DSN, autocommit=True) as connection:
         connection.execute("drop schema if exists modeled cascade")
 
-    run_dbt(tmp_path, "seed", "--full-refresh")
+    run_dbt(tmp_path, "seed", "--full-refresh", "--vars", "{load_test_fixtures: true}")
     run_dbt(tmp_path, "build", "--select", "path:dbt/models/clean")
     run_dbt(tmp_path, "build", "--select", "+event_versions+")
     _insert_late_report_fixture()

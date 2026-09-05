@@ -11,8 +11,8 @@ with source_rows as (
         {{ parse_nonnegative_integer('r.viol_total') }} as parsed_violation_count,
         {{ parse_nonnegative_integer('r.oos_total') }} as parsed_oos_count
     from {{ source('raw', 'inspection_rows') }} r
-    join {{ source('raw', 'snapshot_batches') }} b using (batch_id)
-    where b.status = 'loaded'
+    join {{ ref('clean_snapshot_batches') }} b using (batch_id)
+    where b.feed_name = 'inspections'
 
 ), normalized as (
 
@@ -31,6 +31,9 @@ with source_rows as (
             case when nullif(btrim(mcmis_add_date), '') is not null
                        and parsed_source_add_at is null
                  then 'invalid_source_add_at' end,
+            case when nullif(btrim(change_date), '') is not null
+                       and parsed_source_change_at is null
+                 then 'invalid_source_change_at' end,
             case when nullif(btrim(viol_total), '') is not null
                        and parsed_violation_count is null
                  then 'invalid_violation_count' end,
@@ -40,7 +43,7 @@ with source_rows as (
             case when parsed_event_date is not null
                        and parsed_source_add_at is not null
                        and (parsed_source_add_at + interval '1 day')::date
-                           <= parsed_event_date
+                           < parsed_event_date
                  then 'impossible_event_chronology' end
         ]::text[], null) as parse_reasons
     from source_rows
@@ -63,11 +66,14 @@ select
     parsed_violation_count as violation_count,
     parsed_oos_count as oos_violation_count,
     parse_reasons,
-    md5(concat_ws(chr(31),
+    md5(jsonb_build_array(
         parsed_usdot_number,
-        parsed_event_date::text,
+        parsed_event_date,
+        parsed_source_add_at,
+        parsed_source_change_at,
         nullif(btrim(report_state), ''),
-        coalesce(parsed_violation_count, 0)::text,
-        coalesce(parsed_oos_count, 0)::text
-    )) as record_hash
+        parsed_violation_count,
+        parsed_oos_count,
+        parse_reasons
+    )::text) as record_hash
 from normalized

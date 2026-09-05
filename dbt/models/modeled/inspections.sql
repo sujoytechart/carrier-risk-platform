@@ -17,3 +17,4 @@ select
     record_hash
 from {{ ref('event_versions') }}
 where feed_name = 'inspections'
+  and is_model_eligible

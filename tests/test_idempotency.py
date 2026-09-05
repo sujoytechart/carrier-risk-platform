@@ -12,11 +12,7 @@ def _event_versions() -> list[tuple[object, ...]]:
     with psycopg.connect(POSTGRES_DSN) as connection:
         return connection.execute(
             """
-            select feed_name, source_record_key, record_hash, event_date,
-                   reported_date, knowledge_valid_from, knowledge_valid_to,
-                   is_current, is_deleted, deletion_reason,
-                   first_seen_batch_id, last_seen_batch_id,
-                   predecessor_version_key, superseded_by_version_key
+            select *
               from modeled.event_versions
              order by event_version_key
             """
@@ -29,7 +25,7 @@ def test_event_history_is_correction_aware_and_replay_safe(tmp_path: Path) -> No
     with psycopg.connect(POSTGRES_DSN, autocommit=True) as connection:
         connection.execute("drop schema if exists modeled cascade")
 
-    run_dbt(tmp_path, "seed", "--full-refresh")
+    run_dbt(tmp_path, "seed", "--full-refresh", "--vars", "{load_test_fixtures: true}")
     run_dbt(tmp_path, "build", "--select", "path:dbt/models/clean")
     run_dbt(tmp_path, "build", "--select", "+event_versions+")
 
@@ -99,7 +95,7 @@ def test_event_history_is_correction_aware_and_replay_safe(tmp_path: Path) -> No
     assert deleted_crash == (True, "source_deleted")
 
     assert any(
-        row[3] == date(2025, 12, 1) and row[4] == date(2025, 12, 6)
+        row[5] == date(2025, 12, 1) and row[6] == date(2025, 12, 6)
         for row in first_build
     )
 

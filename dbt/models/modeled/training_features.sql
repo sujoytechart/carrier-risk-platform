@@ -1,11 +1,37 @@
-{% set scoring_dates = var('scoring_dates', ['2026-06-01']) %}
+{% set scoring_dates = var('scoring_dates', none) %}
+{% if scoring_dates is not none %}
+    {% if scoring_dates is string or scoring_dates is mapping
+          or scoring_dates is not sequence or not scoring_dates %}
+        {{ exceptions.raise_compiler_error('scoring_dates must be a nonempty list of ISO month-start dates') }}
+    {% endif %}
+    {% for scoring_date in scoring_dates %}
+        {% if scoring_date is not string or not modules.re.fullmatch(
+            '(?!0000)[0-9]{4}-(0[1-9]|1[0-2])-01', scoring_date
+        ) %}
+            {{ exceptions.raise_compiler_error('scoring_dates must contain only ISO month-start dates') }}
+        {% endif %}
+    {% endfor %}
+{% endif %}
 
 with scoring_grid(scoring_date) as (
 
-    values
-    {% for scoring_date in scoring_dates %}
-        (date '{{ scoring_date }}'){% if not loop.last %},{% endif %}
-    {% endfor %}
+    {% if scoring_dates is not none %}
+        select distinct scoring_date
+        from (values
+        {% for scoring_date in scoring_dates %}
+            (date '{{ scoring_date }}'){% if not loop.last %},{% endif %}
+        {% endfor %}
+        ) explicit_dates(scoring_date)
+    {% else %}
+        -- Metadata bounds are reproducible: only successfully applied complete
+        -- batches define the inclusive month range; the wall clock is irrelevant.
+        select generate_series(
+            date_trunc('month', min(observed_at) at time zone 'UTC'),
+            date_trunc('month', max(observed_at) at time zone 'UTC'),
+            interval '1 month'
+        )::date
+        from {{ this.schema }}.event_version_batches
+    {% endif %}
 
 ), eligible_carriers as (
 

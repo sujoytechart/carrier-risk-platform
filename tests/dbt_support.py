@@ -7,9 +7,11 @@ import subprocess
 import sys
 from pathlib import Path
 
+import psycopg
+
 POSTGRES_DSN = os.getenv(
     "CARRIER_RISK_TEST_DATABASE_URL",
-    "postgresql://carrier_risk:carrier_risk@localhost:5432/carrier_risk",
+    "host=localhost port=5432 dbname=carrier_risk user=carrier_risk",
 )
 
 
@@ -23,7 +25,7 @@ def write_test_profile(directory: Path, *, threads: int = 2) -> None:
       host: localhost
       port: 5432
       user: carrier_risk
-      password: carrier_risk
+      password: "{{{{ env_var('PGPASSWORD') }}}}"
       dbname: carrier_risk
       schema: public
       threads: {threads}
@@ -35,18 +37,27 @@ def execute_dbt(
     profiles_dir: Path, *arguments: str
 ) -> subprocess.CompletedProcess[str]:
     """Run dbt and return captured output without interpreting its status."""
-    return subprocess.run(
-        [
-            str(Path(sys.executable).with_name("dbt")),
-            *arguments,
-            "--profiles-dir",
-            str(profiles_dir),
-        ],
-        cwd=Path(__file__).resolve().parents[1],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
+    with psycopg.connect(POSTGRES_DSN, autocommit=True) as lock_connection:
+        lock_connection.execute("select pg_advisory_lock(764301234::bigint)")
+        environment = dict(os.environ)
+        environment["CARRIER_RISK_DBT_LOCK_PID"] = str(lock_connection.info.backend_pid)
+        return subprocess.run(
+            [
+                str(Path(sys.executable).with_name("dbt")),
+                *arguments,
+                "--profiles-dir",
+                str(profiles_dir),
+                "--target-path",
+                str(profiles_dir / "target"),
+                "--log-path",
+                str(profiles_dir / "logs"),
+            ],
+            cwd=Path(__file__).resolve().parents[1],
+            env=environment,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
 
 
 def run_dbt(profiles_dir: Path, *arguments: str) -> None:

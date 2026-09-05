@@ -8,15 +8,15 @@ with source_rows as (
         {{ parse_source_date('r.report_date') }} as parsed_event_date,
         {{ parse_source_timestamp('r.add_date') }} as parsed_source_add_at,
         {{ parse_source_timestamp('r.change_date') }} as parsed_source_change_at,
-        {{ parse_nonnegative_integer('r.report_time') }} as parsed_report_time,
+        {{ parse_report_time('r.report_time') }} as parsed_report_time,
         {{ parse_nonnegative_integer('r.report_seq_no') }} as parsed_report_seq_no,
         {{ parse_nonnegative_integer('r.fatalities') }} as parsed_fatalities,
         {{ parse_nonnegative_integer('r.injuries') }} as parsed_injuries,
         {{ parse_source_boolean('r.tow_away') }} as parsed_tow_away,
         {{ parse_source_boolean('r.federal_recordable') }} as parsed_federal_recordable
     from {{ source('raw', 'crash_rows') }} r
-    join {{ source('raw', 'snapshot_batches') }} b using (batch_id)
-    where b.status = 'loaded'
+    join {{ ref('clean_snapshot_batches') }} b using (batch_id)
+    where b.feed_name = 'crashes'
 
 ), normalized as (
 
@@ -29,7 +29,7 @@ with source_rows as (
                        and parsed_event_date is not null
                        and parsed_report_time is not null
                        and parsed_report_seq_no is not null
-                 then encode(convert_to(json_build_array(
+                 then 'fallback:' || encode(convert_to(json_build_array(
                      btrim(report_state), btrim(report_number),
                      parsed_event_date, parsed_report_time, parsed_report_seq_no
                  )::text, 'UTF8'), 'hex')
@@ -48,13 +48,31 @@ with source_rows as (
             case when nullif(btrim(add_date), '') is not null
                        and parsed_source_add_at is null
                  then 'invalid_source_add_at' end,
+            case when nullif(btrim(change_date), '') is not null
+                       and parsed_source_change_at is null
+                 then 'invalid_source_change_at' end,
+            case when nullif(btrim(report_time), '') is not null
+                       and parsed_report_time is null
+                 then 'invalid_report_time' end,
+            case when nullif(btrim(report_seq_no), '') is not null
+                       and parsed_report_seq_no is null
+                 then 'invalid_report_seq_no' end,
+            case when nullif(btrim(fatalities), '') is not null
+                       and parsed_fatalities is null
+                 then 'invalid_fatalities' end,
+            case when nullif(btrim(injuries), '') is not null
+                       and parsed_injuries is null
+                 then 'invalid_injuries' end,
+            case when nullif(btrim(tow_away), '') is not null
+                       and parsed_tow_away is null
+                 then 'invalid_tow_away' end,
             case when nullif(btrim(federal_recordable), '') is not null
                        and parsed_federal_recordable is null
                  then 'invalid_federal_recordable' end,
             case when parsed_event_date is not null
                        and parsed_source_add_at is not null
                        and (parsed_source_add_at + interval '1 day')::date
-                           <= parsed_event_date
+                           < parsed_event_date
                  then 'impossible_event_chronology' end
         ]::text[], null) as parse_reasons
     from source_rows
@@ -65,6 +83,7 @@ with source_rows as (
         *,
         case
             when cardinality(parse_reasons) > 0 then 'excluded'
+            when source_record_key is null then 'excluded'
             when parsed_usdot_number is null then 'excluded'
             when parsed_federal_recordable is distinct from true then 'excluded'
             when nullif(btrim(report_state), '') is null
@@ -76,6 +95,7 @@ with source_rows as (
         case
             when 'invalid_event_date' = any(parse_reasons) then 'invalid_event_date'
             when cardinality(parse_reasons) > 0 then parse_reasons[1]
+            when source_record_key is null then 'missing_source_record_key'
             when parsed_usdot_number is null then 'missing_usdot_number'
             when parsed_federal_recordable is distinct from true
                 then 'not_federally_recordable'
@@ -111,16 +131,19 @@ select
     model_eligibility,
     exclusion_reason,
     parse_reasons,
-    md5(concat_ws(chr(31),
+    md5(jsonb_build_array(
         parsed_usdot_number,
-        parsed_event_date::text,
+        parsed_event_date,
+        parsed_source_add_at,
+        parsed_source_change_at,
         nullif(btrim(report_state), ''),
         nullif(btrim(report_number), ''),
-        coalesce(parsed_report_time, 0)::text,
-        coalesce(parsed_report_seq_no, 0)::text,
-        coalesce(parsed_fatalities, 0)::text,
-        coalesce(parsed_injuries, 0)::text,
-        coalesce(parsed_tow_away, false)::text,
-        coalesce(parsed_federal_recordable, false)::text
-    )) as record_hash
+        parsed_report_time,
+        parsed_report_seq_no,
+        parsed_fatalities,
+        parsed_injuries,
+        parsed_tow_away,
+        parsed_federal_recordable,
+        parse_reasons
+    )::text) as record_hash
 from classified

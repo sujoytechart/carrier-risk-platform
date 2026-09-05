@@ -16,7 +16,7 @@ def test_clean_models_type_valid_rows_and_preserve_rejection_reasons(
 ) -> None:
     write_test_profile(tmp_path)
 
-    run_dbt(tmp_path, "seed", "--full-refresh")
+    run_dbt(tmp_path, "seed", "--full-refresh", "--vars", "{load_test_fixtures: true}")
     run_dbt(tmp_path, "build", "--select", "path:dbt/models/clean")
 
     with psycopg.connect(POSTGRES_DSN) as connection:

@@ -10,6 +10,9 @@ test-paths: ["dbt/tests"]
 macro-paths: ["dbt/macros"]
 clean-targets: ["target", "dbt_packages"]
 
+on-run-start:
+  - "{{ assert_build_lock() }}"
+
 models:
   carrier_risk_platform:
     clean:
@@ -24,6 +27,7 @@ models:
 
 seeds:
   carrier_risk_platform:
+    +enabled: "{{ var('load_test_fixtures', false) }}"
     +schema: raw
     raw_snapshot_batches:
       +alias: snapshot_batches

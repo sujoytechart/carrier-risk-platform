@@ -20,10 +20,14 @@ models:
         data_tests: [not_null]
       - name: usdot_number
         data_type: text
-        data_tests: [not_null]
+        data_tests:
+          - not_null:
+              config: {where: is_model_eligible}
       - name: event_date
         data_type: date
-        data_tests: [not_null]
+        data_tests:
+          - not_null:
+              config: {where: is_model_eligible}
       - name: reported_date
         data_type: date
         data_tests: [not_null]
@@ -45,6 +49,14 @@ models:
       - name: is_current
         data_type: boolean
         data_tests: [not_null]
+      - name: is_model_eligible
+        data_type: boolean
+        data_tests: [not_null]
+      - name: exclusion_reason
+        data_type: text
+        data_tests:
+          - not_null:
+              config: {where: 'not is_model_eligible'}
       - name: is_deleted
         data_type: boolean
         data_tests: [not_null]

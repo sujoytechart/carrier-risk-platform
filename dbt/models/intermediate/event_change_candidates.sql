@@ -1,3 +1,11 @@
+{{ config(
+    materialized='table',
+    indexes=[{'columns': ['batch_id', 'feed_name', 'source_record_key']}],
+    post_hook='{{ publish_candidate_batches() }}'
+) }}
+
+-- depends_on: {{ ref('clean_snapshot_batches') }}
+
 with inspections as (
 
     select
@@ -28,8 +36,15 @@ with inspections as (
             and usdot_number is not null
             and event_date is not null
             and source_proxy_reported_date is not null
-            and source_proxy_valid_from::date > event_date
-            as is_model_eligible
+            and source_proxy_valid_from::date >= event_date
+            as is_model_eligible,
+        case
+            when cardinality(parse_reasons) > 0 then parse_reasons[1]
+            when source_record_key is null then 'missing_source_record_key'
+            when usdot_number is null then 'missing_usdot_number'
+            when event_date is null then 'missing_event_date'
+            when source_proxy_reported_date is null then 'missing_source_add_at'
+        end as exclusion_reason
     from {{ ref('clean_inspections') }}
 
 ), crashes as (
@@ -57,9 +72,12 @@ with inspections as (
         injuries,
         tow_away,
         record_hash,
-        model_eligibility = 'eligible'
-            and source_proxy_valid_from::date > event_date
-            as is_model_eligible
+        coalesce(model_eligibility = 'eligible'
+            and source_proxy_valid_from::date >= event_date, false)
+            as is_model_eligible,
+        coalesce(exclusion_reason,
+            case when source_proxy_valid_from is null then 'missing_source_add_at' end
+        ) as exclusion_reason
     from {{ ref('clean_crashes') }}
 
 )

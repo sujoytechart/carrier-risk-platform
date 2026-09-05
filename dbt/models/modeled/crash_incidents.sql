@@ -18,6 +18,14 @@ with keyed_crash_versions as (
         knowledge_valid_from
     from keyed_crash_versions
 
+    union
+
+    select distinct
+        carrier_crash_key,
+        knowledge_valid_to as knowledge_valid_from
+    from keyed_crash_versions
+    where knowledge_valid_to is not null
+
 ), incident_segments as (
 
     select

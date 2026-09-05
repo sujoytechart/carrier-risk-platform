@@ -21,3 +21,4 @@ select
     record_hash
 from {{ ref('event_versions') }}
 where feed_name = 'crashes'
+  and is_model_eligible
