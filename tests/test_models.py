@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from datetime import UTC, datetime, timedelta, timezone
 
 import pytest
@@ -67,9 +68,9 @@ def test_manifest_json_round_trip_preserves_tuple_columns() -> None:
             row_count=10,
             uncompressed_bytes=100,
             compressed_bytes=50,
-            content_sha256="content",
-            object_sha256="object",
-            schema_fingerprint="schema",
+            content_sha256="1" * 64,
+            object_sha256="2" * 64,
+            schema_fingerprint="3" * 64,
             columns=("inspection_id", "dot_number"),
         ),
     )
@@ -78,49 +79,101 @@ def test_manifest_json_round_trip_preserves_tuple_columns() -> None:
 
     assert restored == manifest
     assert restored.batch_id == (
-        "a2859cf022dcb97c1c436282facc151c6aad186d44a55666bc8edcfb682d4c4c"
+        "f80c1cc855a61502ad4c11cc0afef5ba1cc812b42b03bae74dbfb438d4666b5b"
     )
 
 
 def test_legacy_manifest_derives_its_batch_id_when_deserialized() -> None:
-    legacy_document = b"""{
-      "columns": ["crash_id"],
-      "compressed_bytes": 8,
-      "content_sha256": "content",
-      "dataset_id": "aayw-vxb3",
-      "feed_name": "crashes",
-      "object_key": "raw/feed=crashes/acquisition_date=2026-09-03/snapshot.csv.gz",
-      "object_sha256": "object",
-      "observed_at": "2026-09-03T00:07:10+00:00",
-      "row_count": 1,
-      "schema_fingerprint": "schema",
-      "source_url": "https://example.test/crashes.csv",
-      "uncompressed_bytes": 10
-    }"""
+    payload = _valid_manifest_payload()
+    payload["columns"] = ["crash_id"]
+    payload["compressed_bytes"] = 8
+    payload["uncompressed_bytes"] = 10
+    legacy_document = json.dumps(payload).encode()
 
     manifest = SnapshotManifest.from_json(legacy_document)
 
     assert manifest.batch_id == (
-        "4aac9195424e18697c6259fae2a0671d9064809774ce59c3744e1d37c127dd9f"
+        "bdb93550f652e4dc7516217e2fbfa77c35cfb347da044cf57435828e5e1ce0f0"
     )
 
 
 def test_manifest_rejects_an_invalid_explicit_batch_id() -> None:
-    invalid_document = b"""{
-      "batch_id": "NOT-A-SHA256",
-      "columns": ["inspection_id"],
-      "compressed_bytes": 8,
-      "content_sha256": "content",
-      "dataset_id": "fx4q-ay7w",
-      "feed_name": "inspections",
-      "object_key": "raw/feed=inspections/acquisition_date=2026-09-03/snapshot.csv.gz",
-      "object_sha256": "object",
-      "observed_at": "2026-09-03T00:14:48+00:00",
-      "row_count": 1,
-      "schema_fingerprint": "schema",
-      "source_url": "https://example.test/inspections.csv",
-      "uncompressed_bytes": 10
-    }"""
+    payload = _valid_manifest_payload()
+    payload.update(
+        {
+            "batch_id": "NOT-A-SHA256",
+            "columns": ["inspection_id"],
+            "compressed_bytes": 8,
+            "dataset_id": "fx4q-ay7w",
+            "feed_name": "inspections",
+            "object_key": (
+                "raw/feed=inspections/acquisition_date=2026-09-03/snapshot.csv.gz"
+            ),
+            "observed_at": "2026-09-03T00:14:48+00:00",
+            "source_url": "https://example.test/inspections.csv",
+            "uncompressed_bytes": 10,
+        }
+    )
 
     with pytest.raises(ValueError, match="batch_id"):
-        SnapshotManifest.from_json(invalid_document)
+        SnapshotManifest.from_json(json.dumps(payload).encode())
+
+
+def _valid_manifest_payload() -> dict[str, object]:
+    return {
+        "columns": ["CRASH_ID", "REPORT_STATE"],
+        "compressed_bytes": 80,
+        "content_sha256": "1" * 64,
+        "dataset_id": "aayw-vxb3",
+        "feed_name": "crashes",
+        "object_key": ("raw/feed=crashes/acquisition_date=2026-09-03/snapshot.csv.gz"),
+        "object_sha256": "2" * 64,
+        "observed_at": "2026-09-03T00:07:10+00:00",
+        "row_count": 1,
+        "schema_fingerprint": "3" * 64,
+        "source_url": "https://example.test/crashes.csv",
+        "uncompressed_bytes": 100,
+    }
+
+
+def test_manifest_json_must_contain_an_object() -> None:
+    with pytest.raises(ValueError, match="JSON object"):
+        SnapshotManifest.from_json(b"[]")
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "message"),
+    [
+        ("feed_name", 1, "feed_name.*string"),
+        ("source_url", None, "source_url.*string"),
+        ("row_count", True, "row_count.*integer"),
+        ("compressed_bytes", -1, "compressed_bytes.*non-negative"),
+        ("uncompressed_bytes", -1, "uncompressed_bytes.*non-negative"),
+        ("columns", "CRASH_ID", "columns.*list"),
+        ("columns", ["CRASH_ID", 2], "columns.*strings"),
+        ("columns", ["CRASH_ID", "CRASH_ID"], "columns.*duplicate"),
+        ("content_sha256", "not-a-checksum", "content_sha256.*SHA-256"),
+        ("object_sha256", "2" * 63, "object_sha256.*SHA-256"),
+        ("schema_fingerprint", "G" * 64, "schema_fingerprint.*SHA-256"),
+        ("observed_at", "yesterday", "observed_at.*ISO 8601"),
+        ("observed_at", "2026-09-03T00:07:10", "observed_at.*timezone"),
+    ],
+)
+def test_manifest_json_rejects_invalid_field_values(
+    field: str,
+    value: object,
+    message: str,
+) -> None:
+    payload = _valid_manifest_payload()
+    payload[field] = value
+
+    with pytest.raises(ValueError, match=message):
+        SnapshotManifest.from_json(json.dumps(payload).encode())
+
+
+def test_manifest_json_reports_missing_required_fields() -> None:
+    payload = _valid_manifest_payload()
+    del payload["dataset_id"]
+
+    with pytest.raises(ValueError, match="dataset_id.*required"):
+        SnapshotManifest.from_json(json.dumps(payload).encode())

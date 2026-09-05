@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from importlib.resources import files
 from typing import Self, cast
 
@@ -64,7 +64,7 @@ def validate_manifest(manifest: SnapshotManifest, schema: FeedSchema) -> None:
     observed_at = datetime.fromisoformat(manifest.observed_at)
     if observed_at.tzinfo is None:
         raise ValueError("Manifest observed_at must include a timezone")
-    acquisition_date = observed_at.date().isoformat()
+    acquisition_date = observed_at.astimezone(UTC).date().isoformat()
     expected_key = (
         f"raw/feed={schema.feed_name}/acquisition_date={acquisition_date}/"
         "snapshot.csv.gz"

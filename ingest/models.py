@@ -4,9 +4,12 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from typing import Self, cast
+
+_SHA256_PATTERN = re.compile(r"[0-9a-f]{64}")
 
 
 def derive_batch_id(
@@ -159,20 +162,93 @@ class SnapshotManifest:
 
     @classmethod
     def from_json(cls, document: bytes) -> Self:
-        """Deserialize a stored manifest without weakening strict field types."""
-        payload = cast(dict[str, object], json.loads(document))
+        """Deserialize a manifest after validating its untrusted JSON values."""
+        decoded = cast(object, json.loads(document))
+        if not isinstance(decoded, dict):
+            raise ValueError("Snapshot manifest must be a JSON object")
+        payload = cast(dict[str, object], decoded)
+
+        observed_at = _required_string(payload, "observed_at")
+        try:
+            parsed_observed_at = datetime.fromisoformat(observed_at)
+        except ValueError as error:
+            raise ValueError(
+                "Manifest field 'observed_at' must be an ISO 8601 timestamp"
+            ) from error
+        if parsed_observed_at.tzinfo is None or parsed_observed_at.utcoffset() is None:
+            raise ValueError("Manifest field 'observed_at' must include a timezone")
+
         return cls(
-            feed_name=cast(str, payload["feed_name"]),
-            dataset_id=cast(str, payload["dataset_id"]),
-            source_url=cast(str, payload["source_url"]),
-            observed_at=cast(str, payload["observed_at"]),
-            object_key=cast(str, payload["object_key"]),
-            row_count=cast(int, payload["row_count"]),
-            uncompressed_bytes=cast(int, payload["uncompressed_bytes"]),
-            compressed_bytes=cast(int, payload["compressed_bytes"]),
-            content_sha256=cast(str, payload["content_sha256"]),
-            object_sha256=cast(str, payload["object_sha256"]),
-            schema_fingerprint=cast(str, payload["schema_fingerprint"]),
-            columns=tuple(cast(list[str], payload["columns"])),
-            batch_id=cast(str, payload.get("batch_id", "")),
+            feed_name=_required_string(payload, "feed_name"),
+            dataset_id=_required_string(payload, "dataset_id"),
+            source_url=_required_string(payload, "source_url"),
+            observed_at=observed_at,
+            object_key=_required_string(payload, "object_key"),
+            row_count=_required_non_negative_integer(payload, "row_count"),
+            uncompressed_bytes=_required_non_negative_integer(
+                payload, "uncompressed_bytes"
+            ),
+            compressed_bytes=_required_non_negative_integer(
+                payload, "compressed_bytes"
+            ),
+            content_sha256=_required_sha256(payload, "content_sha256"),
+            object_sha256=_required_sha256(payload, "object_sha256"),
+            schema_fingerprint=_required_sha256(payload, "schema_fingerprint"),
+            columns=_required_columns(payload),
+            batch_id=_optional_string(payload, "batch_id"),
         )
+
+
+def _required_value(payload: dict[str, object], field_name: str) -> object:
+    try:
+        return payload[field_name]
+    except KeyError as error:
+        raise ValueError(f"Manifest field {field_name!r} is required") from error
+
+
+def _required_string(payload: dict[str, object], field_name: str) -> str:
+    value = _required_value(payload, field_name)
+    if not isinstance(value, str):
+        raise ValueError(f"Manifest field {field_name!r} must be a string")
+    return value
+
+
+def _optional_string(payload: dict[str, object], field_name: str) -> str:
+    value = payload.get(field_name, "")
+    if not isinstance(value, str):
+        raise ValueError(f"Manifest field {field_name!r} must be a string")
+    return value
+
+
+def _required_non_negative_integer(payload: dict[str, object], field_name: str) -> int:
+    value = _required_value(payload, field_name)
+    if type(value) is not int:
+        raise ValueError(f"Manifest field {field_name!r} must be an integer")
+    if value < 0:
+        raise ValueError(
+            f"Manifest field {field_name!r} must be a non-negative integer"
+        )
+    return value
+
+
+def _required_sha256(payload: dict[str, object], field_name: str) -> str:
+    value = _required_string(payload, field_name)
+    if _SHA256_PATTERN.fullmatch(value) is None:
+        raise ValueError(
+            f"Manifest field {field_name!r} must be a 64-character lowercase "
+            "SHA-256 hex digest"
+        )
+    return value
+
+
+def _required_columns(payload: dict[str, object]) -> tuple[str, ...]:
+    value = _required_value(payload, "columns")
+    if not isinstance(value, list):
+        raise ValueError("Manifest field 'columns' must be a list")
+    if not all(isinstance(column, str) for column in value):
+        raise ValueError("Manifest field 'columns' must contain only strings")
+
+    columns = tuple(cast(list[str], value))
+    if len(set(columns)) != len(columns):
+        raise ValueError("Manifest field 'columns' contains duplicate names")
+    return columns

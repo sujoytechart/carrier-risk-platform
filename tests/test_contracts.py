@@ -79,3 +79,14 @@ def test_manifest_contract_rejects_inconsistent_evidence(
 def test_unknown_feed_has_no_implicit_schema() -> None:
     with pytest.raises(ValueError, match="Unknown feed"):
         FeedSchema.load_configured("unknown")
+
+
+def test_manifest_partition_is_resolved_from_observed_at_in_utc() -> None:
+    schema = FeedSchema.load_configured("crashes")
+    manifest = replace(
+        _manifest_for(schema),
+        observed_at="2026-09-02T22:00:00-04:00",
+        batch_id="",
+    )
+
+    validate_manifest(manifest, schema)
