@@ -13,8 +13,7 @@ from io import BufferedReader, TextIOWrapper
 from ingest.contracts import FeedSchema, validate_manifest
 from ingest.database import (
     DatabaseConnection,
-    create_raw_schema,
-    ensure_feed_table,
+    initialize_raw_storage,
     raw_copy_statement,
 )
 from ingest.models import SnapshotManifest
@@ -49,21 +48,22 @@ class RawSnapshotLoader:
     def load(self, manifest: SnapshotManifest) -> RawLoadResult:
         """Load one batch, or return a no-op result when it already committed.
 
-        Schema creation, the batch marker, copied rows, and final reconciliation
-        share one transaction. Any exception therefore leaves no partially visible
-        batch for downstream transformations.
+        Raw relations are initialized in a short, separately committed transaction.
+        The batch marker, copied rows, and final reconciliation share the following
+        transaction, so any exception leaves no partial batch effects.
         """
         schema = self._schema_for(manifest.feed_name)
         validate_manifest(manifest, schema)
 
+        with self._connection_factory() as initialization_connection:
+            initialize_raw_storage(initialization_connection, schema)
+
         with self._connection_factory() as connection:
-            create_raw_schema(connection)
             self._lock_batch(connection, manifest.batch_id)
             if self._is_loaded(connection, manifest.batch_id):
                 return RawLoadResult(manifest.batch_id, 0, True)
 
             self._insert_loading_batch(connection, manifest)
-            ensure_feed_table(connection, schema)
             inserted_rows = self._copy_rows(connection, manifest, schema)
             if inserted_rows != manifest.row_count:
                 raise ValueError(
@@ -112,18 +112,19 @@ class RawSnapshotLoader:
         connection.execute(
             """
             insert into raw.snapshot_batches (
-                batch_id, feed_name, dataset_id, observed_at, object_key,
+                batch_id, feed_name, dataset_id, source_url, observed_at, object_key,
                 row_count, uncompressed_bytes, compressed_bytes,
                 content_sha256, object_sha256, schema_fingerprint,
                 source_columns, status
             ) values (
-                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'loading'
+                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'loading'
             )
             """,
             (
                 manifest.batch_id,
                 manifest.feed_name,
                 manifest.dataset_id,
+                manifest.source_url,
                 datetime.fromisoformat(manifest.observed_at),
                 manifest.object_key,
                 manifest.row_count,

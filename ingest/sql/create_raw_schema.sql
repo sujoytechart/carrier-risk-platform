@@ -4,6 +4,7 @@ create table if not exists raw.snapshot_batches (
     batch_id text primary key,
     feed_name text not null check (feed_name in ('crashes', 'inspections')),
     dataset_id text not null,
+    source_url text not null,
     observed_at timestamptz not null,
     object_key text not null,
     row_count bigint not null check (row_count >= 0),

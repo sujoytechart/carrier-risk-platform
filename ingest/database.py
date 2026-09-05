@@ -16,12 +16,36 @@ _RAW_TABLES = {
     "crashes": "crash_rows",
     "inspections": "inspection_rows",
 }
+_RAW_INITIALIZATION_LOCK = "carrier-risk-raw-schema-initialization-v1"
+
+
+def initialize_raw_storage(
+    connection: DatabaseConnection,
+    schema: FeedSchema,
+) -> None:
+    """Create required raw relations under a short initialization-only lock.
+
+    Existing initialized feeds use only catalog reads. First use and new feeds
+    serialize their DDL, but release the advisory lock when this short transaction
+    commits, before any snapshot rows are copied.
+    """
+    if _raw_relations_exist(connection, schema):
+        _validate_snapshot_registry(connection)
+        return
+
+    connection.execute(
+        "select pg_advisory_xact_lock(hashtextextended(%s, 0))",
+        (_RAW_INITIALIZATION_LOCK,),
+    )
+    create_raw_schema(connection)
+    ensure_feed_table(connection, schema)
 
 
 def create_raw_schema(connection: DatabaseConnection) -> None:
-    """Create batch and quarantine relations without committing the transaction."""
+    """Create batch and quarantine relations and validate registry compatibility."""
     statement = files("ingest").joinpath("sql", "create_raw_schema.sql").read_text()
     connection.execute(statement)
+    _validate_snapshot_registry(connection)
 
 
 def ensure_feed_table(
@@ -70,3 +94,31 @@ def _table_name(feed_name: str) -> str:
         return _RAW_TABLES[feed_name]
     except KeyError as error:
         raise ValueError(f"Unknown raw feed {feed_name!r}") from error
+
+
+def _raw_relations_exist(
+    connection: DatabaseConnection,
+    schema: FeedSchema,
+) -> bool:
+    row = connection.execute(
+        "select to_regclass('raw.snapshot_batches'), to_regclass(%s)",
+        (f"raw.{_table_name(schema.feed_name)}",),
+    ).fetchone()
+    return row is not None and all(relation is not None for relation in row)
+
+
+def _validate_snapshot_registry(connection: DatabaseConnection) -> None:
+    source_url_column = connection.execute(
+        """
+        select data_type, is_nullable
+          from information_schema.columns
+         where table_schema = 'raw'
+           and table_name = 'snapshot_batches'
+           and column_name = 'source_url'
+        """
+    ).fetchone()
+    if source_url_column != ("text", "NO"):
+        raise ValueError(
+            "Existing raw.snapshot_batches requires an explicit additive migration "
+            "for the source_url text not null lineage column"
+        )
