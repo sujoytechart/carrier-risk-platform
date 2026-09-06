@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import io
 from dataclasses import replace
 from datetime import UTC, datetime
@@ -73,9 +74,9 @@ def _snapshot() -> tuple[SnapshotLocation, SnapshotManifest]:
             row_count=1,
             uncompressed_bytes=10,
             compressed_bytes=8,
-            content_sha256="content-checksum",
-            object_sha256="object-checksum",
-            schema_fingerprint="schema-checksum",
+            content_sha256=hashlib.sha256(b"content").hexdigest(),
+            object_sha256=hashlib.sha256(b"snapshot").hexdigest(),
+            schema_fingerprint=hashlib.sha256(b'["crash_id","dot_number"]').hexdigest(),
             columns=("crash_id", "dot_number"),
         ),
     )
@@ -118,7 +119,7 @@ def test_store_refuses_to_replace_a_different_object(tmp_path: Path) -> None:
     location, manifest = _snapshot()
     client.objects[location.object_key] = (
         b"different",
-        {"object-sha256": "different-checksum"},
+        {"object-sha256": hashlib.sha256(b"different").hexdigest()},
     )
 
     with pytest.raises(RuntimeError, match="Refusing to replace"):
@@ -155,7 +156,7 @@ def test_concurrent_manifest_publish_rejects_different_snapshot() -> None:
     client.objects[location.manifest_key] = (first_manifest.to_json(), {})
     different_snapshot = replace(
         first_manifest,
-        object_sha256="different",
+        object_sha256=hashlib.sha256(b"different").hexdigest(),
         batch_id="",
     )
 

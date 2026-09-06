@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 
 import psycopg
+from psycopg.conninfo import conninfo_to_dict
 
 POSTGRES_DSN = os.getenv(
     "CARRIER_RISK_TEST_DATABASE_URL",
@@ -16,17 +17,18 @@ POSTGRES_DSN = os.getenv(
 
 
 def write_test_profile(directory: Path, *, threads: int = 2) -> None:
-    """Write an isolated dbt profile for the disposable PostgreSQL database."""
+    """Write a dbt profile for the same database used by the test lock."""
+    connection = conninfo_to_dict(POSTGRES_DSN)
     profile = f"""carrier_risk_platform:
   target: test
   outputs:
     test:
       type: postgres
-      host: localhost
-      port: 5432
-      user: carrier_risk
+      host: {connection["host"]}
+      port: {connection["port"]}
+      user: {connection["user"]}
       password: "{{{{ env_var('PGPASSWORD') }}}}"
-      dbname: carrier_risk
+      dbname: {connection["dbname"]}
       schema: public
       threads: {threads}
 """
