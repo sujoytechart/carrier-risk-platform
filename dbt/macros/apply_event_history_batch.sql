@@ -70,7 +70,14 @@
                     candidates.event_type,
                     candidates.source_record_key,
                     candidates.usdot_number,
-                    candidates.event_date,
+                    case
+                        -- Preserve the rejected date in raw/clean quarantine.
+                        -- An exclusion transition does not assert a future event.
+                        when not candidates.is_model_eligible
+                         and candidates.event_date > pending_batch.observed_at::date
+                        then null
+                        else candidates.event_date
+                    end,
                     case
                         when feed_has_history then pending_batch.observed_at::date
                         else candidates.source_proxy_reported_date

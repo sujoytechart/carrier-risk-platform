@@ -36,37 +36,37 @@ with source_rows as (
             end
         ) as source_record_key,
         array_remove(array[
-            case when nullif(btrim(crash_id), '') is not null
+            case when crash_id is not null
                        and parsed_crash_id is null
                  then 'invalid_source_record_key' end,
-            case when nullif(btrim(dot_number), '') is not null
+            case when dot_number is not null
                        and parsed_usdot_number is null
                  then 'invalid_usdot_number' end,
-            case when nullif(btrim(report_date), '') is not null
+            case when report_date is not null
                        and parsed_event_date is null
                  then 'invalid_event_date' end,
-            case when nullif(btrim(add_date), '') is not null
+            case when add_date is not null
                        and parsed_source_add_at is null
                  then 'invalid_source_add_at' end,
-            case when nullif(btrim(change_date), '') is not null
+            case when change_date is not null
                        and parsed_source_change_at is null
                  then 'invalid_source_change_at' end,
-            case when nullif(btrim(report_time), '') is not null
+            case when report_time is not null
                        and parsed_report_time is null
                  then 'invalid_report_time' end,
-            case when nullif(btrim(report_seq_no), '') is not null
+            case when report_seq_no is not null
                        and parsed_report_seq_no is null
                  then 'invalid_report_seq_no' end,
-            case when nullif(btrim(fatalities), '') is not null
+            case when fatalities is not null
                        and parsed_fatalities is null
                  then 'invalid_fatalities' end,
-            case when nullif(btrim(injuries), '') is not null
+            case when injuries is not null
                        and parsed_injuries is null
                  then 'invalid_injuries' end,
-            case when nullif(btrim(tow_away), '') is not null
+            case when tow_away is not null
                        and parsed_tow_away is null
                  then 'invalid_tow_away' end,
-            case when nullif(btrim(federal_recordable), '') is not null
+            case when federal_recordable is not null
                        and parsed_federal_recordable is null
                  then 'invalid_federal_recordable' end,
             case when parsed_event_date is not null

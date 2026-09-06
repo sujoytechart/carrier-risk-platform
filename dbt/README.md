@@ -23,10 +23,18 @@ those fixtures over raw federal tables.
 Source history retains eligibility-changing corrections with
 `is_model_eligible = false` and `exclusion_reason`. Carrier projections select
 eligible versions; finite predecessor ends still delimit the old incident.
+`events_union` preserves each crash vehicle version for strict as-of queries;
+apply both clocks before counting distinct `carrier_crash_key` values or aggregating
+severity. `crash_incidents` is an interval summary for browsing, and `current_events`
+uses it to show one current row per incident. The summary is not the exact-instant
+as-of input: a boundary on one vehicle must not hide another unchanged vehicle.
 Excluded versions may have missing carrier/event fields, while the table enforces
 their presence for eligible versions. Invalid source values remain in clean
 quarantine with stable parse reasons. Retention expiry records acquisition
 lineage in `modeled.inspection_retention_expiries` and creates no deletion version.
+When an excluded correction supplies a future event date, that rejected date stays
+in raw/clean quarantine; the exclusion version records a null modeled event date
+and closes its predecessor. Blank non-null values receive parse reasons as well.
 
 Explicit `scoring_dates` must be a nonempty list of ISO `YYYY-MM-01` strings.
 Without that list, the monthly grid spans the first through last successfully

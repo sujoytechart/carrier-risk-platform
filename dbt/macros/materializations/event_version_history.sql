@@ -2,9 +2,13 @@
     {%- set target = this -%}
     {%- set publication = ref('event_change_candidates') -%}
 
-    {% call statement('create_history', auto_begin=true) %}
-        {{ create_event_history_tables(target) }}
-    {% endcall %}
+    {# Repeating index DDL on existing history can hold relation locks while
+       waiting for a feed lock. Initialize once; always verify the contract. #}
+    {% if load_cached_relation(target) is none %}
+        {% call statement('create_history', auto_begin=true) %}
+            {{ create_event_history_tables(target) }}
+        {% endcall %}
+    {% endif %}
 
     {# The model SQL is candidate input, so validate the actual persisted output. #}
     {% if not config.get('contract').enforced %}

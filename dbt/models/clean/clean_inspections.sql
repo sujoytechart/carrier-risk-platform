@@ -19,25 +19,25 @@ with source_rows as (
     select
         *,
         array_remove(array[
-            case when nullif(btrim(inspection_id), '') is not null
+            case when inspection_id is not null
                        and parsed_source_key is null
                  then 'invalid_source_record_key' end,
-            case when nullif(btrim(dot_number), '') is not null
+            case when dot_number is not null
                        and parsed_usdot_number is null
                  then 'invalid_usdot_number' end,
-            case when nullif(btrim(insp_date), '') is not null
+            case when insp_date is not null
                        and parsed_event_date is null
                  then 'invalid_event_date' end,
-            case when nullif(btrim(mcmis_add_date), '') is not null
+            case when mcmis_add_date is not null
                        and parsed_source_add_at is null
                  then 'invalid_source_add_at' end,
-            case when nullif(btrim(change_date), '') is not null
+            case when change_date is not null
                        and parsed_source_change_at is null
                  then 'invalid_source_change_at' end,
-            case when nullif(btrim(viol_total), '') is not null
+            case when viol_total is not null
                        and parsed_violation_count is null
                  then 'invalid_violation_count' end,
-            case when nullif(btrim(oos_total), '') is not null
+            case when oos_total is not null
                        and parsed_oos_count is null
                  then 'invalid_oos_violation_count' end,
             case when parsed_event_date is not null

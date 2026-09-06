@@ -233,6 +233,71 @@ def test_concurrent_replays_recheck_after_serialization(tmp_path: Path) -> None:
     prepare_database(tmp_path)
     run_dbt(tmp_path, "build", "--select", "+event_versions+")
     with psycopg.connect(POSTGRES_DSN) as connection:
+        before = connection.execute(
+            "select * from modeled.event_versions order by event_version_key"
+        ).fetchall()
+        connection.execute(
+            "insert into raw.snapshot_batches values (%s, 'inspections', 'fx4q-ay7w', "
+            "'2026-06-01 12:00:00+00', 'loaded', 0)",
+            ("e" * 64,),
+        )
+    run_dbt(tmp_path, "run", "--select", "+event_change_candidates")
+    with psycopg.connect(POSTGRES_DSN, autocommit=True) as blocker:
+        blocker.execute("select pg_advisory_lock(hashtextextended('inspections', 0))")
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            job = executor.submit(
+                execute_dbt, tmp_path, "run", "--select", "event_versions"
+            )
+            try:
+                deadline = monotonic() + 90
+                while monotonic() < deadline:
+                    waiting = blocker.execute(
+                        "select count(*) from pg_locks where locktype = 'advisory' "
+                        "and not granted and objsubid = 1 "
+                        "and classid::bigint = "
+                        "((hashtextextended('inspections', 0) >> 32) & 4294967295) "
+                        "and objid::bigint = "
+                        "(hashtextextended('inspections', 0) & 4294967295) "
+                        "and database = (select oid from pg_database "
+                        "where datname = current_database())"
+                    ).fetchone()
+                    if waiting == (1,):
+                        break
+                    sleep(0.1)
+                else:
+                    raise AssertionError("History must reach the per-feed lock")
+                # Applying an empty inspection batch has only this registry effect:
+                # no candidate changes and no retention cutoff/deletion evidence.
+                # Commit it after the worker's pending-batch cursor was opened.
+                blocker.execute("set statement_timeout = '3s'")
+                blocker.execute(
+                    "insert into modeled.event_version_batches "
+                    "(batch_id, feed_name, observed_at) "
+                    "values (%s, 'inspections', '2026-06-01 12:00:00+00')",
+                    ("e" * 64,),
+                )
+            finally:
+                blocker.execute(
+                    "select pg_advisory_unlock(hashtextextended('inspections', 0))"
+                )
+            result = job.result(timeout=90)
+    assert result.returncode == 0, result.stdout + result.stderr
+    with psycopg.connect(POSTGRES_DSN) as connection:
+        after = connection.execute(
+            "select * from modeled.event_versions order by event_version_key"
+        ).fetchall()
+        applied = connection.execute(
+            "select count(*) from modeled.event_version_batches where batch_id = %s",
+            ("e" * 64,),
+        ).fetchone()
+    assert after == before
+    assert applied == (1,)
+
+
+def test_concurrent_dbt_builds_are_serialized(tmp_path: Path) -> None:
+    prepare_database(tmp_path)
+    run_dbt(tmp_path, "build", "--select", "+event_versions+")
+    with psycopg.connect(POSTGRES_DSN) as connection:
         connection.execute(
             "insert into raw.snapshot_batches values (%s, 'crashes', 'aayw-vxb3', "
             "'2026-06-01 12:00:00+00', 'loaded', 0)",
