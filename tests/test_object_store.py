@@ -98,6 +98,44 @@ def test_file_store_streams_a_verified_snapshot(tmp_path: Path) -> None:
         assert snapshot.read(10) == b"compressed"
 
 
+def test_file_store_consumes_the_same_open_descriptor_it_verified(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    committed_payload = b"committed snapshot"
+    replacement_payload = b"replacement snap!!"
+    manifest = _manifest(committed_payload)
+    object_path = tmp_path / manifest.object_key
+    object_path.parent.mkdir(parents=True)
+    object_path.write_bytes(committed_payload)
+    replacement_path = object_path.with_name("replacement.csv.gz")
+    replacement_path.write_bytes(replacement_payload)
+
+    original_open = Path.open
+    binary_open_count = 0
+
+    def replace_before_second_binary_open(
+        path: Path,
+        mode: str = "r",
+        *args: object,
+        **kwargs: object,
+    ) -> object:
+        nonlocal binary_open_count
+        if path == object_path and mode == "rb":
+            binary_open_count += 1
+            if binary_open_count == 2:
+                replacement_path.replace(object_path)
+        return original_open(path, mode, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "open", replace_before_second_binary_open)
+
+    with FileSnapshotObjectStore(tmp_path).open_snapshot(manifest) as snapshot:
+        loaded_payload = snapshot.read()
+
+    assert loaded_payload == committed_payload
+    assert binary_open_count == 1
+
+
 @pytest.mark.parametrize(
     ("field", "value", "message"),
     [

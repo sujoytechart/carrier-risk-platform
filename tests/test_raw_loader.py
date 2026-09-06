@@ -116,6 +116,32 @@ def test_loader_commits_each_complete_batch_once(tmp_path: Path) -> None:
         ).fetchone() == ("loaded", 2, manifest.source_url)
 
 
+def test_replay_rejects_conflicting_source_lineage(tmp_path: Path) -> None:
+    raw_loader = importlib.import_module("ingest.raw_loader")
+    schema, manifest = _snapshot_fixture(tmp_path)
+    loader = raw_loader.RawSnapshotLoader(
+        connection_factory=lambda: psycopg.connect(POSTGRES_DSN),
+        object_store=FileSnapshotObjectStore(tmp_path),
+        schemas={"crashes": schema},
+    )
+    loader.load(manifest)
+
+    conflicting_source_url = FEEDS["inspections"].source_url
+    with psycopg.connect(POSTGRES_DSN) as connection:
+        connection.execute(
+            "update raw.snapshot_batches set source_url = %s where batch_id = %s",
+            (conflicting_source_url, manifest.batch_id),
+        )
+
+    with pytest.raises(ValueError, match="source_url"):
+        loader.load(manifest)
+
+    with psycopg.connect(POSTGRES_DSN) as connection:
+        assert connection.execute(
+            "select batch_id, source_url from raw.snapshot_batches"
+        ).fetchall() == [(manifest.batch_id, conflicting_source_url)]
+
+
 def test_row_count_mismatch_rolls_back_the_entire_batch(tmp_path: Path) -> None:
     raw_loader = importlib.import_module("ingest.raw_loader")
     schema, manifest = _snapshot_fixture(tmp_path, rows=(("1", "alpha"),))

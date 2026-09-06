@@ -9,7 +9,7 @@ from datetime import UTC, datetime
 from importlib.resources import files
 from typing import Self, cast
 
-from ingest.models import SnapshotManifest
+from ingest.models import FEEDS, SnapshotManifest
 
 
 @dataclass(frozen=True)
@@ -52,6 +52,14 @@ def validate_manifest(manifest: SnapshotManifest, schema: FeedSchema) -> None:
         raise ValueError(
             f"Manifest dataset {manifest.dataset_id!r} does not match "
             f"{schema.dataset_id!r}"
+        )
+    configured_feed = FEEDS.get(schema.feed_name)
+    if configured_feed is None:
+        raise ValueError(f"No source_url is configured for feed {schema.feed_name!r}")
+    if manifest.source_url != configured_feed.source_url:
+        raise ValueError(
+            f"Manifest source_url {manifest.source_url!r} does not match "
+            f"configured feed URL {configured_feed.source_url!r}"
         )
     if manifest.columns != schema.columns:
         raise ValueError(

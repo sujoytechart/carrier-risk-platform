@@ -178,10 +178,13 @@ class SnapshotManifest:
         if parsed_observed_at.tzinfo is None or parsed_observed_at.utcoffset() is None:
             raise ValueError("Manifest field 'observed_at' must include a timezone")
 
+        feed_name = _required_string(payload, "feed_name")
+        dataset_id = _required_string(payload, "dataset_id")
+
         return cls(
-            feed_name=_required_string(payload, "feed_name"),
-            dataset_id=_required_string(payload, "dataset_id"),
-            source_url=_required_string(payload, "source_url"),
+            feed_name=feed_name,
+            dataset_id=dataset_id,
+            source_url=_source_url(payload, feed_name, dataset_id),
             observed_at=observed_at,
             object_key=_required_string(payload, "object_key"),
             row_count=_required_non_negative_integer(payload, "row_count"),
@@ -218,6 +221,22 @@ def _optional_string(payload: dict[str, object], field_name: str) -> str:
     if not isinstance(value, str):
         raise ValueError(f"Manifest field {field_name!r} must be a string")
     return value
+
+
+def _source_url(
+    payload: dict[str, object],
+    feed_name: str,
+    dataset_id: str,
+) -> str:
+    if "source_url" in payload:
+        return _required_string(payload, "source_url")
+
+    configured_feed = FEEDS.get(feed_name)
+    if configured_feed is None or configured_feed.dataset_id != dataset_id:
+        raise ValueError(
+            "Legacy manifest without 'source_url' does not match a configured feed"
+        )
+    return configured_feed.source_url
 
 
 def _required_non_negative_integer(payload: dict[str, object], field_name: str) -> int:

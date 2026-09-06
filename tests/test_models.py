@@ -7,6 +7,7 @@ import pytest
 
 import ingest.models as models
 from ingest.models import (
+    FEEDS,
     DownloadedSnapshot,
     FeedDefinition,
     SnapshotLocation,
@@ -95,6 +96,15 @@ def test_legacy_manifest_derives_its_batch_id_when_deserialized() -> None:
     assert manifest.batch_id == (
         "bdb93550f652e4dc7516217e2fbfa77c35cfb347da044cf57435828e5e1ce0f0"
     )
+
+
+def test_legacy_manifest_without_source_url_uses_configured_lineage() -> None:
+    payload = _valid_manifest_payload()
+    del payload["source_url"]
+
+    manifest = SnapshotManifest.from_json(json.dumps(payload).encode())
+
+    assert manifest.source_url == FEEDS["crashes"].source_url
 
 
 def test_manifest_rejects_an_invalid_explicit_batch_id() -> None:

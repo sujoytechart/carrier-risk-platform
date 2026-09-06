@@ -60,7 +60,7 @@ class RawSnapshotLoader:
 
         with self._connection_factory() as connection:
             self._lock_batch(connection, manifest.batch_id)
-            if self._is_loaded(connection, manifest.batch_id):
+            if self._is_loaded(connection, manifest):
                 return RawLoadResult(manifest.batch_id, 0, True)
 
             self._insert_loading_batch(connection, manifest)
@@ -97,11 +97,19 @@ class RawSnapshotLoader:
         )
 
     @staticmethod
-    def _is_loaded(connection: DatabaseConnection, batch_id: str) -> bool:
+    def _is_loaded(
+        connection: DatabaseConnection,
+        manifest: SnapshotManifest,
+    ) -> bool:
         row = connection.execute(
-            "select status from raw.snapshot_batches where batch_id = %s",
-            (batch_id,),
+            "select status, source_url from raw.snapshot_batches where batch_id = %s",
+            (manifest.batch_id,),
         ).fetchone()
+        if row is not None and row[1] != manifest.source_url:
+            raise ValueError(
+                "Loaded batch has conflicting source_url lineage for "
+                f"batch_id {manifest.batch_id}"
+            )
         return row is not None and row[0] == "loaded"
 
     @staticmethod

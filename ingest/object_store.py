@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import os
 from collections.abc import Buffer, Iterator
 from contextlib import AbstractContextManager, contextmanager
 from io import RawIOBase
@@ -104,12 +105,12 @@ class FileSnapshotObjectStore:
             raise ValueError(
                 "Snapshot object path resolves outside its configured root"
             )
-        if object_path.stat().st_size != manifest.compressed_bytes:
-            raise ValueError("Snapshot object size does not match its manifest")
-        if _file_sha256(object_path) != manifest.object_sha256:
-            raise ValueError("Snapshot object checksum does not match its manifest")
-
         with object_path.open("rb") as snapshot:
+            if os.fstat(snapshot.fileno()).st_size != manifest.compressed_bytes:
+                raise ValueError("Snapshot object size does not match its manifest")
+            if _stream_sha256(snapshot) != manifest.object_sha256:
+                raise ValueError("Snapshot object checksum does not match its manifest")
+            snapshot.seek(0)
             yield snapshot
 
 
@@ -169,10 +170,9 @@ class S3SnapshotObjectStore:
                 body.close()
 
 
-def _file_sha256(path: Path) -> str:
-    """Hash a local object in bounded memory for manifest verification."""
+def _stream_sha256(snapshot: BinaryIO) -> str:
+    """Hash an open stream in bounded memory, leaving it positioned at EOF."""
     digest = hashlib.sha256()
-    with path.open("rb") as snapshot:
-        while chunk := snapshot.read(HASH_BUFFER_BYTES):
-            digest.update(chunk)
+    while chunk := snapshot.read(HASH_BUFFER_BYTES):
+        digest.update(chunk)
     return digest.hexdigest()

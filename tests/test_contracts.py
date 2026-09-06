@@ -90,3 +90,17 @@ def test_manifest_partition_is_resolved_from_observed_at_in_utc() -> None:
     )
 
     validate_manifest(manifest, schema)
+
+
+@pytest.mark.parametrize(
+    "source_url",
+    ["", FEEDS["inspections"].source_url],
+)
+def test_manifest_rejects_unusable_or_wrong_feed_source_lineage(
+    source_url: str,
+) -> None:
+    schema = FeedSchema.load_configured("crashes")
+    manifest = replace(_manifest_for(schema), source_url=source_url)
+
+    with pytest.raises(ValueError, match="source_url"):
+        validate_manifest(manifest, schema)
