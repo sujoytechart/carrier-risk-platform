@@ -14,7 +14,6 @@ import io
 import json
 import os
 import tempfile
-from dataclasses import replace
 from datetime import UTC, datetime
 from pathlib import Path
 from urllib.parse import quote_plus
@@ -27,6 +26,7 @@ from ingest.storage import S3SnapshotStore
 
 BUCKET = "carrier-risk-raw"
 QUEUE_URL = "http://localhost:9324/000000000000/carrier-risk-arrivals"
+FIXTURE_OBSERVED_AT = datetime(2026, 9, 4, 12, tzinfo=UTC)
 
 
 def source_rows(feed_name: str) -> list[dict[str, str]]:
@@ -69,6 +69,36 @@ def source_rows(feed_name: str) -> list[dict[str, str]]:
     ]
 
 
+def build_snapshot(
+    feed_name: str,
+) -> tuple[SnapshotLocation, SnapshotManifest, bytes]:
+    """Build one deterministic local fixture using the configured feed lineage."""
+    feed = FEEDS[feed_name]
+    schema = FeedSchema.load_configured(feed_name)
+    rows = source_rows(feed_name)
+    text = io.StringIO(newline="")
+    writer = csv.DictWriter(text, fieldnames=schema.columns, lineterminator="\n")
+    writer.writeheader()
+    writer.writerows(rows)
+    payload = text.getvalue().encode()
+    archive = gzip.compress(payload, mtime=0)
+    location = SnapshotLocation.for_daily_snapshot(feed, FIXTURE_OBSERVED_AT)
+    manifest = SnapshotManifest.from_download(
+        feed,
+        location,
+        DownloadedSnapshot(
+            row_count=len(rows),
+            uncompressed_bytes=len(payload),
+            compressed_bytes=len(archive),
+            content_sha256=hashlib.sha256(payload).hexdigest(),
+            object_sha256=hashlib.sha256(archive).hexdigest(),
+            schema_fingerprint=schema.schema_fingerprint,
+            columns=schema.columns,
+        ),
+    )
+    return location, manifest, archive
+
+
 def main() -> None:
     """Land both immutable fixture files and publish their queue references."""
     session = boto3.Session(
@@ -79,32 +109,8 @@ def main() -> None:
     s3 = session.client("s3", endpoint_url="http://localhost:9000")
     sqs = session.client("sqs", endpoint_url="http://localhost:9324")
     store = S3SnapshotStore(BUCKET, s3)
-    for name, feed in FEEDS.items():
-        schema = FeedSchema.load_configured(name)
-        rows = source_rows(name)
-        text = io.StringIO(newline="")
-        writer = csv.DictWriter(text, fieldnames=schema.columns, lineterminator="\n")
-        writer.writeheader()
-        writer.writerows(rows)
-        payload = text.getvalue().encode()
-        archive = gzip.compress(payload, mtime=0)
-        location = SnapshotLocation.for_daily_snapshot(
-            feed, datetime(2026, 9, 4, 12, tzinfo=UTC)
-        )
-        manifest = SnapshotManifest.from_download(
-            feed,
-            location,
-            DownloadedSnapshot(
-                row_count=len(rows),
-                uncompressed_bytes=len(payload),
-                compressed_bytes=len(archive),
-                content_sha256=hashlib.sha256(payload).hexdigest(),
-                object_sha256=hashlib.sha256(archive).hexdigest(),
-                schema_fingerprint=schema.schema_fingerprint,
-                columns=schema.columns,
-            ),
-        )
-        manifest = replace(manifest, source_url=f"https://example.test/{name}.csv")
+    for name in FEEDS:
+        location, manifest, archive = build_snapshot(name)
         with tempfile.TemporaryDirectory(prefix="carrier-risk-smoke-") as temporary:
             path = Path(temporary) / "snapshot.csv.gz"
             path.write_bytes(archive)
@@ -123,7 +129,8 @@ def main() -> None:
         }
         sqs.send_message(QueueUrl=QUEUE_URL, MessageBody=json.dumps(message))
         print(
-            f"{name}: published {len(rows)} synthetic rows; batch={manifest.batch_id}"
+            f"{name}: published {manifest.row_count} synthetic rows; "
+            f"batch={manifest.batch_id}"
         )
 
 

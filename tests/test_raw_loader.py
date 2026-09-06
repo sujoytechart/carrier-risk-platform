@@ -116,6 +116,25 @@ def test_loader_commits_each_complete_batch_once(tmp_path: Path) -> None:
         ).fetchone() == ("loaded", 2, manifest.source_url)
 
 
+def test_loader_maps_empty_csv_cells_to_source_nulls(tmp_path: Path) -> None:
+    """An empty CSV field represents missing source data, not invalid text."""
+    raw_loader = importlib.import_module("ingest.raw_loader")
+    schema, manifest = _snapshot_fixture(tmp_path, rows=(("1", ""),))
+    loader = raw_loader.RawSnapshotLoader(
+        connection_factory=lambda: psycopg.connect(POSTGRES_DSN),
+        object_store=FileSnapshotObjectStore(tmp_path),
+        schemas={"crashes": schema},
+    )
+
+    loader.load(manifest)
+
+    with psycopg.connect(POSTGRES_DSN) as connection:
+        report_state = connection.execute(
+            "select report_state from raw.crash_rows"
+        ).fetchone()
+    assert report_state == (None,)
+
+
 def test_replay_rejects_conflicting_source_lineage(tmp_path: Path) -> None:
     raw_loader = importlib.import_module("ingest.raw_loader")
     schema, manifest = _snapshot_fixture(tmp_path)

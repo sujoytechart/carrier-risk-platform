@@ -176,7 +176,18 @@ class RawSnapshotLoader:
                             f"Source row {source_row_number} has {len(row)} "
                             f"columns; expected {len(schema.columns)}"
                         )
-                    copy.write_row((manifest.batch_id, source_row_number, *row))
+                    copy.write_row(
+                        (
+                            manifest.batch_id,
+                            source_row_number,
+                            *_database_source_values(row),
+                        )
+                    )
                     inserted_rows += 1
             verified_content.verify_complete()
         return inserted_rows
+
+
+def _database_source_values(row: list[str]) -> tuple[str | None, ...]:
+    """Decode an empty CSV field as missing while preserving nonempty raw text."""
+    return tuple(value if value != "" else None for value in row)
