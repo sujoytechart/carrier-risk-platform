@@ -17,12 +17,11 @@ module "spine" {
   common_tags         = local.common_tags
   developer_ipv4_cidr = var.developer_ipv4_cidr
   environment         = var.environment
-  operator_principal_arns = distinct(concat(
+  loader_principal_arns = distinct(concat(
     [data.aws_iam_role.terraform_operator.arn],
-    var.additional_ingest_principals,
+    var.additional_loader_principals,
   ))
   publicly_accessible = var.warehouse_publicly_accessible
   raw_bucket_arn      = aws_s3_bucket.raw.arn
   raw_bucket_id       = aws_s3_bucket.raw.id
-  region              = var.region
 }

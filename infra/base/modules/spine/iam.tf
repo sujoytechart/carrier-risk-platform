@@ -8,7 +8,7 @@ resource "aws_iam_role" "loader" {
     Statement = [{
       Effect = "Allow"
       Principal = {
-        AWS = var.operator_principal_arns
+        AWS = var.loader_principal_arns
       }
       Action = "sts:AssumeRole"
     }]
@@ -49,7 +49,7 @@ resource "aws_iam_role_policy" "loader" {
           "sqs:GetQueueAttributes",
           "sqs:GetQueueUrl",
         ]
-        Resource = [local.arrival_queue_arn]
+        Resource = [aws_sqs_queue.arrival.arn]
       },
     ]
   })

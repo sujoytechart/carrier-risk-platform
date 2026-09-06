@@ -29,6 +29,15 @@ variable "additional_ingest_principals" {
   default     = []
 }
 
+variable "additional_loader_principals" {
+  description = <<-EOT
+    Extra stable IAM user or role ARNs allowed to assume the event loader role.
+    Loader access is separate from the principals allowed to write snapshots.
+  EOT
+  type        = list(string)
+  default     = []
+}
+
 variable "bucket_prefix" {
   description = <<-EOT
     Prefix for the raw data bucket. The account id is appended, because S3 bucket

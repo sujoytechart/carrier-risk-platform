@@ -1,8 +1,6 @@
 locals {
   arrival_queue_name     = "carrier-risk-arrival-${var.environment}"
-  arrival_queue_arn      = "arn:aws:sqs:${var.region}:${var.account_id}:${local.arrival_queue_name}"
   dead_letter_queue_name = "carrier-risk-arrival-dlq-${var.environment}"
-  dead_letter_queue_arn  = "arn:aws:sqs:${var.region}:${var.account_id}:${local.dead_letter_queue_name}"
 }
 
 resource "aws_sqs_queue" "dead_letter" {
@@ -18,9 +16,13 @@ resource "aws_sqs_queue" "arrival" {
   visibility_timeout_seconds = 3600
   sqs_managed_sse_enabled    = true
   tags                       = var.common_tags
+}
+
+resource "aws_sqs_queue_redrive_policy" "arrival" {
+  queue_url = aws_sqs_queue.arrival.id
 
   redrive_policy = jsonencode({
-    deadLetterTargetArn = local.dead_letter_queue_arn
+    deadLetterTargetArn = aws_sqs_queue.dead_letter.arn
     maxReceiveCount     = 5
   })
 }
@@ -30,7 +32,7 @@ resource "aws_sqs_queue_redrive_allow_policy" "dead_letter" {
 
   redrive_allow_policy = jsonencode({
     redrivePermission = "byQueue"
-    sourceQueueArns   = [local.arrival_queue_arn]
+    sourceQueueArns   = [aws_sqs_queue.arrival.arn]
   })
 }
 
@@ -46,7 +48,7 @@ resource "aws_sqs_queue_policy" "arrival" {
         Service = "s3.amazonaws.com"
       }
       Action   = "sqs:SendMessage"
-      Resource = local.arrival_queue_arn
+      Resource = aws_sqs_queue.arrival.arn
       Condition = {
         ArnEquals = {
           "aws:SourceArn" = var.raw_bucket_arn

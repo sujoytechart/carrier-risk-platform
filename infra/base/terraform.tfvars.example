@@ -8,6 +8,10 @@ warehouse_publicly_accessible = false
 #   aws sts get-caller-identity --query Arn --output text
 # additional_ingest_principals = ["arn:aws:iam::<account-id>:user/<your-user>"]
 
+# Any extra stable principal allowed to consume arrival messages and read raw
+# snapshots. This is deliberately independent of additional_ingest_principals.
+# additional_loader_principals = ["arn:aws:iam::<account-id>:role/<loader-role>"]
+
 # Temporary local-Airflow connectivity requires both settings and explicit
 # approval before a plan/apply. Never use 0.0.0.0/0 or a shared network range.
 # warehouse_publicly_accessible = true

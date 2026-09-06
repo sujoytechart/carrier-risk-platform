@@ -26,13 +26,13 @@ mock_provider "aws" {
 }
 
 variables {
-  raw_bucket_id           = "carrier-risk-raw-123456789012"
-  raw_bucket_arn          = "arn:aws:s3:::carrier-risk-raw-123456789012"
-  account_id              = "123456789012"
-  environment             = "test"
-  operator_principal_arns = ["arn:aws:iam::123456789012:role/TestOperator"]
-  publicly_accessible     = false
-  developer_ipv4_cidr     = null
+  raw_bucket_id         = "carrier-risk-raw-123456789012"
+  raw_bucket_arn        = "arn:aws:s3:::carrier-risk-raw-123456789012"
+  account_id            = "123456789012"
+  environment           = "test"
+  loader_principal_arns = ["arn:aws:iam::123456789012:role/TestOperator"]
+  publicly_accessible   = false
+  developer_ipv4_cidr   = null
   common_tags = {
     Project     = "carrier-risk-platform"
     ManagedBy   = "terraform"
@@ -41,7 +41,7 @@ variables {
 }
 
 run "private_spine_contract" {
-  command = plan
+  command = apply
 
   module {
     source = "./modules/spine"
@@ -59,10 +59,10 @@ run "private_spine_contract" {
     condition = (
       aws_sqs_queue.arrival.receive_wait_time_seconds == 20 &&
       aws_sqs_queue.arrival.visibility_timeout_seconds == 3600 &&
-      jsondecode(aws_sqs_queue.arrival.redrive_policy).maxReceiveCount == 5 &&
-      jsondecode(aws_sqs_queue.arrival.redrive_policy).deadLetterTargetArn == "arn:aws:sqs:us-east-1:123456789012:carrier-risk-arrival-dlq-test" &&
+      jsondecode(aws_sqs_queue_redrive_policy.arrival.redrive_policy).maxReceiveCount == 5 &&
+      jsondecode(aws_sqs_queue_redrive_policy.arrival.redrive_policy).deadLetterTargetArn == aws_sqs_queue.dead_letter.arn &&
       jsondecode(aws_sqs_queue_redrive_allow_policy.dead_letter.redrive_allow_policy).redrivePermission == "byQueue" &&
-      jsondecode(aws_sqs_queue_redrive_allow_policy.dead_letter.redrive_allow_policy).sourceQueueArns == ["arn:aws:sqs:us-east-1:123456789012:carrier-risk-arrival-test"]
+      jsondecode(aws_sqs_queue_redrive_allow_policy.dead_letter.redrive_allow_policy).sourceQueueArns == [aws_sqs_queue.arrival.arn]
     )
     error_message = "The loader queue must use long polling, a one-hour visibility timeout, and five-receive redrive."
   }
@@ -71,7 +71,7 @@ run "private_spine_contract" {
     condition = (
       jsondecode(aws_sqs_queue_policy.arrival.policy).Statement[0].Principal.Service == "s3.amazonaws.com" &&
       jsondecode(aws_sqs_queue_policy.arrival.policy).Statement[0].Action == "sqs:SendMessage" &&
-      jsondecode(aws_sqs_queue_policy.arrival.policy).Statement[0].Resource == "arn:aws:sqs:us-east-1:123456789012:carrier-risk-arrival-test" &&
+      jsondecode(aws_sqs_queue_policy.arrival.policy).Statement[0].Resource == aws_sqs_queue.arrival.arn &&
       jsondecode(aws_sqs_queue_policy.arrival.policy).Statement[0].Condition.ArnEquals["aws:SourceArn"] == var.raw_bucket_arn &&
       jsondecode(aws_sqs_queue_policy.arrival.policy).Statement[0].Condition.StringEquals["aws:SourceAccount"] == var.account_id
     )
@@ -96,7 +96,9 @@ run "private_spine_contract" {
       aws_db_instance.warehouse.max_allocated_storage == null &&
       aws_db_instance.warehouse.storage_type == "gp3" &&
       aws_db_instance.warehouse.storage_encrypted &&
-      !aws_db_instance.warehouse.multi_az
+      !aws_db_instance.warehouse.multi_az &&
+      aws_db_instance.warehouse.username == "carrier_admin" &&
+      length(aws_db_instance.warehouse.username) <= 16
     )
     error_message = "The warehouse must remain the encrypted, single-AZ, cost-bounded PostgreSQL 17 instance."
   }
@@ -130,7 +132,16 @@ run "private_spine_contract" {
       aws_sqs_queue.arrival.tags == var.common_tags &&
       aws_sqs_queue.dead_letter.tags == var.common_tags &&
       aws_iam_role.loader.tags == var.common_tags &&
-      aws_security_group.warehouse.tags == var.common_tags
+      aws_vpc.warehouse.tags.Project == var.common_tags.Project &&
+      aws_vpc.warehouse.tags.ManagedBy == var.common_tags.ManagedBy &&
+      aws_vpc.warehouse.tags.Environment == var.common_tags.Environment &&
+      alltrue([for subnet in aws_subnet.warehouse : (
+        subnet.tags.Project == var.common_tags.Project &&
+        subnet.tags.ManagedBy == var.common_tags.ManagedBy &&
+        subnet.tags.Environment == var.common_tags.Environment
+      )]) &&
+      aws_security_group.warehouse.tags == var.common_tags &&
+      aws_db_subnet_group.warehouse.tags == var.common_tags
     )
     error_message = "Spine resources must carry the common ownership tags."
   }
@@ -138,7 +149,7 @@ run "private_spine_contract" {
   assert {
     condition = (
       jsondecode(aws_iam_role.loader.assume_role_policy).Statement[0].Action == "sts:AssumeRole" &&
-      toset(jsondecode(aws_iam_role.loader.assume_role_policy).Statement[0].Principal.AWS) == toset(var.operator_principal_arns) &&
+      toset(jsondecode(aws_iam_role.loader.assume_role_policy).Statement[0].Principal.AWS) == toset(var.loader_principal_arns) &&
       jsondecode(aws_iam_role_policy.loader.policy).Statement[0].Action == ["s3:ListBucket"] &&
       jsondecode(aws_iam_role_policy.loader.policy).Statement[0].Resource == [var.raw_bucket_arn] &&
       toset(jsondecode(aws_iam_role_policy.loader.policy).Statement[1].Action) == toset(["s3:GetObject", "s3:GetObjectVersion"]) &&
@@ -150,7 +161,7 @@ run "private_spine_contract" {
         "sqs:GetQueueAttributes",
         "sqs:GetQueueUrl",
       ]) &&
-      jsondecode(aws_iam_role_policy.loader.policy).Statement[2].Resource == ["arn:aws:sqs:us-east-1:123456789012:carrier-risk-arrival-test"] &&
+      jsondecode(aws_iam_role_policy.loader.policy).Statement[2].Resource == [aws_sqs_queue.arrival.arn] &&
       !strcontains(aws_iam_role_policy.loader.policy, "s3:DeleteObject") &&
       !strcontains(aws_iam_role_policy.loader.policy, "secretsmanager:")
     )
@@ -176,7 +187,10 @@ run "public_spine_restricts_postgres_to_one_host" {
       aws_vpc_security_group_ingress_rule.developer[0].cidr_ipv4 == "203.0.113.7/32" &&
       aws_vpc_security_group_ingress_rule.developer[0].from_port == 5432 &&
       aws_vpc_security_group_ingress_rule.developer[0].to_port == 5432 &&
-      length(aws_internet_gateway.public) == 1
+      length(aws_internet_gateway.public) == 1 &&
+      aws_internet_gateway.public[0].tags == var.common_tags &&
+      aws_route_table.public[0].tags == var.common_tags &&
+      aws_vpc_security_group_ingress_rule.developer[0].tags == var.common_tags
     )
     error_message = "Public mode must expose only PostgreSQL to the one reviewed developer host."
   }

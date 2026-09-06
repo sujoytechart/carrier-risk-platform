@@ -34,7 +34,7 @@ variable "environment" {
   type        = string
 }
 
-variable "operator_principal_arns" {
+variable "loader_principal_arns" {
   description = "Stable IAM principals allowed to assume the event loader role."
   type        = list(string)
 }
@@ -53,10 +53,4 @@ variable "raw_bucket_arn" {
 variable "raw_bucket_id" {
   description = "Name of the existing Phase 0 raw snapshot bucket."
   type        = string
-}
-
-variable "region" {
-  description = "AWS region used to construct deterministic queue ARNs."
-  type        = string
-  default     = "us-east-1"
 }

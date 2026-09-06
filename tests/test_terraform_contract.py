@@ -58,6 +58,39 @@ def test_manifest_notification_depends_on_the_source_scoped_queue_policy() -> No
     assert expected_edge in result.stdout
 
 
+def test_redrive_policies_depend_on_their_actual_queues() -> None:
+    """Prevent constructed ARNs from hiding queue replacement dependencies."""
+    result = run_terraform("graph", "-type=plan")
+    assert_terraform_succeeded(result)
+    expected_edges = (
+        (
+            "module.spine.aws_sqs_queue_redrive_policy.arrival (expand)",
+            "module.spine.aws_sqs_queue.arrival (expand)",
+        ),
+        (
+            "module.spine.aws_sqs_queue_redrive_policy.arrival (expand)",
+            "module.spine.aws_sqs_queue.dead_letter (expand)",
+        ),
+        (
+            "module.spine.aws_sqs_queue_redrive_allow_policy.dead_letter (expand)",
+            "module.spine.aws_sqs_queue.arrival (expand)",
+        ),
+        (
+            "module.spine.aws_sqs_queue_redrive_allow_policy.dead_letter (expand)",
+            "module.spine.aws_sqs_queue.dead_letter (expand)",
+        ),
+    )
+    for source, target in expected_edges:
+        assert f'{source}" -> "[root] {target}' in result.stdout
+
+
+def test_loader_trust_does_not_reuse_ingest_principals() -> None:
+    """Keep snapshot-writer access separate from loader role assumption."""
+    root_spine_configuration = (TERRAFORM_ROOT / "spine.tf").read_text()
+    assert "var.additional_loader_principals" in root_spine_configuration
+    assert "var.additional_ingest_principals" not in root_spine_configuration
+
+
 def test_neither_runtime_role_can_delete_raw_objects_or_read_secrets() -> None:
     """Catch privilege growth across both the ingest and loader role policies."""
     iam_configuration = "\n".join(

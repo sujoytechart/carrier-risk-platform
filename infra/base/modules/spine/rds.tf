@@ -28,7 +28,7 @@ resource "aws_db_instance" "warehouse" {
   skip_final_snapshot          = true
   storage_encrypted            = true
   storage_type                 = "gp3"
-  username                     = "carrier_risk_admin"
+  username                     = "carrier_admin"
   vpc_security_group_ids       = [aws_security_group.warehouse.id]
   tags                         = var.common_tags
 }
