@@ -4,8 +4,8 @@ PostgreSQL remains the operational warehouse. Snowflake is an optional
 transformation-portability target, as described in [ADR 0005](adr/0005-snowflake-for-portability-not-scale.md).
 The shared transformations compile for both adapters. A complete Snowflake build
 is not yet supported: candidate publication, event-history mutation, persisted
-contract checks, and the whole-command writer guard still require implementation
-and live verification.
+contract checks, and full regression parity still require implementation and live
+verification. The whole-command writer guard now has a bounded live proof.
 
 ## Target configuration
 
@@ -17,7 +17,7 @@ Selecting it does not require Snowflake environment variables. Selecting
 configuration shown in [.env.example](../.env.example).
 
 Private keys and backend configuration belong outside version control. The
-Snowflake profile uses key-pair authentication, UTC sessions, a 120-second
+Snowflake profile uses key-pair authentication, UTC sessions, a 60-second
 statement timeout, and no session keep-alive. Its single worker thread controls
 parallelism; it does not establish a warehouse-wide writer lock.
 
@@ -72,9 +72,13 @@ version, inserting its successor, linking versions, and recording batch applicat
 must either all commit or all roll back. Standard-table uniqueness and chronology
 also need explicit validation. See the [Snowflake transaction reference](https://docs.snowflake.com/en/sql-reference/transactions).
 
-The whole-command writer guard must be proven under competing processes, worker
-connection churn, normal failure, and lost-parent/orphan-query recovery before
-these mutations can be enabled. Snowflake Time Travel does not supply the source
+The Snowflake launcher combines a committed run claim with a separate write
+transaction. Failure retains the claim even when the transaction lock disappears;
+explicit recovery must stop and reconcile old work before clearing it. Its
+[operating procedure](../analytics/snowflake/README.md) and bounded live checks
+cover competing processes, worker connection churn, normal failure, and
+lost-parent recovery. These guard checks do not establish business-transaction
+atomicity. Snowflake Time Travel does not supply the source
 availability or correction-knowledge clocks maintained by this project.
 
 ## Verification boundary
@@ -86,5 +90,6 @@ grammar, execution, transaction safety, or persisted types.
 
 `dbt/tests/portable_scalar_regressions.sql` is executable warehouse SQL. It and the
 shared model regression scenarios still have to pass on each real target before
-full transformation parity can be claimed. Live Snowflake mutation, concurrency,
-rollback, schema-drift, and replay evidence remains outstanding.
+full transformation parity can be claimed. Live event-history mutation, rollback,
+schema-drift, and replay evidence remains outstanding; the guard and one-row dbt
+seed proof are recorded separately.

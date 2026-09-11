@@ -111,3 +111,29 @@ def test_build_holds_and_releases_lock_when_dbt_fails() -> None:
         runner.build()
 
     assert events == ["acquired", "executed", "released"]
+
+
+def test_nonzero_dbt_exit_reaches_guard_as_failure() -> None:
+    """A durable guard must not mark an unsuccessful build as safely complete."""
+    outcome: list[str] = []
+
+    @contextmanager
+    def durable_guard() -> Iterator[int]:
+        try:
+            yield 1234
+        except DbtCommandError:
+            outcome.append("recovery required")
+            raise
+        else:
+            outcome.append("completed")
+
+    runner = DbtRunner(
+        project_dir=Path("/workspace"),
+        profiles_dir=Path("/profiles"),
+        environment={"POSTGRES_PASSWORD": "secret"},
+        executor=RecordingExecutor(returncode=1),
+        build_lock=durable_guard,
+    )
+    with pytest.raises(DbtCommandError):
+        runner.build()
+    assert outcome == ["recovery required"]

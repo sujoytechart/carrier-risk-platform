@@ -27,4 +27,5 @@ carrier_risk_platform:
       client_session_keep_alive: false
       session_parameters:
         TIMEZONE: UTC
-        STATEMENT_TIMEOUT_IN_SECONDS: 120
+        STATEMENT_TIMEOUT_IN_SECONDS: 60
+        ABORT_DETACHED_QUERY: true
