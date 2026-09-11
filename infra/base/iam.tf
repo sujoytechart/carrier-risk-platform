@@ -60,3 +60,56 @@ resource "aws_iam_role_policy" "ingest" {
   role   = aws_iam_role.ingest.id
   policy = data.aws_iam_policy_document.ingest.json
 }
+
+locals {
+  ecr_publisher_principal_arns = distinct(concat(
+    [data.aws_iam_role.terraform_operator.arn],
+    var.additional_ecr_publisher_principals,
+  ))
+}
+
+resource "aws_iam_role" "ecr_publisher" {
+  name        = "carrier-risk-ecr-publisher-${var.environment}"
+  description = "Publishes and reads images in the carrier risk API repository."
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = "sts:AssumeRole"
+      Principal = {
+        AWS = local.ecr_publisher_principal_arns
+      }
+    }]
+  })
+}
+
+resource "aws_iam_role_policy" "ecr_publisher" {
+  name = "repository-publish"
+  role = aws_iam_role.ecr_publisher.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        # AWS does not support repository-level resource scoping for this API.
+        Sid      = "RequestRegistryAuthorization"
+        Effect   = "Allow"
+        Action   = ["ecr:GetAuthorizationToken"]
+        Resource = ["*"]
+      },
+      {
+        Sid    = "PublishApiImages"
+        Effect = "Allow"
+        Action = [
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:BatchGetImage",
+          "ecr:CompleteLayerUpload",
+          "ecr:GetDownloadUrlForLayer",
+          "ecr:InitiateLayerUpload",
+          "ecr:PutImage",
+          "ecr:UploadLayerPart",
+        ]
+        Resource = [aws_ecr_repository.api.arn]
+      },
+    ]
+  })
+}

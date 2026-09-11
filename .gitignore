@@ -8,12 +8,21 @@ data/
 
 # Secrets
 .env
+.aws/
+*.key
+*.pem
 profiles.yml
 *.tfvars
 !*.tfvars.example
 
 # Terraform
 .terraform/
+.terraform-offline/
+.terraformrc
+terraform.rc
+backend.hcl
+*.tfplan
+crash.log
 *.tfstate
 *.tfstate.*
 

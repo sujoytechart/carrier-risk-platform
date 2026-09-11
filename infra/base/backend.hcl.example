@@ -1,0 +1,5 @@
+# Copy this file to backend.hcl and replace the placeholder after applying the
+# state-bootstrap root. The state key and native lockfile setting are fixed in
+# versions.tf so deployment permissions cannot silently drift to another path.
+bucket = "carrier-risk-tf-state-ACCOUNT_ID"
+region = "us-east-1"

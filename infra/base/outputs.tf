@@ -12,6 +12,18 @@ output "ingest_role_arn" {
   value       = aws_iam_role.ingest.arn
 }
 
+output "api_repository_url" {
+  description = "URL of the ECR repository that stores versioned API images."
+  value       = aws_ecr_repository.api.repository_url
+  sensitive   = true
+}
+
+output "ecr_publisher_role_arn" {
+  description = "Role allowed to publish images to the API repository."
+  value       = aws_iam_role.ecr_publisher.arn
+  sensitive   = true
+}
+
 output "arrival_queue_arn" {
   description = "ARN of the manifest arrival queue, or null when the spine is disabled."
   value       = try(module.spine[0].arrival_queue_arn, null)

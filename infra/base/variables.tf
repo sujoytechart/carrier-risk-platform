@@ -38,6 +38,26 @@ variable "additional_loader_principals" {
   default     = []
 }
 
+variable "additional_ecr_publisher_principals" {
+  description = <<-EOT
+    Extra stable IAM user or role ARNs allowed to assume the container publisher
+    role. This is independent of runtime and raw-data identities.
+  EOT
+  type        = list(string)
+  default     = []
+}
+
+variable "ecr_retained_image_count" {
+  description = "Maximum number of API images retained in ECR."
+  type        = number
+  default     = 10
+
+  validation {
+    condition     = var.ecr_retained_image_count >= 1 && floor(var.ecr_retained_image_count) == var.ecr_retained_image_count
+    error_message = "ecr_retained_image_count must be a positive whole number."
+  }
+}
+
 variable "bucket_prefix" {
   description = <<-EOT
     Prefix for the raw data bucket. The account id is appended, because S3 bucket
