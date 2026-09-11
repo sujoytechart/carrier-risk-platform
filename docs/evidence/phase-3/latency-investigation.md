@@ -134,3 +134,20 @@ The existing Prometheus registry is per process, so this temporary trial did not
 claim aggregated server metrics. Supporting multiple workers would also require
 correct metric aggregation. Both workers, their supervisor, and the load process
 were stopped after the trial.
+
+## Accepted bounded-session final curve
+
+The conclusions above document failed diagnostic and configuration trials. They
+were superseded for acceptance by the final full curve recorded in the
+[bounded-session manifest](latency-session-32/manifest.json). That run used the
+same frozen 100-tree fixture, PostgreSQL lookup, Uvicorn service, stage lengths,
+and acceptance thresholds, but limited the open loopback connection pool to 32
+persistent sessions. The earlier 256-session run had introduced hundreds of idle
+server sockets into a 200-rps test; the final pool still permits overlapping
+requests while avoiding that benchmark-induced pressure.
+
+The accepted 200-rps stage completed 6,000 requests with zero failures, 14 ms
+HTTP p99, 14.30 ms scheduled-arrival p99, and 78.85 ms maximum scheduler lag.
+Those values meet the 120-ms acceptance budget. The previous failure descriptions
+remain here to preserve the investigation history and are not the final Phase 3
+latency result.

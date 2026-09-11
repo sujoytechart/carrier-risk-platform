@@ -20,9 +20,11 @@ or private process instructions.
   exact coverage, source fingerprint, installed versions and scan results.
 - [Local cleanup](local-cleanup.json): temporary API and PostgreSQL teardown,
   with original snapshots and existing services untouched.
-- [Latency evidence and investigation](latency-investigation.md): the complete
-  failed throughput curve, raw timings and hashes, and bounded follow-up
-  diagnostics. The 200-rps latency target remains unmet.
+- [Final latency acceptance](latency-session-32/manifest.json): complete
+  50/100/200/300-rps curve, raw timing hashes, frozen fixture provenance, and
+  the passing 200-rps result.
+- [Latency investigation](latency-investigation.md): preserved failed curves and
+  bounded diagnostics that identified the benchmark connection-pressure issue.
 - [ASGI timing correlation](asgi-probe/correlation-summary.json): client and
   framework boundary timings from a bounded instrumented diagnostic, with the
   [failed recording attempt](asgi-probe/attempt-1/summary.json),

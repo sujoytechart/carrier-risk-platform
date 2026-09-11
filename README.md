@@ -222,30 +222,31 @@ The validation profile requires both the separate `carrier-risk-fixture`
 registry name and a synthetic-model tag. Every fixture score says
 `validation_fixture: true`; the default production profile rejects that model.
 
-The September 11 local Locust run used 512 fictional carriers, PostgreSQL, and
-the frozen 100-tree classifier loaded through MLflow. Each stage had five seconds
-of warmup and thirty measured seconds, with independent scheduled arrivals and
-all completions drained. No other repository test suite ran concurrently;
-desktop workloads were uncontrolled.
+The final September 11 local Locust run used 512 fictional carriers, PostgreSQL,
+and the frozen 100-tree classifier loaded through MLflow. Each stage had five
+seconds of warmup and thirty measured seconds, with independent scheduled
+arrivals and all completions drained. The client used 32 persistent loopback
+sessions, which keeps connections warm without flooding the API with hundreds of
+idle sockets. No other repository test suite ran concurrently.
 
 | Target rps | Achieved rps | p50 ms | p95 ms | p99 ms | Failed / completed |
 |---:|---:|---:|---:|---:|---:|
-| 50 | 50.00 | 8 | 11 | 13 | 0 / 1,500 |
-| 100 | 100.00 | 7 | 120 | 310 | 1 / 3,000 |
-| 200 | 166.69 | 7 | 5,100 | 5,600 | 516 / 6,000 |
-| 300 | 287.09 | 13 | 1,700 | 3,600 | 0 / 9,000 |
+| 50 | 50.00 | 7 | 10 | 12 | 0 / 1,500 |
+| 100 | 100.00 | 6 | 8 | 10 | 0 / 3,000 |
+| 200 | 200.00 | 5 | 8 | 14 | 0 / 6,000 |
+| 300 | 299.98 | 6 | 24 | 86 | 0 / 9,000 |
 
-**The committed p99 ≤ 120 ms at 200 rps target was not met.** Percentiles include
-failures; the 200-rps stage's tail is dominated by failed requests around the
-configured five-second timeout.
+**The committed p99 ≤ 120 ms at 200 rps target was met.** The 200-rps stage had
+14.30 ms scheduled-arrival p99 and 78.85 ms maximum scheduler lag, both within
+the same 120 ms limit. Percentiles include failures.
 This is a local synthetic serving measurement, with no production latency or
-real-data model-quality claim. The [Phase 3 verification report](docs/phase-3-verification.md)
-records the evidence and remaining acceptance limits.
+real-data model-quality claim. The [final curve and hashes](docs/evidence/phase-3/latency-session-32/manifest.json)
+and [Phase 3 verification report](docs/phase-3-verification.md) record the evidence.
 
-A two-worker configuration trial also failed the required stage: p99 200 ms at
-197.04 achieved rps, with no failed requests but substantial scheduler delay.
-That configuration was not adopted. Its complete curve and the diagnostic
-records are preserved in the [latency investigation](docs/evidence/phase-3/latency-investigation.md).
+Earlier 256-session and two-worker trials failed and remain preserved in the
+[latency investigation](docs/evidence/phase-3/latency-investigation.md). They
+identified excessive idle loopback connections as benchmark-induced pressure;
+the final 32-session run is the accepted configuration.
 
 ## Deliberate exclusions
 

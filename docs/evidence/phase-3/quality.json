@@ -23,8 +23,8 @@
     },
     {
       "scope": "serving",
-      "passed": 87,
-      "elapsed_seconds": 14.72
+      "passed": 88,
+      "elapsed_seconds": 5.92
     },
     {
       "scope": "independent dbt maturity guard",
@@ -40,13 +40,13 @@
   "coverage": {
     "method": "Unchanged ingest/orchestration arcs from full suite; final per-module ml/serving arcs; stale arcs excluded; separate ten-request serving smoke included",
     "project_totals": {
-      "covered_lines": 2722,
-      "num_statements": 2949,
-      "percent_covered": 89.9330655957162,
+      "covered_lines": 2723,
+      "num_statements": 2950,
+      "percent_covered": 89.93576017130621,
       "percent_covered_display": "90",
       "missing_lines": 227,
       "excluded_lines": 42,
-      "percent_statements_covered": 92.30247541539505,
+      "percent_statements_covered": 92.30508474576271,
       "percent_statements_covered_display": "92",
       "num_branches": 786,
       "num_partial_branches": 129,
@@ -56,13 +56,13 @@
       "percent_branches_covered_display": "81"
     },
     "project_minimum_percent": "88.09963099630997",
-    "changed_lines_covered": 1414,
-    "changed_lines_executable": 1521,
-    "changed_line_percent": 92.96515450361605,
+    "changed_lines_covered": 1415,
+    "changed_lines_executable": 1522,
+    "changed_line_percent": 92.96977660972404,
     "changed_line_minimum_percent": 80,
-    "coverage_json_sha256": "48982b08b12bb86241073b5f7de4241c07206eafaa014500f2458a5c22d3ca51"
+    "coverage_json_sha256": "b47ee115e3f1dc7bf0dacfe2ceef43d93bcac2d93fdc47c8ba85f51b4f5c3ced"
   },
-  "runtime_source_sha256": "aab585db84179aca6f8295efeef4d700aebab7da1808420401f1abb57dd68715",
+  "runtime_source_sha256": "5c55f89fe46b7bb9437a6aed9ee8719db7d59bd6336ff3d2b7ec0875fa8b11b3",
   "runtime_source_hash_method": "SHA256 over sorted relative Python path, NUL, contents, NUL in ingest/orchestration/ml/serving",
   "runtime_source_files": 40,
   "passed_checks": [
@@ -97,7 +97,7 @@
   "new_images_built": false,
   "known_limits": [
     "No real-data model fitted: measured 495-day grace exceeds nine calendar months.",
-    "The full frozen-model load run and a two-worker trial both failed the 120 ms p99 target at 200 rps.",
+    "The accepted bounded-session frozen-model run met the 120 ms p99 target at 200 rps; earlier failed curves and the rejected two-worker trial remain as investigation evidence.",
     "Prior infrastructure/image hardening findings remain; this is not production readiness."
   ],
   "secret_scan": {

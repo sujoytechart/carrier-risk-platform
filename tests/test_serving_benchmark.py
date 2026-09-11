@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from serving.benchmark import (
+    CLIENT_SESSION_COUNT,
     nearest_rank_percentile,
     run_load,
     score_failure_reason,
@@ -24,6 +25,10 @@ PAYLOAD: dict[str, object] = {
 
 def test_actual_synthetic_score_is_accepted() -> None:
     assert valid_fixture_score(PAYLOAD, status_code=200, month="2026-09-01", usdot="1")
+
+
+def test_benchmark_uses_a_bounded_persistent_connection_set() -> None:
+    assert CLIENT_SESSION_COUNT == 32
 
 
 def test_transport_exception_is_preserved_for_diagnosis() -> None:

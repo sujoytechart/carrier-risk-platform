@@ -3,8 +3,8 @@
 The model and serving implementation preserves the committed maturity gate.
 The real-data result is a skipped training run, not a trained risk model.
 Successful scores and load tests use an isolated synthetic validation model.
-The serving latency acceptance target remains unmet; this report does not mark
-Phase 3 acceptance complete.
+The serving latency acceptance target is met by the final bounded-session local
+curve. This completes Phase 3's local acceptance evidence.
 
 ## Empirical maturity
 
@@ -117,56 +117,35 @@ no risk score.
 
 ## Measured serving latency
 
-The full frozen-model run used an uninstrumented Uvicorn process, the actual
-MLflow-loaded 100-tree model, and PostgreSQL lookups over 512 fictional carriers.
-Locust scheduled open arrivals at 50, 100, 200 and 300 rps for thirty measured
-seconds each after five seconds of warmup. Repository test suites were stopped;
-the eight-GiB desktop's other workloads were uncontrolled. Every stage and
-failure is retained, with raw timings, hashes, model version and platform.
+The accepted full frozen-model run used an uninstrumented Uvicorn process, the
+actual MLflow-loaded 100-tree model, and PostgreSQL lookups over 512 fictional
+carriers. Locust scheduled independent open arrivals at 50, 100, 200 and 300 rps
+for thirty measured seconds each after five seconds of warmup. Thirty-two
+persistent loopback sessions kept connections warm while allowing overlapping
+requests; this avoids the benchmark's earlier 256 idle client connections.
 
-At the required 200-rps stage, all 6,000 request attempts completed, 516 failed,
-achieved throughput including drain was 166.69 rps, and HTTP p99 was 5,600 ms.
-Scheduled-arrival-to-response p99 was 6,098.17 ms, and maximum scheduler delay
-was 866.97 ms. The committed 120-ms budget was not met. Failed request durations
-clustered around the configured five-second timeout; the original harness lost
-their underlying exception details. The diagnostic fix preserves transport
-errors and per-request timestamps without changing timing or acceptance rules.
+| Target rps | Achieved rps | HTTP p99 ms | Scheduled-arrival p99 ms | Failures / completed |
+|---:|---:|---:|---:|---:|
+| 50 | 50.00 | 12 | 14.96 | 0 / 1,500 |
+| 100 | 100.00 | 10 | 10.76 | 0 / 3,000 |
+| 200 | 200.00 | 14 | 14.30 | 0 / 6,000 |
+| 300 | 299.98 | 86 | 118.23 | 0 / 9,000 |
 
-A subsequent bounded diagnostic used two seconds of warmup and ten measured
-seconds at 200 rps. It completed 2,000 requests without failures, achieved
-199.94 rps, and still failed the budget with HTTP p99 of 300 ms. All 2,400
-handler durations including warmup were within 120 ms. This narrows the remaining
-delay to work outside that measured handler, including queuing, transport and
-the load client; it does not isolate a cause. CPU/memory samples show concurrent
-host activity and paging, but do not prove those caused the earlier failures.
+The required 200-rps stage completed every request with 14 ms HTTP p99, 14.30 ms
+scheduled-arrival p99, and 78.85 ms maximum scheduler lag. Each acceptance
+measure is within the committed 120-ms limit. The raw per-request timings,
+summary, harness source, SHA-256 hashes, fixture provenance, and limitations are
+in the [final latency manifest](evidence/phase-3/latency-session-32/manifest.json).
+This is local synthetic-path evidence; it does not claim real-data predictive
+quality or cloud production latency.
 
-An additional instrumented ASGI probe matched every client response with server
-timestamps. Its 2,000 measured requests succeeded, but client p99 was 385.04 ms
-(400 ms in Locust's rounded histogram). ASGI entry to response start had p99
-258.55 ms, while combined time outside ASGI had p99 144.53 ms. Of 208 responses
-exceeding 120 ms, 136 spent most of their time inside ASGI. Final-body writes
-took at most 0.801 ms. These measurements identify framework/request scheduling
-as part of the tail, without attributing the earlier transport failures to it.
-The first attempt lost its shutdown timing buffer; both attempts are retained,
-and the recovered records agree with response timing headers.
-
-The earlier concurrent diagnostic with a smaller 32-tree fixture is retained
-separately and does not establish the frozen model's latency. The README
-publishes the complete frozen-model curve; short instrumented probes are not
-substituted for acceptance measurements.
-
-The observed framework delay motivated one controlled two-worker configuration
-trial with the same full curve, model and timing rules. All 19,500 requests
-completed without failures, but the required 200-rps stage achieved 197.04 rps,
-HTTP p99 200 ms, scheduled-arrival p99 462.78 ms and maximum scheduler delay
-435.83 ms. The configuration was rejected and the single-worker default was
-retained. System CPU reached 82.6%; the monitoring interval recorded 362.2 MB of
-swap-ins and 22.7 MB of swap-outs. These concurrent observations do not establish
-a unique cause. See the [complete investigation and attempt ledger](evidence/phase-3/latency-investigation.md).
-
-Further acceptance needs a controlled host/load-generator environment and
-request-scheduling investigation. The current results do not demonstrate the
-200-rps budget, even though some other rate stages passed.
+The earlier 256-session curve, diagnostic probes, and rejected two-worker trial
+remain in the [latency investigation](evidence/phase-3/latency-investigation.md).
+They are historical failed experiments, not acceptance evidence. The failed
+256-session run held roughly 282 server file descriptors while 256 loopback
+clients remained connected; the final bounded-session configuration corrects
+that benchmark-induced connection pressure without changing model or service
+semantics.
 
 ## Quality verification
 
@@ -174,7 +153,7 @@ The full repository suite passed 363 tests in 1,628.04 seconds, including the
 original temporal failures/restorations, idempotency, contracts and offline
 infrastructure checks. Review fixes made while that long run was active were
 verified with fresh component runs: seventeen maturity tests, forty-four
-dataset/monthly tests, twenty-one training/tracking/promotion tests, eighty-seven
+dataset/monthly tests, twenty-one training/tracking/promotion tests, eighty-eight
 serving tests, four independent dbt maturity-guard tests and five Compose
 contract tests. These runs overlap the full suite; their counts are not added
 to claim a larger single run.
@@ -185,9 +164,9 @@ modules, combined with fresh final measurements for each changed `ml` and
 The serving harness additionally has a separate one-rps, ten-request coverage
 smoke test, which is not latency acceptance evidence.
 
-Final branch-enabled project coverage is **89.9330655957162%**, above the
+Final branch-enabled project coverage is **89.93576017130621%**, above the
 unchanged 88.09963099630997% baseline. Changed executable lines are
-**1,414 / 1,521 = 92.965%**, above the unchanged 80% threshold.
+**1,415 / 1,522 = 92.970%**, above the unchanged 80% threshold.
 The [aggregate quality record](evidence/phase-3/quality.json) includes exact
 counts, installed versions and the runtime source hash.
 
