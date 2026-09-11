@@ -24,6 +24,30 @@ output "ecr_publisher_role_arn" {
   sensitive   = true
 }
 
+output "raw_catalog_database_name" {
+  description = "Glue database containing explicit raw snapshot tables."
+  value       = aws_glue_catalog_database.raw.name
+  sensitive   = true
+}
+
+output "athena_workgroup_name" {
+  description = "Enforced workgroup for bounded raw snapshot queries."
+  value       = aws_athena_workgroup.raw_analysis.name
+  sensitive   = true
+}
+
+output "athena_results_bucket_name" {
+  description = "Private bucket holding disposable Athena query results."
+  value       = aws_s3_bucket.athena_results.id
+  sensitive   = true
+}
+
+output "analytics_role_arn" {
+  description = "Role allowed to publish catalog documents and query raw snapshots."
+  value       = aws_iam_role.analytics.arn
+  sensitive   = true
+}
+
 output "arrival_queue_arn" {
   description = "ARN of the manifest arrival queue, or null when the spine is disabled."
   value       = try(module.spine[0].arrival_queue_arn, null)

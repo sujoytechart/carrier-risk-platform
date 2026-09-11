@@ -82,9 +82,28 @@ def initialized_terraform_roots(
 def local_backend_graph_root(
     tmp_path_factory: pytest.TempPathFactory,
 ) -> tuple[Path, Path]:
-    """Copy the base root without its S3 backend for offline graph inspection."""
-    graph_root = tmp_path_factory.mktemp("terraform-graph") / "base"
-    shutil.copytree(TERRAFORM_ROOTS[0], graph_root)
+    """Copy the base root and canonical schemas for offline graph inspection."""
+    graph_project_root = tmp_path_factory.mktemp("terraform-graph")
+    graph_root = graph_project_root / "infra" / "base"
+    graph_root.mkdir(parents=True)
+
+    terraform_sources = sorted(TERRAFORM_ROOTS[0].glob("*.tf")) + sorted(
+        (TERRAFORM_ROOTS[0] / "modules").rglob("*.tf")
+    )
+    for source_path in terraform_sources:
+        if source_path.name == "override.tf" or source_path.name.endswith(
+            "_override.tf"
+        ):
+            continue
+        destination_path = graph_root / source_path.relative_to(TERRAFORM_ROOTS[0])
+        destination_path.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source_path, destination_path)
+    shutil.copy2(TERRAFORM_ROOTS[0] / ".terraform.lock.hcl", graph_root)
+
+    schema_root = graph_project_root / "ingest" / "schemas"
+    schema_root.mkdir(parents=True)
+    for schema_name in ("crashes.json", "inspections.json"):
+        shutil.copy2(PROJECT_ROOT / "ingest" / "schemas" / schema_name, schema_root)
 
     versions_path = graph_root / "versions.tf"
     versions_configuration = versions_path.read_text()
@@ -183,6 +202,18 @@ def test_loader_trust_does_not_reuse_ingest_principals() -> None:
     assert "var.additional_ingest_principals" not in root_spine_configuration
 
 
+def test_analytics_trust_uses_only_its_dedicated_principals() -> None:
+    """Keep catalog publication and queries separate from other runtime roles."""
+    iam_configuration = (TERRAFORM_ROOTS[0] / "iam.tf").read_text()
+    analytics_configuration = iam_configuration.split(
+        "locals {\n  analytics_principal_arns", maxsplit=1
+    )[1]
+    assert "var.additional_analytics_principals" in analytics_configuration
+    assert "var.additional_ingest_principals" not in analytics_configuration
+    assert "var.additional_loader_principals" not in analytics_configuration
+    assert "var.additional_ecr_publisher_principals" not in analytics_configuration
+
+
 def test_neither_runtime_role_can_delete_raw_objects_or_read_secrets() -> None:
     """Catch privilege growth across both the ingest and loader role policies."""
     iam_configuration = "\n".join(
@@ -213,6 +244,65 @@ def test_runtime_roles_have_no_remote_state_access() -> None:
     )
     assert "terraform.tfstate" not in runtime_iam_configuration
     assert ".tflock" not in runtime_iam_configuration
+
+
+def test_analytics_infrastructure_has_no_managed_processing_services() -> None:
+    """Keep the raw catalog explicit and free of paid discovery or ETL services."""
+    analytics_configuration = "\n".join(
+        (TERRAFORM_ROOTS[0] / relative_path).read_text()
+        for relative_path in ("glue.tf", "athena.tf", "iam.tf")
+    )
+    forbidden_resources = (
+        'resource "aws_glue_crawler"',
+        'resource "aws_glue_job"',
+        'resource "aws_athena_capacity_reservation"',
+    )
+    for forbidden_resource in forbidden_resources:
+        assert forbidden_resource not in analytics_configuration
+
+
+def test_athena_multipart_cleanup_covers_the_entire_results_bucket() -> None:
+    """Do not restrict abandoned multipart cleanup to the query-result prefix."""
+    athena_configuration = (TERRAFORM_ROOTS[0] / "athena.tf").read_text()
+    expected_rule = """  rule {
+    id     = "abort-incomplete-multipart-uploads"
+    status = "Enabled"
+
+    filter {}
+
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 1
+    }
+  }"""
+    assert expected_rule in athena_configuration
+
+
+def test_graph_fixture_copies_only_canonical_schema_inputs(
+    local_backend_graph_root: tuple[Path, Path],
+) -> None:
+    """Keep fixture schema reads valid without copying private Terraform artifacts."""
+    terraform_root, _ = local_backend_graph_root
+    fixture_project_root = terraform_root.parents[1]
+    copied_paths = {
+        path.relative_to(fixture_project_root).as_posix()
+        for path in fixture_project_root.rglob("*")
+        if path.is_file()
+    }
+    expected_terraform_paths = {
+        f"infra/base/{path.relative_to(TERRAFORM_ROOTS[0]).as_posix()}"
+        for path in (
+            sorted(TERRAFORM_ROOTS[0].glob("*.tf"))
+            + sorted((TERRAFORM_ROOTS[0] / "modules").rglob("*.tf"))
+        )
+        if path.name != "override.tf" and not path.name.endswith("_override.tf")
+    }
+    expected_paths = expected_terraform_paths | {
+        "infra/base/.terraform.lock.hcl",
+        "ingest/schemas/crashes.json",
+        "ingest/schemas/inspections.json",
+    }
+
+    assert copied_paths == expected_paths
 
 
 def test_local_terraform_artifacts_and_backend_configuration_are_ignored() -> None:

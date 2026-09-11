@@ -4,6 +4,8 @@ terraform_operator_role_name = "AccountFullAccessRole"
 enable_spine                  = false
 warehouse_publicly_accessible = false
 ecr_retained_image_count       = 10
+athena_results_retention_days  = 7
+athena_query_scan_cutoff_bytes = 1073741824
 
 # Whoever runs the ingestion locally. Find yours with:
 #   aws sts get-caller-identity --query Arn --output text
@@ -16,6 +18,17 @@ ecr_retained_image_count       = 10
 # Stable principals allowed to publish the API image. Authorization-token
 # retrieval must be account-wide in AWS, while image operations are repository-scoped.
 # additional_ecr_publisher_principals = ["arn:aws:iam::<account-id>:role/<publisher-role>"]
+
+# Stable principals allowed to publish catalog pointers and run raw queries.
+# This identity is deliberately independent of every other runtime role.
+# additional_analytics_principals = ["arn:aws:iam::<account-id>:role/<analytics-role>"]
+
+# Select one validated complete acquisition date per feed together. Leaving the
+# map empty creates the catalog tables without exposing an incomplete snapshot.
+# catalog_acquisition_dates = {
+#   crashes     = "YYYY-MM-DD"
+#   inspections = "YYYY-MM-DD"
+# }
 
 # Temporary local-Airflow connectivity requires both settings and explicit
 # approval before a plan/apply. Never use 0.0.0.0/0 or a shared network range.

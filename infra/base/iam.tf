@@ -113,3 +113,144 @@ resource "aws_iam_role_policy" "ecr_publisher" {
     ]
   })
 }
+
+locals {
+  analytics_principal_arns = distinct(concat(
+    [data.aws_iam_role.terraform_operator.arn],
+    var.additional_analytics_principals,
+  ))
+}
+
+resource "aws_iam_role" "analytics" {
+  name        = "carrier-risk-analytics-${var.environment}"
+  description = "Publishes catalog documents and runs bounded raw snapshot queries."
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = "sts:AssumeRole"
+      Principal = {
+        AWS = local.analytics_principal_arns
+      }
+    }]
+  })
+}
+
+resource "aws_iam_role_policy" "analytics" {
+  name = "catalog-publish-and-query"
+  role = aws_iam_role.analytics.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid      = "GetRawBucketLocation"
+        Effect   = "Allow"
+        Action   = ["s3:GetBucketLocation"]
+        Resource = [aws_s3_bucket.raw.arn]
+      },
+      {
+        Sid      = "ListRawAndCatalogPrefixes"
+        Effect   = "Allow"
+        Action   = ["s3:ListBucket"]
+        Resource = [aws_s3_bucket.raw.arn]
+        Condition = {
+          StringLike = {
+            "s3:prefix" = [
+              "catalog",
+              "catalog/*",
+              "catalog-metadata",
+              "catalog-metadata/*",
+              "raw",
+              "raw/*",
+            ]
+          }
+        }
+      },
+      {
+        Sid      = "ReadRawSnapshotEvidence"
+        Effect   = "Allow"
+        Action   = ["s3:GetObject", "s3:GetObjectVersion"]
+        Resource = ["${aws_s3_bucket.raw.arn}/raw/*"]
+      },
+      {
+        Sid    = "ReadCatalogDocuments"
+        Effect = "Allow"
+        Action = ["s3:GetObject"]
+        Resource = [
+          "${aws_s3_bucket.raw.arn}/catalog/*",
+          "${aws_s3_bucket.raw.arn}/catalog-metadata/*",
+        ]
+      },
+      {
+        # Catalog publication is append-only: the publisher supplies
+        # If-None-Match=* and S3 rejects any attempt to replace an object.
+        Sid    = "PublishCatalogDocuments"
+        Effect = "Allow"
+        Action = ["s3:PutObject"]
+        Resource = [
+          "${aws_s3_bucket.raw.arn}/catalog/*",
+          "${aws_s3_bucket.raw.arn}/catalog-metadata/*",
+        ]
+        Condition = {
+          StringEquals = {
+            "s3:if-none-match" = "*"
+          }
+        }
+      },
+      {
+        Sid      = "GetResultsBucketLocation"
+        Effect   = "Allow"
+        Action   = ["s3:GetBucketLocation"]
+        Resource = [aws_s3_bucket.athena_results.arn]
+      },
+      {
+        Sid      = "ListQueryResults"
+        Effect   = "Allow"
+        Action   = ["s3:ListBucket"]
+        Resource = [aws_s3_bucket.athena_results.arn]
+        Condition = {
+          StringLike = {
+            "s3:prefix" = ["queries", "queries/*"]
+          }
+        }
+      },
+      {
+        Sid      = "ReadWriteQueryResults"
+        Effect   = "Allow"
+        Action   = ["s3:GetObject", "s3:PutObject"]
+        Resource = ["${aws_s3_bucket.athena_results.arn}/queries/*"]
+      },
+      {
+        Sid    = "RunBoundedQueries"
+        Effect = "Allow"
+        Action = [
+          "athena:GetQueryExecution",
+          "athena:GetQueryResults",
+          "athena:StartQueryExecution",
+          "athena:StopQueryExecution",
+        ]
+        Resource = [aws_athena_workgroup.raw_analysis.arn]
+      },
+      {
+        Sid    = "ReadRawCatalog"
+        Effect = "Allow"
+        Action = [
+          "glue:BatchGetPartition",
+          "glue:GetDatabase",
+          "glue:GetDatabases",
+          "glue:GetPartition",
+          "glue:GetPartitions",
+          "glue:GetTable",
+          "glue:GetTables",
+        ]
+        Resource = [
+          "arn:aws:glue:${var.region}:${data.aws_caller_identity.current.account_id}:catalog",
+          aws_glue_catalog_database.raw.arn,
+          aws_glue_catalog_table.raw["crashes"].arn,
+          aws_glue_catalog_table.raw["inspections"].arn,
+          aws_glue_catalog_table.snapshot_metadata.arn,
+        ]
+      },
+    ]
+  })
+}

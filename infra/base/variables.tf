@@ -47,6 +47,83 @@ variable "additional_ecr_publisher_principals" {
   default     = []
 }
 
+variable "additional_analytics_principals" {
+  description = <<-EOT
+    Extra stable IAM user or role ARNs allowed to assume the catalog publisher
+    and query role. This is independent of every other runtime identity.
+  EOT
+  type        = list(string)
+  default     = []
+}
+
+variable "catalog_acquisition_dates" {
+  description = <<-EOT
+    One complete initial snapshot date for each feed. Leave empty until both
+    dates have been validated; partial or multiple-date selection is rejected.
+  EOT
+  type        = map(string)
+  default     = {}
+
+  validation {
+    condition = (
+      length(var.catalog_acquisition_dates) == 0 ||
+      toset(keys(var.catalog_acquisition_dates)) == toset(["crashes", "inspections"])
+    )
+    error_message = "catalog_acquisition_dates must be empty or contain exactly crashes and inspections."
+  }
+
+  validation {
+    condition = alltrue([
+      for acquisition_date in values(var.catalog_acquisition_dates) :
+      can(regex("^[0-9]{4}-[0-9]{2}-[0-9]{2}$", acquisition_date)) &&
+      try(tonumber(substr(acquisition_date, 0, 4)), 0) >= 1 &&
+      try(tonumber(substr(acquisition_date, 0, 4)), 0) <= 9999 &&
+      can(formatdate("YYYY-MM-DD", "${acquisition_date}T00:00:00Z")) &&
+      try(formatdate("YYYY-MM-DD", "${acquisition_date}T00:00:00Z"), "") == acquisition_date
+    ])
+    error_message = "Every catalog acquisition date must be a real ISO YYYY-MM-DD date."
+  }
+}
+
+variable "athena_results_bucket_prefix" {
+  description = "Prefix for the separate Athena query-results bucket."
+  type        = string
+  default     = "carrier-risk-athena-results"
+}
+
+variable "athena_results_retention_days" {
+  description = "Days before disposable Athena query results expire."
+  type        = number
+  default     = 7
+
+  validation {
+    condition = (
+      var.athena_results_retention_days >= 1 &&
+      var.athena_results_retention_days <= 30 &&
+      floor(var.athena_results_retention_days) == var.athena_results_retention_days
+    )
+    error_message = "athena_results_retention_days must be a whole number from 1 through 30."
+  }
+}
+
+variable "athena_query_scan_cutoff_bytes" {
+  description = <<-EOT
+    Per-query Athena scan cutoff in bytes. Cancellation can occur after the
+    threshold is crossed, so this does not cap account-level query spending.
+  EOT
+  type        = number
+  default     = 1073741824
+
+  validation {
+    condition = (
+      var.athena_query_scan_cutoff_bytes >= 10485760 &&
+      var.athena_query_scan_cutoff_bytes <= 10737418240 &&
+      floor(var.athena_query_scan_cutoff_bytes) == var.athena_query_scan_cutoff_bytes
+    )
+    error_message = "athena_query_scan_cutoff_bytes must be a whole number from 10485760 through 10737418240."
+  }
+}
+
 variable "ecr_retained_image_count" {
   description = "Maximum number of API images retained in ECR."
   type        = number
