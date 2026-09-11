@@ -3,3 +3,12 @@
 # versions.tf so deployment permissions cannot silently drift to another path.
 bucket = "carrier-risk-tf-state-ACCOUNT_ID"
 region = "us-east-1"
+
+# When state access uses a separate project-owned role, uncomment this block.
+# Backend credentials are independent of the AWS provider's deployment identity
+# and the base root's terraform_operator_role_name runtime-trust setting.
+# assume_role = {
+#   role_arn     = "arn:aws:iam::ACCOUNT_ID:role/PROJECT_STATE_ROLE_NAME"
+#   session_name = "carrier-risk-state"
+#   duration     = "1h"
+# }

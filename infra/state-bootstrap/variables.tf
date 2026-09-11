@@ -28,6 +28,6 @@ variable "state_key" {
 }
 
 variable "terraform_operator_role_name" {
-  description = "Stable IAM role that deploys the base root and accesses its state."
+  description = "Existing project-owned IAM role receiving the state-access policy; may differ from the base deployment operator."
   type        = string
 }

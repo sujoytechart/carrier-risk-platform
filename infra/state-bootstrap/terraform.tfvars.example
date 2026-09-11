@@ -1,6 +1,9 @@
-region                       = "us-east-1"
-environment                  = "dev"
-terraform_operator_role_name = "REPLACE_WITH_OPERATOR_ROLE_NAME"
+region      = "us-east-1"
+environment = "dev"
+
+# Existing project-owned role whose inline policies this root may manage.
+# This may differ from the operator named in the base root's variables.
+terraform_operator_role_name = "REPLACE_WITH_PROJECT_STATE_ROLE_NAME"
 
 # The base backend and this role policy deliberately share this fixed key.
 state_key = "carrier-risk/base/terraform.tfstate"

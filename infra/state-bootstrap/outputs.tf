@@ -10,7 +10,7 @@ output "state_key" {
 }
 
 output "terraform_deployment_role_arn" {
-  description = "Role used for base-root state and resource operations."
+  description = "Role receiving state access, for backend assume_role when separate from the deployment operator."
   value       = data.aws_iam_role.terraform_operator.arn
   sensitive   = true
 }
