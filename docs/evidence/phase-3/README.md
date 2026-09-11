@@ -18,6 +18,8 @@ or private process instructions.
   PostgreSQL/MLflow lookups return `model_unavailable`, without a score.
 - [Quality record](quality.json): full and final component test counts,
   exact coverage, source fingerprint, installed versions and scan results.
+- [Local cleanup](local-cleanup.json): temporary API and PostgreSQL teardown,
+  with original snapshots and existing services untouched.
 - [Latency evidence and investigation](latency-investigation.md): the complete
   failed throughput curve, raw timings and hashes, and bounded follow-up
   diagnostics. The 200-rps latency target remains unmet.

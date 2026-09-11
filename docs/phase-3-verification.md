@@ -205,6 +205,11 @@ shutdown were untouched. The prior conservative $5.20 allowance remains an
 allowance, not finalized billing. The total authorized ceiling is still $10,
 with paid work stopping at $8 to retain cleanup headroom.
 
+All temporary API processes were stopped. The owned Phase 3 PostgreSQL test
+container and disposable volumes were removed, its absence was verified, and its
+temporary credential files were deleted. Existing containers were untouched.
+See the [local cleanup record](evidence/phase-3/local-cleanup.json).
+
 The prior 24 Checkov hardening findings and critical/high findings in the earlier
 disposable ECR image are not resolved by model and API tests. This is not a
 production-readiness claim. No push, merge, hosted CI run or cloud deployment is
