@@ -1,9 +1,10 @@
 {{ config(tags=['temporal'], severity='error') }}
 
-{# Python owns this operational registry; it is not a dbt model. Only inspect
-   the active PostgreSQL target during execution. Snowflake has no registry. #}
+{# Python owns this operational registry; it is not a dbt model. Compile sets
+   execute=true even without a connection, so inspect only during test/build.
+   Snowflake has no registry. #}
 {% set maturity_registry = none %}
-{% if execute and target.type == 'postgres' %}
+{% if execute and target.type == 'postgres' and flags.WHICH in ['test', 'build'] %}
     {% set maturity_registry = adapter.get_relation(
         database=target.database,
         schema='modeled',
@@ -67,7 +68,8 @@ where current_count <> 1
    This guard checks measurement consistency, not training eligibility. #}
 {% else %}
 
--- No Python registry means no measured policy; it does not authorize labels.
+-- No registry validation outside PostgreSQL test/build or without a registry.
+-- This does not authorize labels.
 select cast(null as {{ dbt.type_string() }}) as watermark_version
 where false
 
