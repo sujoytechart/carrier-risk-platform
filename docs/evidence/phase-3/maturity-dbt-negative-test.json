@@ -1,0 +1,64 @@
+{
+  "evidence_kind": "local_postgresql_dbt_negative_and_restored_test",
+  "scope": "Python-owned modeled.label_maturity_watermarks registry on an isolated local PostgreSQL database",
+  "command": "python -m pytest -q tests/test_maturity_dbt.py --basetemp=/private/tmp/carrier-risk-phase3-final-dbt-guard-evidence",
+  "pytest_result": {
+    "passed": 4,
+    "elapsed_seconds": 33.4
+  },
+  "test_sql_sha256": "f256fb9892dda519eb01f5f87afd1a95b5449040703c012a9c2184d4bc7001c8",
+  "watermark_version": "3ad130d750933bc937ab29734612392ca5c851b414c99441c33bb0e47dc9785e",
+  "measured_grace_days": 495,
+  "injected_summary_grace_days": 494,
+  "unchanged_metadata_grace_days": 495,
+  "negative": {
+    "dbt_version": "1.12.4",
+    "generated_at": "2026-09-11T19:57:37.042869Z",
+    "unique_id": "test.carrier_risk_platform.label_maturity_policy",
+    "status": "fail",
+    "failing_rows": 1,
+    "execution_seconds": 0.10450506210327148,
+    "timing": [
+      {
+        "name": "compile",
+        "started_at": "2026-09-11T19:57:36.898638Z",
+        "completed_at": "2026-09-11T19:57:36.906868Z"
+      },
+      {
+        "name": "execute",
+        "started_at": "2026-09-11T19:57:36.907635Z",
+        "completed_at": "2026-09-11T19:57:36.996844Z"
+      }
+    ]
+  },
+  "restored": {
+    "dbt_version": "1.12.4",
+    "generated_at": "2026-09-11T19:57:45.907177Z",
+    "unique_id": "test.carrier_risk_platform.label_maturity_policy",
+    "status": "pass",
+    "failing_rows": 0,
+    "execution_seconds": 0.5118489265441895,
+    "timing": [
+      {
+        "name": "compile",
+        "started_at": "2026-09-11T19:57:45.315756Z",
+        "completed_at": "2026-09-11T19:57:45.336726Z"
+      },
+      {
+        "name": "execute",
+        "started_at": "2026-09-11T19:57:45.339216Z",
+        "completed_at": "2026-09-11T19:57:45.812031Z"
+      }
+    ]
+  },
+  "additional_checks": [
+    "Absent registry passes without authorizing labels.",
+    "Measured 495-day grace passes consistency validation; training remains blocked by the maturity eligibility gate.",
+    "A nonempty registry with zero current policies fails the guard in an actual PostgreSQL query; restoring the current flag passes.",
+    "Snowflake execution and PostgreSQL parse render an empty test without probing the registry or emitting PostgreSQL JSON expressions."
+  ],
+  "limitations": [
+    "This artifact contains sanitized aggregate test results, not source rows or connection credentials.",
+    "The Snowflake branch was rendered offline; this run did not execute Snowflake or resume cloud compute."
+  ]
+}

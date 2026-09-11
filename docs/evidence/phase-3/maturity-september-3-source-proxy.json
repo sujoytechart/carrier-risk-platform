@@ -1,0 +1,161 @@
+{
+  "bootstrap_method": "Exact empirical histogram multinomial bootstrap with replacement; linear p99.5 in each replicate; linear 95th percentile of replicate estimates; ceiling of largest of 12 monthly upper bounds.",
+  "execution": {
+    "completed_at": "2026-09-11T19:30:11.234351+00:00",
+    "elapsed_seconds": 26.867,
+    "started_at": "2026-09-11T19:29:44.366886+00:00"
+  },
+  "limitations": [
+    "This is one current-version snapshot, not an observed archive of historical first versions. Deleted or superseded historical rows cannot be reconstructed.",
+    "First appearance is the earliest retained incident ADD_DATE plus one publication day, labeled source_proxy. Current reportability and identity may contain later corrections.",
+    "The source clock has no documented timezone; UTC is a normalization convention. This does not assert observed public availability at that instant.",
+    "Snapshot absence and tails arriving after data_as_of remain unobservable. Mature means month end plus nine calendar months; it is a policy eligibility rule, not proof the cohort can receive no later reports.",
+    "Missing-USDOT source incident counts cannot identify carrier-level incidents. They are reported separately from retained carrier incident sample counts.",
+    "Watermark missing-carrier exclusions cover the entire verified snapshot; source_audit separately records selected-cohort and parse exclusions."
+  ],
+  "lineage": {
+    "parquet_sha256": "5ec1f3fce95f5000a12d46def52594f1294308bcbe64994d3342fc430bdcbd36",
+    "source_batch_id": "84af71ce9febcfdd8c4103ddc0e112a98e4809afb28becbcaad768782099785d",
+    "source_object_sha256": "4ba6a283b0d16773f7d96318a7b81844787e1f69c715c013857fc0b2534a8625",
+    "source_observed_at": "2026-09-03T00:07:10.480329+00:00",
+    "source_parquet_values_reconciled": true,
+    "source_rows": 4986413
+  },
+  "reproducibility_check": {
+    "previous_run_same_cohort_estimates": true,
+    "previous_run_same_measured_grace": true,
+    "previous_run_same_source_checksum": true
+  },
+  "retrospective_gate": {
+    "eligible_for_any_tested_label_end": false,
+    "maximum_calendar_grace_months": 9,
+    "reasons": [
+      "grace_exceeds_nine_calendar_months"
+    ],
+    "tested_label_end_end": "2025-12-01",
+    "tested_label_end_start": "2024-01-01"
+  },
+  "software": {
+    "numpy": "2.5.3"
+  },
+  "source_audit": {
+    "excluded_missing_usdot_incidents": 1344754,
+    "excluded_missing_usdot_rows": 1371090,
+    "missing_incident_identity": [
+      "report_state",
+      "report_number",
+      "report_date",
+      "report_time"
+    ],
+    "missing_incident_scope": "Distinct source incident keys without carrier identity; these cannot be carrier-level incidents.",
+    "selected_cohort_missing_usdot_rows": 34809,
+    "selected_cohort_parse_exclusions": {
+      "invalid_incident_key": 17
+    },
+    "selected_cohort_rows": 175882,
+    "selected_cohort_valid_rows": 141056,
+    "source_rows_scanned": 4986413
+  },
+  "watermark": {
+    "availability_quality_counts": [
+      [
+        "source_proxy",
+        140706
+      ]
+    ],
+    "bootstrap_replicates": 2000,
+    "bootstrap_seed": 20260911,
+    "calculation_version": "incident-first-version-histogram-bootstrap-linear-v1",
+    "cohorts": [
+      {
+        "event_month": "2024-12-01",
+        "incident_count": 12184,
+        "p995_days": 434.63499999997293,
+        "upper_95_days": 494.8699999999808
+      },
+      {
+        "event_month": "2025-01-01",
+        "incident_count": 13023,
+        "p995_days": 362.66999999999825,
+        "upper_95_days": 371.0
+      },
+      {
+        "event_month": "2025-02-01",
+        "incident_count": 11707,
+        "p995_days": 325.40999999999804,
+        "upper_95_days": 338.8799999999974
+      },
+      {
+        "event_month": "2025-03-01",
+        "incident_count": 11860,
+        "p995_days": 284.7049999999999,
+        "upper_95_days": 308.0
+      },
+      {
+        "event_month": "2025-04-01",
+        "incident_count": 11356,
+        "p995_days": 288.6750000000011,
+        "upper_95_days": 300.0
+      },
+      {
+        "event_month": "2025-05-01",
+        "incident_count": 10786,
+        "p995_days": 308.15000000000146,
+        "upper_95_days": 333.0
+      },
+      {
+        "event_month": "2025-06-01",
+        "incident_count": 11364,
+        "p995_days": 407.0,
+        "upper_95_days": 407.0
+      },
+      {
+        "event_month": "2025-07-01",
+        "incident_count": 11864,
+        "p995_days": 279.6849999999995,
+        "upper_95_days": 286.0
+      },
+      {
+        "event_month": "2025-08-01",
+        "incident_count": 11251,
+        "p995_days": 244.0,
+        "upper_95_days": 248.0
+      },
+      {
+        "event_month": "2025-09-01",
+        "incident_count": 11819,
+        "p995_days": 222.90999999999985,
+        "upper_95_days": 227.0
+      },
+      {
+        "event_month": "2025-10-01",
+        "incident_count": 12435,
+        "p995_days": 197.0,
+        "upper_95_days": 199.0
+      },
+      {
+        "event_month": "2025-11-01",
+        "incident_count": 11057,
+        "p995_days": 282.0,
+        "upper_95_days": 286.0
+      }
+    ],
+    "computed_at": "2026-09-11T19:29:44.366872+00:00",
+    "confidence": 0.95,
+    "data_as_of": "2026-09-03",
+    "excluded_missing_usdot_incidents": 1344754,
+    "excluded_missing_usdot_rows": 1371090,
+    "excluded_nonreportable_incidents": 0,
+    "grace_days": 495,
+    "label_definition": "at_least_one_federally_recordable_carrier_crash_in_next_6_months",
+    "measured_grace_days": 495,
+    "previous_watermark_version": null,
+    "quantile": 0.995,
+    "reviewed_decrease": false,
+    "sample_size": 140706,
+    "source_complete": true,
+    "source_fingerprint": "5ec1f3fce95f5000a12d46def52594f1294308bcbe64994d3342fc430bdcbd36",
+    "status": "measured",
+    "watermark_version": "3ad130d750933bc937ab29734612392ca5c851b414c99441c33bb0e47dc9785e"
+  }
+}

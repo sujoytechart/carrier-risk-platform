@@ -1,3 +1,6 @@
+{{ config(indexes=[{'columns': ['usdot_number', 'scoring_date'], 'unique': true}]
+    if target.type == 'postgres' else []) }}
+
 {% set scoring_dates = var('scoring_dates', none) %}
 {% if scoring_dates is not none %}
     {% if scoring_dates is string or scoring_dates is mapping

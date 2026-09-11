@@ -1,0 +1,28 @@
+# HELP carrier_risk_score_requests_total Score responses by outcome
+# TYPE carrier_risk_score_requests_total counter
+carrier_risk_score_requests_total{outcome="scored"} 22268.0
+# HELP carrier_risk_score_requests_created Score responses by outcome
+# TYPE carrier_risk_score_requests_created gauge
+carrier_risk_score_requests_created{outcome="scored"} 1.7891556946717162e+09
+# HELP carrier_risk_score_request_duration_seconds Scoring handler elapsed time
+# TYPE carrier_risk_score_request_duration_seconds histogram
+carrier_risk_score_request_duration_seconds_bucket{le="0.005",outcome="scored"} 13431.0
+carrier_risk_score_request_duration_seconds_bucket{le="0.01",outcome="scored"} 17863.0
+carrier_risk_score_request_duration_seconds_bucket{le="0.025",outcome="scored"} 20379.0
+carrier_risk_score_request_duration_seconds_bucket{le="0.05",outcome="scored"} 21483.0
+carrier_risk_score_request_duration_seconds_bucket{le="0.1",outcome="scored"} 22032.0
+carrier_risk_score_request_duration_seconds_bucket{le="0.12",outcome="scored"} 22103.0
+carrier_risk_score_request_duration_seconds_bucket{le="0.25",outcome="scored"} 22236.0
+carrier_risk_score_request_duration_seconds_bucket{le="0.5",outcome="scored"} 22252.0
+carrier_risk_score_request_duration_seconds_bucket{le="1.0",outcome="scored"} 22252.0
+carrier_risk_score_request_duration_seconds_bucket{le="2.0",outcome="scored"} 22262.0
+carrier_risk_score_request_duration_seconds_bucket{le="5.0",outcome="scored"} 22262.0
+carrier_risk_score_request_duration_seconds_bucket{le="+Inf",outcome="scored"} 22268.0
+carrier_risk_score_request_duration_seconds_count{outcome="scored"} 22268.0
+carrier_risk_score_request_duration_seconds_sum{outcome="scored"} 325.7121827254887
+# HELP carrier_risk_score_request_duration_seconds_created Scoring handler elapsed time
+# TYPE carrier_risk_score_request_duration_seconds_created gauge
+carrier_risk_score_request_duration_seconds_created{outcome="scored"} 1.789155694671951e+09
+# HELP carrier_risk_model_available A promoted classifier is loaded
+# TYPE carrier_risk_model_available gauge
+carrier_risk_model_available 1.0

@@ -1,0 +1,27 @@
+{
+  "performed_at": "2026-09-11T20:04:10.482854+00:00",
+  "scope": "Real measured watermark imported into isolated local PostgreSQL registry; monthly orchestration replay; actual MLflow skip",
+  "runs": [
+    {
+      "status": "skipped",
+      "reason": "grace_exceeds_nine_calendar_months",
+      "watermark_id": "3ad130d750933bc937ab29734612392ca5c851b414c99441c33bb0e47dc9785e",
+      "run_id": "d63accfb377d47c7b0bb9d1a58b7447a",
+      "dataset_fingerprint": null,
+      "row_count": null
+    },
+    {
+      "status": "skipped",
+      "reason": "grace_exceeds_nine_calendar_months",
+      "watermark_id": "3ad130d750933bc937ab29734612392ca5c851b414c99441c33bb0e47dc9785e",
+      "run_id": "538969ce9d1e44beae7483b7f50d62f2",
+      "dataset_fingerprint": null,
+      "row_count": null
+    }
+  ],
+  "registry_rows": 1,
+  "current_registry_rows": 1,
+  "registered_models": 0,
+  "dataset_built": false,
+  "cloud_usage": 0
+}

@@ -1,0 +1,28 @@
+{
+  "validation_fixture": true,
+  "purpose": "Diagnostic only; does not replace the retained full latency curve",
+  "rate": 200,
+  "measured_seconds": 10,
+  "warmup_seconds": 5,
+  "server_host": "127.0.0.1",
+  "server_port": 8003,
+  "uvicorn_options": "default single worker/loop/http; --no-access-log",
+  "timing_clock": "same-host time.perf_counter_ns",
+  "scheduled_timestamp_note": "client-start minus native scheduler lag; includes a small wrapper-entry offset",
+  "instrumentation": "two response timing headers; rows buffered in memory and flushed after load/shutdown",
+  "probe_sources": {
+    "server_wrapper.py": "04be52e67a29923154d6b2a094ec052a0ddbe8e685086ed5975afa7868da87bd",
+    "client_probe.py": "dc490db9d809a7a91c70003420f53b35794072ff5e0050eeb3508c28a99d121c",
+    "run_probe.py": "3a0c398407cd03daa0cc90bc87baace6256cd2d5c9fa76d3b44d59aa2e3b2860"
+  },
+  "original_harness_sha256": "6cea1526ba8b88ef8c2d4f8028d12bd239ba3dc4948af4ef96e3076fa108e0ce",
+  "started_at": "2026-09-11T20:17:12.319160+00:00",
+  "readiness": {
+    "status": "ready",
+    "model_version": "2",
+    "validation_fixture": true
+  },
+  "client_exit_code": 0,
+  "server_exit_code": -15,
+  "completed_at": "2026-09-11T20:17:45.520580+00:00"
+}

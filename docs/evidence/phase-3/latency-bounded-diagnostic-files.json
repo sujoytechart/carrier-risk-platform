@@ -1,0 +1,42 @@
+{
+  "run_role": "one bounded investigation after failed complete curve; not a replacement acceptance run",
+  "validation_fixture": true,
+  "concurrent_workload": "Ordinary desktop processes and other local task verification were uncontrolled; independent observer sampled aggregate host/API/client resources once per second",
+  "definite_fix": "Preserve underlying transport exceptions and request start timestamps in the benchmark evidence",
+  "observation": "All 2400 server handlers including warmup fell within 120 ms, while 2000 measured HTTP requests had p99 300 ms and zero failures. The previous transport errors did not recur. No causal performance bottleneck was established.",
+  "resource_summary": {
+    "samples": 14,
+    "peak_system_cpu_percent": 80.1,
+    "peak_api_cpu_percent": 58.1,
+    "peak_client_cpu_percent": 86.5,
+    "minimum_available_memory_bytes": 1772920832,
+    "swap_in_delta_bytes": 29241344,
+    "swap_out_delta_bytes": 3764224,
+    "peak_client_file_descriptors": 261
+  },
+  "files": [
+    {
+      "file": "latency-bounded-diagnostic.json",
+      "sha256": "36a950f3eaa82a993fa52d2b060c9d98d101cd6b9c366922b3b0674396fb95ae"
+    },
+    {
+      "file": "latency-bounded-diagnostic-resources.json",
+      "sha256": "cbccb7c6754fd7e17ed20ba42de7f2b2ce140567d3699d30a7f82b4c3c17004d"
+    },
+    {
+      "file": "latency-bounded-diagnostic-api-before.prom",
+      "sha256": "459531a56f676705aeeccb05f7619cf1d46c3f81391feb895cbc691ad2aa0b0f"
+    },
+    {
+      "file": "latency-bounded-diagnostic-api-after.prom",
+      "sha256": "2565fb489fdb27b39c4dc25431c6254c81b59134cc13a70897454300a2a5cf7d"
+    },
+    {
+      "file": "latency-bounded-diagnostic-200rps.csv.gz",
+      "sha256": "d1b65b6f698ad5d9dd14a4056e6b47f3b14efc45e3d986a80e696f4204abf9d2",
+      "uncompressed_sha256": "bc71bb7d5655c82e26480f0cf43ec7352b653a2efbe39586995427611827b9ca",
+      "requests": 2000,
+      "failures": 0
+    }
+  ]
+}

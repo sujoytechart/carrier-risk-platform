@@ -60,7 +60,7 @@ jobs:
         run: |
           ruff check .
           ruff format --check .
-          mypy ingest orchestration
+          mypy ingest orchestration ml serving
 
       - name: Install Terraform
         uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
@@ -108,7 +108,7 @@ jobs:
           export AWS_SHARED_CREDENTIALS_FILE="$RUNNER_TEMP/no-aws-credentials"
           export TF_PLUGIN_CACHE_DIR="$RUNNER_TEMP/terraform-plugins"
           mkdir -p "$TF_PLUGIN_CACHE_DIR"
-          python -m pytest --cov=ingest --cov=orchestration --cov-branch \
+          python -m pytest --cov=ingest --cov=orchestration --cov=ml --cov=serving --cov-branch \
             --cov-report=term-missing --cov-report=json:coverage.json \
             --cov-report=lcov:coverage.lcov
 

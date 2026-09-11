@@ -1,3 +1,6 @@
+{{ config(indexes=[{'columns': ['usdot_number', 'event_date']}]
+    if target.type == 'postgres' else []) }}
+
 select
     event_version_key as event_key,
     event_version_key,

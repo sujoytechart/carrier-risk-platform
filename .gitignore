@@ -48,3 +48,6 @@ coverage.lcov
 target/
 dbt_packages/
 logs/
+mlruns/
+mlartifacts/
+mlflow.db

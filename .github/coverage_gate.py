@@ -11,7 +11,7 @@ from pathlib import Path
 
 PROJECT_BASELINE = Decimal("88.09963099630997")
 CHANGED_LINE_MINIMUM = Decimal("80")
-SOURCE_DIRECTORIES = ("ingest", "orchestration")
+SOURCE_DIRECTORIES = ("ingest", "orchestration", "ml", "serving")
 HUNK_HEADER = re.compile(r"@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@")
 
 

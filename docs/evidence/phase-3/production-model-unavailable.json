@@ -1,0 +1,12 @@
+{
+  "profile": "production",
+  "real_postgres_lookup": true,
+  "real_mlflow_registry_lookup": true,
+  "http_status": 503,
+  "response": {
+    "status": "model_unavailable",
+    "usdot_number": "1",
+    "computed_at": "2026-09-11T19:48:54.573364Z"
+  },
+  "readiness_http_status": 503
+}

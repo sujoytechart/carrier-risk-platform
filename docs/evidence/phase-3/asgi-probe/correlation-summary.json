@@ -1,0 +1,182 @@
+{
+  "client_records": 3000,
+  "client_without_server": [],
+  "clock_sanity_nonnegative": true,
+  "limitations": [
+    "No transport failures reproduced in this short diagnostic; it cannot attribute the previous 516 HTTP0 failures.",
+    "ASGI interval includes framework scheduling, synchronous endpoint thread queue, endpoint execution, validation and response construction; individual stages are not instrumented.",
+    "Outside-ASGI time includes client scheduling, connection/accept/parser time and network/read scheduling; individual components are not distinguished.",
+    "Handler metrics captured before warmup and after measured stage combine both phases; slow warmup cannot be assigned to measured requests from aggregate metrics.",
+    "Added headers/timestamp buffering are diagnostic instrumentation, so this is not an uninstrumented acceptance result.",
+    "First attempt retained under evidence/ lost server rows due to an atexit hook bypassed by Uvicorn SIGTERM; recovery uses lifespan shutdown completion and response headers."
+  ],
+  "measurement": "Same-host perf_counter_ns timestamps; client entry through HttpSession.get return, ASGI callable entry through response-start; approximate schedule uses native harness recorded launch lag.",
+  "phases": {
+    "measured": {
+      "all_response_header_times_match_server": true,
+      "all_status_200": true,
+      "distributions_ms": {
+        "asgi_entry_to_response_start_ms": {
+          "max": 338.918849,
+          "mean": 24.0253468465,
+          "p50": 6.912407,
+          "p95": 107.046013,
+          "p99": 258.546082
+        },
+        "asgi_final_body_send_ms": {
+          "max": 0.801015,
+          "mean": 0.0184934405,
+          "p50": 0.013758,
+          "p95": 0.03611,
+          "p99": 0.079478
+        },
+        "asgi_total_ms": {
+          "max": 338.966562,
+          "mean": 24.102430536,
+          "p50": 6.995045,
+          "p95": 107.097271,
+          "p99": 258.600886
+        },
+        "client_elapsed_ms": {
+          "max": 483.166328,
+          "mean": 39.7078837145,
+          "p50": 9.709668,
+          "p95": 174.266147,
+          "p99": 385.03808
+        },
+        "client_start_to_asgi_entry_ms": {
+          "max": 181.667906,
+          "mean": 9.418435632500001,
+          "p50": 1.775511,
+          "p95": 53.032316,
+          "p99": 103.685729
+        },
+        "outside_asgi_ms": {
+          "max": 265.53763,
+          "mean": 15.682536868,
+          "p50": 2.773943,
+          "p95": 94.043933,
+          "p99": 144.528604
+        },
+        "response_start_to_client_return_ms": {
+          "max": 123.618003,
+          "mean": 6.2641012355,
+          "p50": 0.926309,
+          "p95": 39.63702,
+          "p99": 96.686314
+        },
+        "scheduled_to_asgi_entry_ms": {
+          "max": 294.980758,
+          "mean": 15.850125315,
+          "p50": 2.272941,
+          "p95": 92.90929,
+          "p99": 157.27602
+        },
+        "scheduled_to_client_return_ms": {
+          "max": 494.314122,
+          "mean": 46.139573397,
+          "p50": 10.238039,
+          "p95": 226.706473,
+          "p99": 392.049346
+        },
+        "scheduler_lag_ms": {
+          "max": 189.5534729701467,
+          "mean": 6.43168965910445,
+          "p50": 0.46803499571979046,
+          "p95": 42.899352964013815,
+          "p99": 98.17600599490106
+        }
+      },
+      "matched_requests": 2000,
+      "over_120ms_asgi_dominant": 136,
+      "over_120ms_outside_asgi_dominant": 72,
+      "requests_over_120ms": 208,
+      "requests_over_1s": 0
+    },
+    "warmup": {
+      "all_response_header_times_match_server": true,
+      "all_status_200": true,
+      "distributions_ms": {
+        "asgi_entry_to_response_start_ms": {
+          "max": 2659.927372,
+          "mean": 498.24020595400003,
+          "p50": 102.281059,
+          "p95": 2185.636291,
+          "p99": 2580.659158
+        },
+        "asgi_final_body_send_ms": {
+          "max": 0.176663,
+          "mean": 0.01273674,
+          "p50": 0.010715,
+          "p95": 0.026932,
+          "p99": 0.054594
+        },
+        "asgi_total_ms": {
+          "max": 2659.996446,
+          "mean": 498.299519281,
+          "p50": 102.343858,
+          "p95": 2185.71115,
+          "p99": 2580.706793
+        },
+        "client_elapsed_ms": {
+          "max": 2849.678157,
+          "mean": 1074.487731556,
+          "p50": 1110.788283,
+          "p95": 2535.977689,
+          "p99": 2691.064848
+        },
+        "client_start_to_asgi_entry_ms": {
+          "max": 2797.057559,
+          "mean": 564.993896038,
+          "p50": 144.943423,
+          "p95": 2223.724405,
+          "p99": 2617.397563
+        },
+        "outside_asgi_ms": {
+          "max": 2800.6711029999997,
+          "mean": 576.247525602,
+          "p50": 151.249446,
+          "p95": 2230.280239,
+          "p99": 2620.844983
+        },
+        "response_start_to_client_return_ms": {
+          "max": 52.825388,
+          "mean": 11.253629564,
+          "p50": 6.075775,
+          "p95": 38.379991,
+          "p99": 49.029163
+        },
+        "scheduled_to_asgi_entry_ms": {
+          "max": 2805.970532,
+          "mean": 574.7193961419999,
+          "p50": 145.686095,
+          "p95": 2312.830364,
+          "p99": 2675.697789
+        },
+        "scheduled_to_client_return_ms": {
+          "max": 2858.59113,
+          "mean": 1084.21323166,
+          "p50": 1111.121331,
+          "p95": 2561.0997,
+          "p99": 2768.805024
+        },
+        "scheduler_lag_ms": {
+          "max": 106.77111701807007,
+          "mean": 9.725500125496183,
+          "p50": 0.5237170262262225,
+          "p95": 82.4120650650002,
+          "p99": 100.76706402469426
+        }
+      },
+      "matched_requests": 1000,
+      "over_120ms_asgi_dominant": 375,
+      "over_120ms_outside_asgi_dominant": 333,
+      "requests_over_120ms": 708,
+      "requests_over_1s": 534
+    }
+  },
+  "publication_note": "Per-request examples omitted here; all raw client/server timestamps and all derived request records are preserved as compressed files. Probe sources are exact original bytes.",
+  "purpose": "Bounded diagnostic; does not replace the retained failed final benchmark curve.",
+  "server_records": 3000,
+  "server_without_client": []
+}
