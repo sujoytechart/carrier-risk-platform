@@ -206,7 +206,7 @@ def test_publish_accepts_a_utf8_bom_and_csv_quoting(tmp_path: Path) -> None:
     assert result.created is True
 
 
-def test_publish_rejects_backslash_escape_syntax_reinterpreted_by_opencsvserde(
+def test_publish_accepts_a_backslash_before_a_closing_csv_quote(
     tmp_path: Path,
 ) -> None:
     schema = FeedSchema.load_configured("crashes")
@@ -220,13 +220,13 @@ def test_publish_rejects_backslash_escape_syntax_reinterpreted_by_opencsvserde(
     manifest, _ = _snapshot_fixture(tmp_path, raw_csv=raw_csv, rows=[["fixture"]])
     publisher, store = _publisher(tmp_path, manifest)
 
-    with pytest.raises(ValueError, match="backslash.*OpenCSVSerde"):
-        publisher.publish("crashes", "2026-09-03")
+    result = publisher.publish("crashes", "2026-09-03")
 
-    assert store.writes == []
+    assert result.created is True
+    assert json.loads(store.objects[result.metadata_key])["row_count"] == 1
 
 
-def test_publish_rejects_a_standalone_backslash_removed_by_opencsvserde(
+def test_publish_accepts_a_literal_backslash_with_disabled_escaping(
     tmp_path: Path,
 ) -> None:
     schema = FeedSchema.load_configured("crashes")
@@ -244,8 +244,26 @@ def test_publish_rejects_a_standalone_backslash_removed_by_opencsvserde(
     )
     publisher, store = _publisher(tmp_path, manifest)
 
-    with pytest.raises(ValueError, match="Source row 1.*backslash.*OpenCSVSerde"):
-        publisher.publish("crashes", "2026-09-03")
+    result = publisher.publish("crashes", "2026-09-03")
+
+    assert result.created is True
+    assert json.loads(store.objects[result.metadata_key])["content_sha256"] == (
+        manifest.content_sha256
+    )
+
+
+@pytest.mark.parametrize("feed_name", ["crashes", "inspections"])
+@pytest.mark.parametrize("value", ["carrier\0name", "carrier,\0name"])
+def test_publish_rejects_nul_before_any_catalog_publication(
+    tmp_path: Path, feed_name: str, value: str
+) -> None:
+    schema = FeedSchema.load_configured(feed_name)
+    row = ["1", value, *([""] * (len(schema.columns) - 2))]
+    manifest, _ = _snapshot_fixture(tmp_path, feed_name=feed_name, rows=[row])
+    publisher, store = _publisher(tmp_path, manifest)
+
+    with pytest.raises(ValueError, match="Source row 1.*NUL.*OpenCSVSerde"):
+        publisher.publish(feed_name, "2026-09-03")
 
     assert store.writes == []
 

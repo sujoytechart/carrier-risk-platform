@@ -343,10 +343,10 @@ class RawCatalogPublisher:
     def _validate_opencsv_line(line: str, physical_line_number: int) -> None:
         """Require syntax decoded identically by Python CSV and OpenCSVSerde.
 
-        OpenCSV consumes backslash as an escape marker while Python's default CSV
-        dialect preserves it. OpenCSV also lets a quote within unquoted text change
-        quote state. Both constructs are rejected so a snapshot cannot validate
-        under one parser and shift columns or source values under Athena.
+        The catalog disables escaping with OpenCSV's NUL sentinel, preserving
+        literal backslashes. Source NUL characters must still be rejected because
+        OpenCSV consumes the sentinel. Quotes within unquoted text also change
+        parser state and cannot be published as compatible raw CSV.
         """
         if line.endswith("\r\n"):
             content = line[:-2]
@@ -366,11 +366,11 @@ class RawCatalogPublisher:
             character = content[index]
             next_character = content[index + 1] if index + 1 < len(content) else None
 
-            if character == "\\":
+            if character == "\0":
                 record_name = _record_name_for_physical_line(physical_line_number)
                 raise ValueError(
-                    f"{record_name} contains a backslash that Athena OpenCSVSerde "
-                    "removes or reinterprets"
+                    f"{record_name} contains NUL that Athena OpenCSVSerde "
+                    "consumes as its disabled-escape sentinel"
                 )
 
             if in_quotes:

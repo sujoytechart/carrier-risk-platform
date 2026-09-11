@@ -104,7 +104,7 @@ run "catalog_schema_and_partition_contract" {
       table.storage_descriptor[0].compressed &&
       table.storage_descriptor[0].ser_de_info[0].serialization_library == "org.apache.hadoop.hive.serde2.OpenCSVSerde" &&
       length(table.storage_descriptor[0].ser_de_info[0].parameters) == 3 &&
-      table.storage_descriptor[0].ser_de_info[0].parameters["escapeChar"] == "\\" &&
+      table.storage_descriptor[0].ser_de_info[0].parameters["escapeChar"] == "\u0000" &&
       table.storage_descriptor[0].ser_de_info[0].parameters["quoteChar"] == "\"" &&
       table.storage_descriptor[0].ser_de_info[0].parameters["separatorChar"] == "," &&
       table.parameters["skip.header.line.count"] == "1" &&
@@ -120,7 +120,7 @@ run "catalog_schema_and_partition_contract" {
       partition.storage_descriptor[0].compressed &&
       partition.storage_descriptor[0].ser_de_info[0].serialization_library == "org.apache.hadoop.hive.serde2.OpenCSVSerde" &&
       length(partition.storage_descriptor[0].ser_de_info[0].parameters) == 3 &&
-      partition.storage_descriptor[0].ser_de_info[0].parameters["escapeChar"] == "\\" &&
+      partition.storage_descriptor[0].ser_de_info[0].parameters["escapeChar"] == "\u0000" &&
       partition.storage_descriptor[0].ser_de_info[0].parameters["quoteChar"] == "\"" &&
       partition.storage_descriptor[0].ser_de_info[0].parameters["separatorChar"] == ","
     ])

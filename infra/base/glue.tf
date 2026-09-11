@@ -66,7 +66,7 @@ resource "aws_glue_catalog_table" "raw" {
       serialization_library = "org.apache.hadoop.hive.serde2.OpenCSVSerde"
 
       parameters = {
-        escapeChar    = "\\"
+        escapeChar    = "\u0000"
         quoteChar     = "\""
         separatorChar = ","
       }
@@ -144,7 +144,7 @@ resource "aws_glue_partition" "raw" {
       serialization_library = "org.apache.hadoop.hive.serde2.OpenCSVSerde"
 
       parameters = {
-        escapeChar    = "\\"
+        escapeChar    = "\u0000"
         quoteChar     = "\""
         separatorChar = ","
       }

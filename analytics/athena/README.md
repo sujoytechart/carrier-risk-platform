@@ -88,8 +88,8 @@ The downloader accepts general CSV, while Athena's `OpenCSVSerde` supports a
 narrower dialect. Publication stops before writing catalog objects when a record
 contains any of these constructs:
 
-- any backslash, because OpenCSV consumes it as an escape marker even before an
-  ordinary character;
+- a NUL character, because the catalog configures NUL as OpenCSV's escape marker
+  so ordinary backslashes remain literal;
 - CR, LF, or CRLF embedded inside a quoted field;
 - a quote inside unquoted text; or
 - characters after a closing quote before the next delimiter.
