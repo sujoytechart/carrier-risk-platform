@@ -188,8 +188,8 @@ the later incident-level label-maturity watermark.
 ## Verification status
 
 The publisher and queries have local fixture and contract coverage, including
-failure paths and idempotent retry behavior. No live Athena execution or
-real-feed OpenCSV compatibility proof has been recorded yet. The project status
+failure paths and idempotent retry behavior. Live full-snapshot derived-Parquet reconciliation and lag analysis passed. The
+retained CSV feed is incompatible with OpenCSVSerde embedded-newline handling. The project status
 and remaining live boundaries are tracked in the [main README](../../README.md#status).
 
 ## Publish and query validated Parquet

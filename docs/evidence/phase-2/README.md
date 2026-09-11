@@ -1,8 +1,28 @@
 # Phase 2 evidence
 
-The first Snowflake setup screenshot is saved below. This index records the evidence still
-required. Live parser, ECR, remote-lock, and infrastructure-only cleanup results
-are recorded without screenshots. Execution results and limitations are in the [verification record](../../phase-2-verification.md).
+Phase 2 acceptance is complete. Native screenshots below document the console
+state at capture time. Machine-readable results document execution; they are not
+screenshots. Scope, cleanup and limitations are in the
+[verification record](../../phase-2-verification.md).
+
+- [Full-source Parquet reconciliation](parquet-reconciliation.json)
+- [Athena counts, exclusions, lag distributions and scanned bytes](athena-results.json)
+- [Snowflake build, parity, replay, negative tests and atomic rollback](snowflake-semantics.json)
+
+## Final saved resource monitor
+
+![Saved Snowflake resource monitor](snowflake-monitor-completion.jpg)
+
+The native console capture shows the saved one-credit, non-resetting monitor
+with its final 75% immediate suspension trigger and September 13 deadline.
+This supersedes the initial 25% setting described in the earlier setup evidence.
+Final warehouse suspension, disabled auto-resume, zero running/queued queries and
+zero writer locks were verified programmatically after acceptance.
+
+The native management-account AWS credits capture is retained privately because
+it contains account and credit identifiers. It showed $119.96 estimated remaining
+and both credit expiry dates of September 2, 2027. It does not establish
+organization-wide sharing or a finalized project bill.
 
 ## Snowflake setup, September 11, 2026
 
@@ -28,15 +48,13 @@ record; this image is not evidence of a full project dbt build. The final
 killed-process check also verified suspension programmatically. The console was
 recaptured with the pointer outside the frame; the displayed state is unaltered.
 
-| Required capture | What it must demonstrate | Status |
-|---|---|---|
-| PostgreSQL/RDS and SQS recovery | The disposable spine is running; arrival, redrive, and replay/recovery work | Pending |
-| Glue catalog | Actual schemas and selected acquisition-date partitions point only to validated raw objects | Pending |
-| Athena reconciliation and lag query | Manifest/count agreement, parse/exclusion counts, result scope, scanned bytes, and query cost | Pending |
-| ECR | Immutable-tag settings, the bounded acceptance image, push/pull behavior, and scan outcome | Pending |
-| Remote Terraform state | Two real competing operations show lock contention and normal release | Pending |
-| dbt targets and temporal failures | Real builds/contracts pass on both targets; each temporal detector rejects a deliberate violation | Pending |
-| Final teardown | Empty disposable-stack state and live inventories show removal, including versions, images, queues, database, and bootstrap resources | Pending |
+## Capture limitations
+
+A full set of live Glue, Athena, ECR, lock-contention, dbt and teardown screenshots
+was not obtained because of browser interruptions. Their execution evidence is
+recorded in the verification record and the result files above. No reconstructed
+console image substitutes for a missing native capture. The optional RDS/SQS
+runtime redeployment was outside this phase; Phase 1 records its earlier proof.
 
 Each saved capture must show an actual console or terminal state, have a clear
 caption explaining its scope, and link back to the relevant command/result in the

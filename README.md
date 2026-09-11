@@ -161,12 +161,13 @@ event history, build two-clock features, and replay bounded date ranges without
 changing the result. Phase 1 was verified in AWS and its continuously billable
 resources were removed after the proof.
 
-Phase 2 is in progress. The repository adds remote-state and ECR configuration,
-validated Athena catalog publication, and shared transformation SQL. See
-[the Phase 2 operator guide](docs/phase-2-infrastructure.md) and
-[the adapter differences](docs/adapter-differences.md) for the current boundary:
-Snowflake history and concurrency, live Athena reconciliation, remote lock
-contention, and a full disposable-stack teardown still require verification.
+Phase 2 is complete: remote state and lock contention, ECR artifact operations,
+full-snapshot Athena reconciliation through lossless Parquet derivatives, and
+Snowflake build/replay/temporal/rollback parity were verified. Temporary AWS
+resources were removed and Snowflake compute is suspended. See the
+[verification record](docs/phase-2-verification.md) for results, cost controls,
+security findings and the limits of the acceptance scope. Model training and
+serving remain Phase 3 work.
 
 ## License
 

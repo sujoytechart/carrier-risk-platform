@@ -1,11 +1,9 @@
 # Phase 2 infrastructure and portability
 
-Phase 2 adds a remote Terraform backend, a container registry, a raw-data query
-catalog, and a second dbt compilation target. The local implementation is being
-verified. Live parser, ECR, remote-lock, and infrastructure-only teardown checks
-passed, with a documented state-lineage recovery. Real-feed Athena reconciliation
-is blocked by embedded newlines; Snowflake event history and runtime-spine
-acceptance remain outstanding. See the [verification record](phase-2-verification.md).
+Phase 2 adds remote Terraform state, ECR, validated Parquet analytics in Athena,
+and a Snowflake transformation target. Live acceptance and disposable AWS cleanup
+passed, with documented harness/state recovery and security limitations. See the
+[verification record](phase-2-verification.md).
 
 ## Resource boundaries
 
@@ -15,8 +13,8 @@ acceptance remain outstanding. See the [verification record](phase-2-verificatio
 | `infra/base` | Raw storage, ECR, query catalog, and optional PostgreSQL/SQS spine | One application root with an S3 backend and native lockfiles |
 | ECR publisher | Push and pull from one immutable-tag repository | Ten-image retention by default; application destroy removes all images |
 | Catalog publisher | Validate complete raw objects, then publish exact-object pointers and JSON metadata | No raw overwrite or deletion; matching publication is idempotent |
-| Athena | Reconcile and describe explicitly selected raw snapshots in place | Enforced encrypted results and bounded query scans |
-| Snowflake | Optional verification of shared transformation semantics | Guard and synthetic seed verified; full model/history parity pending; no production loader |
+| Athena | Reconcile and describe validated derivatives of selected raw snapshots | Enforced encrypted results and bounded query scans |
+| Snowflake | Optional verification of shared transformation semantics | Full synthetic build/history parity verified; compute suspended; no production loader |
 
 The retained original raw stack is separate from the disposable acceptance
 stack. An acceptance teardown must identify and remove its own resources without
