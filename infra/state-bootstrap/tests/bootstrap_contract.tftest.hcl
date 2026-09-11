@@ -52,6 +52,31 @@ run "rejects_wildcard_state_key" {
   expect_failures = [var.state_key]
 }
 
+run "remote_state_policy_name_is_scoped_to_test_environment" {
+  command = plan
+
+  assert {
+    condition     = aws_iam_role_policy.terraform_deployment.name == "carrier-risk-remote-state-test"
+    error_message = "The remote-state policy name must include the test environment."
+  }
+}
+
+run "remote_state_policy_name_is_distinct_for_an_independent_environment" {
+  command = plan
+
+  variables {
+    environment = "acceptance"
+  }
+
+  assert {
+    condition = (
+      aws_iam_role_policy.terraform_deployment.name == "carrier-risk-remote-state-acceptance" &&
+      aws_iam_role_policy.terraform_deployment.name != "carrier-risk-remote-state-test"
+    )
+    error_message = "Independent environments must not share an inline remote-state policy name."
+  }
+}
+
 run "state_bucket_and_deployment_identity_contract" {
   command = apply
 

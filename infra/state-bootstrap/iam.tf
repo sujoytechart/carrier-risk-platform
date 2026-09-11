@@ -8,7 +8,7 @@ locals {
 }
 
 resource "aws_iam_role_policy" "terraform_deployment" {
-  name = "remote-state-access"
+  name = "carrier-risk-remote-state-${var.environment}"
   role = data.aws_iam_role.terraform_operator.id
   policy = jsonencode({
     Version = "2012-10-17"

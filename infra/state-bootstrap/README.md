@@ -56,6 +56,12 @@ secured local state. This must succeed before initializing the S3 backend: the
 bucket and state-access policy must already exist. Use its `state_bucket_name`
 output for the backend configuration.
 
+Give every independently managed bootstrap/base stack a unique `environment`
+value, and use the same value in both roots. The environment scopes the inline
+remote-state policy on the shared operator role, so separate stacks cannot
+replace or delete one another's policy during apply or destroy. Independent
+state buckets must also retain distinct bucket prefixes.
+
 Then copy `infra/base/backend.hcl.example` to the ignored
 `infra/base/backend.hcl`, replace its bucket placeholder, and initialize the base
 root with `-migrate-state -backend-config=backend.hcl`. Use `umask 077` before
