@@ -22,10 +22,11 @@ separately in the live SQL results; it is not visible in this screenshot.
 
 The filtered console shows the dedicated generation-1 X-Small warehouse suspended
 with zero running and queued queries after the real one-row dbt seed acceptance
-check. This screenshot establishes the stopped state at capture time. The actual
+check and final killed-process check. This screenshot establishes the stopped state at capture time. The actual
 guard, failure, and killed-process results are recorded in the verification
-record; this image is not evidence of a full project dbt build. A later final
-killed-process check also verified suspension programmatically.
+record; this image is not evidence of a full project dbt build. The final
+killed-process check also verified suspension programmatically. The console was
+recaptured with the pointer outside the frame; the displayed state is unaltered.
 
 | Required capture | What it must demonstrate | Status |
 |---|---|---|

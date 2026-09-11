@@ -97,7 +97,7 @@ cleared the claim, and a stale transaction identifier was rejected. All four che
 passed in 33.790 seconds. This does not establish full project model, history,
 contract, replay, or temporal-test parity. The warehouse was suspended and writer
 locks were absent after each successful proof. A console screenshot records the
-stopped state following the dbt seed check.
+stopped state following the dbt seed and final killed-process checks.
 
 These runs bring the conservative cumulative project estimate to approximately
 $0.85 before credits, including allowances for failed attempts. This is not a
