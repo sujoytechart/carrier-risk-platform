@@ -1,8 +1,31 @@
 # Phase 2 evidence
 
-**No Phase 2 screenshots have been saved.** This index records the evidence still
-required; it does not claim that the listed operations have run. Current local
-results and limitations are in the [verification record](../../phase-2-verification.md).
+The first Snowflake setup screenshot is saved below. This index records the evidence still
+required. Live parser, ECR, remote-lock, and infrastructure-only cleanup results
+are recorded without screenshots. Execution results and limitations are in the [verification record](../../phase-2-verification.md).
+
+## Snowflake setup, September 11, 2026
+
+![Snowflake warehouses suspended](snowflake-warehouse-suspended.jpg)
+
+The dedicated X-Small generation-1 test warehouse is suspended with zero running
+or queued queries, alongside the three pre-existing starter warehouses. This is
+setup and suspension evidence, not a successful dbt build. The project warehouse
+has auto-resume disabled, 60-second idle/query limits, and a resource monitor with
+a 25% immediate-suspension trigger on a one-credit, non-resetting quota. Its end
+timestamp is September 13, 2026 at 15:00 UTC. Monitor configuration was verified
+separately in the live SQL results; it is not visible in this screenshot.
+
+## After the dbt guard checks, September 11, 2026
+
+![Project warehouse suspended after guard checks](snowflake-after-guard-tests.jpg)
+
+The filtered console shows the dedicated generation-1 X-Small warehouse suspended
+with zero running and queued queries after the real one-row dbt seed acceptance
+check. This screenshot establishes the stopped state at capture time. The actual
+guard, failure, and killed-process results are recorded in the verification
+record; this image is not evidence of a full project dbt build. A later final
+killed-process check also verified suspension programmatically.
 
 | Required capture | What it must demonstrate | Status |
 |---|---|---|

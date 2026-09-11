@@ -2,8 +2,10 @@
 
 Phase 2 adds a remote Terraform backend, a container registry, a raw-data query
 catalog, and a second dbt compilation target. The local implementation is being
-verified. Live Athena reconciliation, Snowflake history and concurrency, remote
-lock contention, and complete disposable-stack teardown remain outstanding.
+verified. Live parser, ECR, remote-lock, and infrastructure-only teardown checks
+passed, with a documented state-lineage recovery. Real-feed Athena reconciliation
+is blocked by embedded newlines; Snowflake event history and runtime-spine
+acceptance remain outstanding. See the [verification record](phase-2-verification.md).
 
 ## Resource boundaries
 
@@ -14,9 +16,9 @@ lock contention, and complete disposable-stack teardown remain outstanding.
 | ECR publisher | Push and pull from one immutable-tag repository | Ten-image retention by default; application destroy removes all images |
 | Catalog publisher | Validate complete raw objects, then publish exact-object pointers and JSON metadata | No raw overwrite or deletion; matching publication is idempotent |
 | Athena | Reconcile and describe explicitly selected raw snapshots in place | Enforced encrypted results and bounded query scans |
-| Snowflake | Optional verification of shared transformation semantics | Trial-only live verification remains pending; no production loader |
+| Snowflake | Optional verification of shared transformation semantics | Guard and synthetic seed verified; full model/history parity pending; no production loader |
 
-The retained original raw stack is separate from a future disposable acceptance
+The retained original raw stack is separate from the disposable acceptance
 stack. An acceptance teardown must identify and remove its own resources without
 removing the original immutable federal observations.
 
