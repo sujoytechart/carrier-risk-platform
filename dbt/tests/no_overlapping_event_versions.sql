@@ -12,9 +12,9 @@ join {{ ref('event_versions') }} later
  and earlier.event_version_key < later.event_version_key
  and earlier.knowledge_valid_from < coalesce(
         later.knowledge_valid_to,
-        timestamptz '9999-12-31 00:00:00+00'
+        {{ portable_utc_timestamp("'9999-12-31 00:00:00'") }}
      )
  and later.knowledge_valid_from < coalesce(
         earlier.knowledge_valid_to,
-        timestamptz '9999-12-31 00:00:00+00'
+        {{ portable_utc_timestamp("'9999-12-31 00:00:00'") }}
      )

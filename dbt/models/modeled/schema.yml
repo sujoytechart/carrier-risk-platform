@@ -32,19 +32,19 @@ models:
         data_type: date
         data_tests: [not_null]
       - name: knowledge_valid_from
-        data_type: timestamptz
+        data_type: "{{ 'timestamp_tz' if target.type == 'snowflake' else 'timestamptz' }}"
         data_tests: [not_null]
       - name: knowledge_valid_to
-        data_type: timestamptz
+        data_type: "{{ 'timestamp_tz' if target.type == 'snowflake' else 'timestamptz' }}"
       - name: availability_quality
         data_type: text
         data_tests: [not_null]
       - name: source_add_at
-        data_type: timestamptz
+        data_type: "{{ 'timestamp_tz' if target.type == 'snowflake' else 'timestamptz' }}"
       - name: source_change_at
-        data_type: timestamptz
+        data_type: "{{ 'timestamp_tz' if target.type == 'snowflake' else 'timestamptz' }}"
       - name: first_observed_at
-        data_type: timestamptz
+        data_type: "{{ 'timestamp_tz' if target.type == 'snowflake' else 'timestamptz' }}"
         data_tests: [not_null]
       - name: is_current
         data_type: boolean
@@ -111,8 +111,8 @@ models:
       - {name: state, data_type: text}
       - {name: violation_count, data_type: integer}
       - {name: oos_violation_count, data_type: integer}
-      - {name: knowledge_valid_from, data_type: timestamptz, data_tests: [not_null]}
-      - {name: knowledge_valid_to, data_type: timestamptz}
+      - {name: knowledge_valid_from, data_type: "{{ 'timestamp_tz' if target.type == 'snowflake' else 'timestamptz' }}", data_tests: [not_null]}
+      - {name: knowledge_valid_to, data_type: "{{ 'timestamp_tz' if target.type == 'snowflake' else 'timestamptz' }}"}
       - {name: is_current, data_type: boolean, data_tests: [not_null]}
       - {name: is_deleted, data_type: boolean, data_tests: [not_null]}
       - {name: deletion_reason, data_type: text}
@@ -135,8 +135,8 @@ models:
       - {name: fatalities, data_type: integer}
       - {name: injuries, data_type: integer}
       - {name: tow_away, data_type: boolean}
-      - {name: knowledge_valid_from, data_type: timestamptz, data_tests: [not_null]}
-      - {name: knowledge_valid_to, data_type: timestamptz}
+      - {name: knowledge_valid_from, data_type: "{{ 'timestamp_tz' if target.type == 'snowflake' else 'timestamptz' }}", data_tests: [not_null]}
+      - {name: knowledge_valid_to, data_type: "{{ 'timestamp_tz' if target.type == 'snowflake' else 'timestamptz' }}"}
       - {name: is_current, data_type: boolean, data_tests: [not_null]}
       - {name: is_deleted, data_type: boolean, data_tests: [not_null]}
       - {name: deletion_reason, data_type: text}
@@ -158,8 +158,8 @@ models:
       - {name: fatalities, data_type: integer}
       - {name: injuries, data_type: integer}
       - {name: tow_away, data_type: boolean}
-      - {name: knowledge_valid_from, data_type: timestamptz, data_tests: [not_null]}
-      - {name: knowledge_valid_to, data_type: timestamptz}
+      - {name: knowledge_valid_from, data_type: "{{ 'timestamp_tz' if target.type == 'snowflake' else 'timestamptz' }}", data_tests: [not_null]}
+      - {name: knowledge_valid_to, data_type: "{{ 'timestamp_tz' if target.type == 'snowflake' else 'timestamptz' }}"}
       - {name: is_current, data_type: boolean, data_tests: [not_null]}
       - {name: is_deleted, data_type: boolean, data_tests: [not_null]}
       - {name: deletion_reason, data_type: text}
@@ -182,8 +182,8 @@ models:
       - {name: fatalities, data_type: integer}
       - {name: injuries, data_type: integer}
       - {name: tow_away, data_type: boolean}
-      - {name: knowledge_valid_from, data_type: timestamptz, data_tests: [not_null]}
-      - {name: knowledge_valid_to, data_type: timestamptz}
+      - {name: knowledge_valid_from, data_type: "{{ 'timestamp_tz' if target.type == 'snowflake' else 'timestamptz' }}", data_tests: [not_null]}
+      - {name: knowledge_valid_to, data_type: "{{ 'timestamp_tz' if target.type == 'snowflake' else 'timestamptz' }}"}
       - {name: is_current, data_type: boolean, data_tests: [not_null]}
       - {name: is_deleted, data_type: boolean, data_tests: [not_null]}
       - {name: deletion_reason, data_type: text}
@@ -202,7 +202,7 @@ models:
       - {name: violations_6m, data_type: bigint, data_tests: [not_null]}
       - {name: oos_violations_6m, data_type: bigint, data_tests: [not_null]}
       - {name: crashes_24m, data_type: bigint, data_tests: [not_null]}
-      - {name: violations_per_inspection, data_type: numeric}
-      - {name: oos_violation_rate, data_type: numeric}
+      - {name: violations_per_inspection, data_type: "decimal(38,6)"}
+      - {name: oos_violation_rate, data_type: "decimal(38,6)"}
       - {name: days_since_last_inspection, data_type: integer}
       - {name: last_inspection_date, data_type: date}

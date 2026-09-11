@@ -4,7 +4,7 @@ select
     feed_name,
     parse_reasons
 from {{ ref('clean_inspections') }}
-where cardinality(parse_reasons) > 0
+where {{ portable_array_length('parse_reasons') }} > 0
 
 union all
 
@@ -14,4 +14,4 @@ select
     feed_name,
     parse_reasons
 from {{ ref('clean_crashes') }}
-where cardinality(parse_reasons) > 0
+where {{ portable_array_length('parse_reasons') }} > 0

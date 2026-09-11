@@ -5,7 +5,7 @@ select
     usdot_number,
     event_date,
     reported_date,
-    (reported_date - event_date)::integer as report_lag_days,
+    {{ dbt.datediff('event_date', 'reported_date', 'day') }}::integer as report_lag_days,
     report_state as state,
     report_number,
     report_time,

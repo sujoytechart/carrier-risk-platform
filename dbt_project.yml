@@ -35,7 +35,7 @@ seeds:
         batch_id: text
         feed_name: text
         dataset_id: text
-        observed_at: timestamptz
+        observed_at: "{{ 'timestamp_tz' if target.type == 'snowflake' else 'timestamptz' }}"
         status: text
         row_count: bigint
     raw_inspection_rows:
