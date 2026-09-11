@@ -1,0 +1,23 @@
+{
+  "captured_at": "2026-09-11T22:13:15.428829+00:00",
+  "scope": "Local synthetic fixture after load recovery and first inspection backfill",
+  "counts": {
+    "raw.snapshot_batches": 2,
+    "raw.crash_rows": 2,
+    "raw.inspection_rows": 2,
+    "modeled.event_versions": 4,
+    "modeled.current_events": 3,
+    "modeled.training_features": 1
+  },
+  "relation_hashes": {
+    "modeled.event_versions": "26cd1df4e37889cc3b1b8d506da73ebc3d9bec1d2f6ddc4943ebef0adbc74667",
+    "modeled.current_events": "0629c9356ce7c0095c72b7e04ff159a31f6fc49bb89ddb9a297342c3a7c7e538",
+    "modeled.training_features": "ff9890035d5c5dfc82d9545717be86ce08d88f3e4639a0e255b77b947888840c"
+  },
+  "hash_method": "SHA-256 of newline-joined sorted JSON encodings of SELECT * rows; date/timestamp rendered with str; separators comma and colon",
+  "queue_attributes": {
+    "ApproximateNumberOfMessages": "0",
+    "ApproximateNumberOfMessagesNotVisible": "0",
+    "ApproximateNumberOfMessagesDelayed": "0"
+  }
+}

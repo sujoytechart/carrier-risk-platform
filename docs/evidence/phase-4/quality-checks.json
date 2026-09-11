@@ -1,0 +1,525 @@
+{
+  "recorded_at_utc": "2026-09-11T22:52:42.628475+00:00",
+  "baseline_commit": "2a550bd2613381ffe90c943786ec6a09142a6276",
+  "verification_scope": "Full credential-free PostgreSQL, dbt, Terraform, ingestion, orchestration, model, and serving suite, followed by new regular serving smoke tests. Full-run and supplementary test results are reported separately.",
+  "command_notation": {
+    "$PRIVATE_EVIDENCE_DIR": "Private local directory; absolute host paths are intentionally omitted.",
+    "$TERRAFORM_PLUGIN_DIR": "Read-only local cache of locked HashiCorp AWS provider 5.100.0.",
+    "$GITLEAKS": "Installed gitleaks 8.30.1 executable.",
+    "$PUBLIC_SOURCE_EXPORT": "Temporary export of all files in the staged Git index.",
+    "runner": "Unless a full wrapper command is shown, Python-tool checks show the child invocation run through python3.12 scripts/phase4-run.py for isolated local test configuration. Gitleaks ran directly. The private runner and secret configuration are not published."
+  },
+  "tool_versions": {
+    "pytest": "9.1.1",
+    "pytest-cov": "6.3.0",
+    "coverage": "7.16.0",
+    "ruff": "0.16.7",
+    "mypy": "1.20.2",
+    "dbt-core": "1.12.4",
+    "dbt-postgres": "1.11.0",
+    "dbt-snowflake": "1.12.0",
+    "apache-airflow": "3.3.1",
+    "psycopg": "3.3.5",
+    "python": "3.12.14",
+    "terraform": "1.16.0",
+    "terraform-provider-aws": "5.100.0",
+    "gitleaks": "8.30.1",
+    "postgresql": "17.11",
+    "mlflow": "3.16.0",
+    "scikit-learn": "1.9.1",
+    "locust": "2.46.5"
+  },
+  "checks": {
+    "ruff": {
+      "command": "ruff check .",
+      "exit_code": 0,
+      "result": "passed",
+      "private_log": {
+        "filename": "ruff-check-final.log",
+        "sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+      }
+    },
+    "format": {
+      "command": "ruff format --check .",
+      "exit_code": 0,
+      "result": "passed",
+      "private_log": {
+        "filename": "ruff-format-final.log",
+        "sha256": "184b6bfbf75ff0afb5735687ad68f56f0140c93fd26fa8c144e3386b4e6c6ab1"
+      }
+    },
+    "strict_types": {
+      "command": "mypy ingest orchestration ml serving",
+      "exit_code": 0,
+      "result": "passed",
+      "private_log": {
+        "filename": "mypy.log",
+        "sha256": "ecc16c0564b42e826048bd3cc3026ed6f52b5dc94d3419716c4a1f1ab458ac8d"
+      },
+      "source_files": 40
+    },
+    "floor_guard": {
+      "command": "python scripts/floor-guard.py --base 2a550bd",
+      "exit_code": 0,
+      "result": "passed",
+      "private_log": {
+        "filename": "floor-guard-postfix.log",
+        "sha256": "771c9f8640541a5f365779b2cf26fcb8cce12e9326c2689b6d05eeb71cf304d8"
+      }
+    },
+    "full_suite": {
+      "command": "TERRAFORM_PLUGIN_DIR=$TERRAFORM_PLUGIN_DIR COVERAGE_FILE=$PRIVATE_EVIDENCE_DIR/.coverage python -m pytest --cov=ingest --cov=orchestration --cov=ml --cov=serving --cov-branch --cov-report=term-missing --cov-report=json:$PRIVATE_EVIDENCE_DIR/coverage.json --cov-report=lcov:$PRIVATE_EVIDENCE_DIR/coverage.lcov",
+      "exit_code": 0,
+      "result": "passed",
+      "private_log": {
+        "filename": "pytest-full.log",
+        "sha256": "2c9ac69870260aafa27e5a5e3ee5437a0b1d179872c0e4a99e8f64d4b17dfba2"
+      },
+      "collected": 437,
+      "passed": 437,
+      "failed": 0,
+      "skipped": 0,
+      "warnings": 1160,
+      "elapsed_seconds": 1368.08,
+      "summary": "437 passed, 1160 warnings in 1368.08s (0:22:48)",
+      "reports": [
+        {
+          "filename": "coverage-full-suite-only.json",
+          "sha256": "a3cf9fed92e5b6f069629efc6921a4c9292ef4d5323d1071401c28b67abcbc03"
+        },
+        {
+          "filename": "coverage-full-suite-only.lcov",
+          "sha256": "c896c35dbdcfc271839df376f532c8bde65f17494a1ea81812a3d82487fa83a0"
+        }
+      ],
+      "original_project_branch_coverage_percent": "86.88436830835117"
+    },
+    "original_full_suite_coverage_gate": {
+      "command": "python .github/coverage_gate.py --coverage $PRIVATE_EVIDENCE_DIR/coverage.json --base 2a550bd",
+      "exit_code": 1,
+      "result": "failed",
+      "private_log": {
+        "filename": "coverage-gate-full-suite-only.log",
+        "sha256": "83dc8ea9fa0dccfc5ea55ee90e8aa3e3ccb99d1495523463e5682abd2b992c19"
+      },
+      "project_percent": "86.88436830835117",
+      "project_minimum_percent": "88.09963099630997",
+      "explanation": "The full suite did not exercise the separate synthetic serving smoke used in the prior coverage record. New regular smoke tests close that reproducibility gap; their fresh coverage is combined below without changing production Python files or thresholds."
+    },
+    "supplemental_regular_tests": [
+      {
+        "command": "python3.12 scripts/phase4-run.py env COVERAGE_FILE=$PRIVATE_EVIDENCE_DIR/.coverage .venv/bin/python -m pytest -q tests/test_serving_cli_smoke.py --cov=ingest --cov=orchestration --cov=ml --cov=serving --cov-branch --cov-append --cov-report=term-missing --cov-report=json:$PRIVATE_EVIDENCE_DIR/coverage.json --cov-report=lcov:$PRIVATE_EVIDENCE_DIR/coverage.lcov",
+        "exit_code": 0,
+        "result": "passed",
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "warnings": 2,
+        "elapsed_seconds": 36.8,
+        "overlap_note": "Component reruns overlap the full suite and each other; counts must not be added as distinct tests.",
+        "private_log": {
+          "filename": "pytest-serving-cli-smoke.log",
+          "sha256": "37bd858194aa0e1791a7220a62d06342a9382f9e82467e7958e8c79a9b0c6374"
+        }
+      },
+      {
+        "command": "python3.12 scripts/phase4-run.py env COVERAGE_FILE=$PRIVATE_EVIDENCE_DIR/.coverage .venv/bin/python -m pytest -q tests/test_serving_cli_smoke.py tests/test_serving_api.py tests/test_serving_benchmark.py tests/test_serving_model.py tests/test_serving_normalization.py tests/test_serving_repository.py tests/test_mlflow_tracking.py --cov=ingest --cov=orchestration --cov=ml --cov=serving --cov-branch --cov-append --cov-report=term-missing --cov-report=json:$PRIVATE_EVIDENCE_DIR/coverage.json --cov-report=lcov:$PRIVATE_EVIDENCE_DIR/coverage.lcov",
+        "exit_code": 0,
+        "result": "passed",
+        "passed": 95,
+        "failed": 0,
+        "skipped": 0,
+        "warnings": 2,
+        "elapsed_seconds": 69.57,
+        "overlap_note": "Component reruns overlap the full suite and each other; counts must not be added as distinct tests.",
+        "private_log": {
+          "filename": "pytest-serving-interactions.log",
+          "sha256": "8d4f87772753171e2e8fec1ccba3aca3742e9e5173db965eeedca6a2df8f0d2d"
+        }
+      }
+    ],
+    "coverage_gate": {
+      "command": "python .github/coverage_gate.py --coverage $PRIVATE_EVIDENCE_DIR/coverage.json --base 2a550bd",
+      "exit_code": 0,
+      "result": "passed",
+      "private_log": {
+        "filename": "coverage-gate.log",
+        "sha256": "18d7f16345c0970dd8bf48f6f2d84f791081a32fdf70a27c57e293baf920e288"
+      },
+      "project_minimum_percent": "88.09963099630997",
+      "changed_line_minimum_percent": "80",
+      "changed_lines_covered": 0,
+      "changed_executable_lines": 0,
+      "changed_line_percent": "100.000",
+      "branch_coverage": true,
+      "measured_python_directories": [
+        "ingest",
+        "orchestration",
+        "ml",
+        "serving"
+      ],
+      "measurement_method": "Untouched full-suite coverage plus fresh appended coverage from the new regular smoke tests; no historical coverage reused.",
+      "reports": [
+        {
+          "filename": "coverage.json",
+          "sha256": "ed8d496d26a1704562503a6e97df37fb27b5b10d7175a0232d7de8cec5d0fbe5"
+        },
+        {
+          "filename": "coverage.lcov",
+          "sha256": "2d9c7e8dd775b79045f9dd515954258f11235dea1d1bf9048af70f8282172e80"
+        }
+      ],
+      "totals": {
+        "covered_lines": 2669,
+        "num_statements": 2950,
+        "percent_covered": "88.38329764453961",
+        "percent_covered_display": "88",
+        "missing_lines": 281,
+        "excluded_lines": 42,
+        "percent_statements_covered": "90.47457627118644",
+        "percent_statements_covered_display": "90",
+        "num_branches": 786,
+        "num_partial_branches": 125,
+        "covered_branches": 633,
+        "missing_branches": 153,
+        "percent_branches_covered": "80.53435114503817",
+        "percent_branches_covered_display": "81"
+      }
+    },
+    "secrets_history": {
+      "command": "$GITLEAKS git --redact --no-banner --log-opts=--all .",
+      "exit_code": 0,
+      "result": "passed",
+      "private_log": {
+        "filename": "gitleaks.log",
+        "sha256": "046a2e116f1a930f10d73167c0cfdb82fa2e88ecf9125c43f1fdccc904a28508"
+      },
+      "findings": 0
+    },
+    "secrets_phase4_evidence": {
+      "command": "$GITLEAKS dir --redact --no-banner docs/evidence/phase-4",
+      "exit_code": 0,
+      "result": "passed",
+      "private_log": {
+        "filename": "gitleaks-phase4-evidence.log",
+        "sha256": "a1579ceeddd391bc6ca1a7deea5ca1acc9854dc444cb93212e73478551be9f2c"
+      },
+      "findings": 0
+    },
+    "secrets_staged_public_source_initial": {
+      "command": "$GITLEAKS dir --redact --no-banner $PUBLIC_SOURCE_EXPORT",
+      "exit_code": 0,
+      "result": "passed",
+      "private_log": {
+        "filename": "gitleaks-public-source-initial.log",
+        "sha256": "17b095ea5b7ad14ab1ecc6635bcb75ebfb5c9cf066200f5e4ddc3bb2f5f4c4b7"
+      },
+      "findings": 0
+    },
+    "secrets_staged_public_source": {
+      "command": "$GITLEAKS dir --redact --no-banner --report-format=json --report-path=$PRIVATE_EVIDENCE_DIR/gitleaks-public-source-final.json $PUBLIC_SOURCE_EXPORT",
+      "exit_code": 0,
+      "result": "passed",
+      "findings": 0,
+      "scope": "All files exported from the staged Git index, including the final public documentation, tests, and evidence.",
+      "private_report": {
+        "filename": "gitleaks-public-source-final.json",
+        "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+      }
+    }
+  },
+  "production_python_fingerprints": {
+    "baseline_commit": "2a550bd2613381ffe90c943786ec6a09142a6276",
+    "file_count": 40,
+    "all_unchanged_from_baseline": true,
+    "files": [
+      {
+        "path": "ingest/__init__.py",
+        "sha256": "511784d547d874e20f451066553a7b21b906051322b43bc4b113fd306b1dfb10",
+        "baseline_sha256": "511784d547d874e20f451066553a7b21b906051322b43bc4b113fd306b1dfb10",
+        "unchanged_from_baseline": true
+      },
+      {
+        "path": "ingest/athena_catalog.py",
+        "sha256": "0d42b8fcec0762d5ae89cbf6dea4f48f83285ad24964d9c84a33d5a76e083e33",
+        "baseline_sha256": "0d42b8fcec0762d5ae89cbf6dea4f48f83285ad24964d9c84a33d5a76e083e33",
+        "unchanged_from_baseline": true
+      },
+      {
+        "path": "ingest/contracts.py",
+        "sha256": "1b61ac40a5cf095789712d56d3c97a02bdaa45d7baa9dad97e58b5232c37cefe",
+        "baseline_sha256": "1b61ac40a5cf095789712d56d3c97a02bdaa45d7baa9dad97e58b5232c37cefe",
+        "unchanged_from_baseline": true
+      },
+      {
+        "path": "ingest/database.py",
+        "sha256": "dc358b8cfad2671e216ab7098e0718e5ead854939496502feecbb6092c015fe8",
+        "baseline_sha256": "dc358b8cfad2671e216ab7098e0718e5ead854939496502feecbb6092c015fe8",
+        "unchanged_from_baseline": true
+      },
+      {
+        "path": "ingest/landing.py",
+        "sha256": "ee1e93dc1109b3e4c75d2d2790f17c57ff4058150b93bc55cdbd0483bc81e158",
+        "baseline_sha256": "ee1e93dc1109b3e4c75d2d2790f17c57ff4058150b93bc55cdbd0483bc81e158",
+        "unchanged_from_baseline": true
+      },
+      {
+        "path": "ingest/models.py",
+        "sha256": "534a092291399f6dd6a9095c41211b00459af285f79a3752c4683930b318e695",
+        "baseline_sha256": "534a092291399f6dd6a9095c41211b00459af285f79a3752c4683930b318e695",
+        "unchanged_from_baseline": true
+      },
+      {
+        "path": "ingest/object_store.py",
+        "sha256": "ce2e10646aa4ad730b5b2fc562e40834db05143037fbc0cd0ca33893337ee85d",
+        "baseline_sha256": "ce2e10646aa4ad730b5b2fc562e40834db05143037fbc0cd0ca33893337ee85d",
+        "unchanged_from_baseline": true
+      },
+      {
+        "path": "ingest/parquet_catalog.py",
+        "sha256": "2e11c6a2fce8a7a0d54c756c77d94f9be600e55aa75bfdd4cc3bf388695450c5",
+        "baseline_sha256": "2e11c6a2fce8a7a0d54c756c77d94f9be600e55aa75bfdd4cc3bf388695450c5",
+        "unchanged_from_baseline": true
+      },
+      {
+        "path": "ingest/parquet_converter.py",
+        "sha256": "6f1bf0219e1b5ba6eb7ec125d9f017bbff71dab76d215d6b90b03fdc254c837c",
+        "baseline_sha256": "6f1bf0219e1b5ba6eb7ec125d9f017bbff71dab76d215d6b90b03fdc254c837c",
+        "unchanged_from_baseline": true
+      },
+      {
+        "path": "ingest/raw_loader.py",
+        "sha256": "f695c9bf25554317528e05b1889e9c2b13e400c087eb8ea566a3a2c30fd5af3a",
+        "baseline_sha256": "f695c9bf25554317528e05b1889e9c2b13e400c087eb8ea566a3a2c30fd5af3a",
+        "unchanged_from_baseline": true
+      },
+      {
+        "path": "ingest/source.py",
+        "sha256": "6cc5d94a0329cb67bf4dc4107043cd04ebd090fcc4567628345f2b4a4119ca27",
+        "baseline_sha256": "6cc5d94a0329cb67bf4dc4107043cd04ebd090fcc4567628345f2b4a4119ca27",
+        "unchanged_from_baseline": true
+      },
+      {
+        "path": "ingest/storage.py",
+        "sha256": "81f2c51f5092e0577234c3c7d7ae509faa34d24449040aca66d59642147f0314",
+        "baseline_sha256": "81f2c51f5092e0577234c3c7d7ae509faa34d24449040aca66d59642147f0314",
+        "unchanged_from_baseline": true
+      },
+      {
+        "path": "ml/__init__.py",
+        "sha256": "15004ba1d895cd4c02b475c652c4ec04ff8db2bbe4d6cfb5fa09f1b94e34c834",
+        "baseline_sha256": "15004ba1d895cd4c02b475c652c4ec04ff8db2bbe4d6cfb5fa09f1b94e34c834",
+        "unchanged_from_baseline": true
+      },
+      {
+        "path": "ml/dataset.py",
+        "sha256": "08112b83b89a1229dd6470a5eb885d0d850a4f32c30d5baf74f4814eb5591003",
+        "baseline_sha256": "08112b83b89a1229dd6470a5eb885d0d850a4f32c30d5baf74f4814eb5591003",
+        "unchanged_from_baseline": true
+      },
+      {
+        "path": "ml/features.py",
+        "sha256": "8fc3db95ab5a92b3f80cafad1e9bb71c03e152f3df3441e862b0039f977e9e17",
+        "baseline_sha256": "8fc3db95ab5a92b3f80cafad1e9bb71c03e152f3df3441e862b0039f977e9e17",
+        "unchanged_from_baseline": true
+      },
+      {
+        "path": "ml/maturity.py",
+        "sha256": "ff44a76c25eb244f0e15a9f3b9730beeafdabc68e2ac29bee5c85d2822cad0b7",
+        "baseline_sha256": "ff44a76c25eb244f0e15a9f3b9730beeafdabc68e2ac29bee5c85d2822cad0b7",
+        "unchanged_from_baseline": true
+      },
+      {
+        "path": "ml/maturity_cli.py",
+        "sha256": "b12a2ccc63266cb1f8f99811e94d44f10f462f20e3db9e4cff63027d7dfc7ad9",
+        "baseline_sha256": "b12a2ccc63266cb1f8f99811e94d44f10f462f20e3db9e4cff63027d7dfc7ad9",
+        "unchanged_from_baseline": true
+      },
+      {
+        "path": "ml/monthly.py",
+        "sha256": "e45b5b206af59a1204cb80ab1c6f78b459426c0a55de1818e133ca706c552cc8",
+        "baseline_sha256": "e45b5b206af59a1204cb80ab1c6f78b459426c0a55de1818e133ca706c552cc8",
+        "unchanged_from_baseline": true
+      },
+      {
+        "path": "ml/promote.py",
+        "sha256": "33ac8b391e2c53f20a8afac2a83d166528eb0a5b580b4370d900739ad46c8f9f",
+        "baseline_sha256": "33ac8b391e2c53f20a8afac2a83d166528eb0a5b580b4370d900739ad46c8f9f",
+        "unchanged_from_baseline": true
+      },
+      {
+        "path": "ml/tracking.py",
+        "sha256": "d4a3ba1a9595caecb3356237847864ab26cc8e896b86519a3d03fad7a8a0a4e7",
+        "baseline_sha256": "d4a3ba1a9595caecb3356237847864ab26cc8e896b86519a3d03fad7a8a0a4e7",
+        "unchanged_from_baseline": true
+      },
+      {
+        "path": "ml/train.py",
+        "sha256": "dbf5f75e7481c192f02a0f016167d3e77a7419285c9b59a2a8c28ed4dddc5f96",
+        "baseline_sha256": "dbf5f75e7481c192f02a0f016167d3e77a7419285c9b59a2a8c28ed4dddc5f96",
+        "unchanged_from_baseline": true
+      },
+      {
+        "path": "ml/watermark_store.py",
+        "sha256": "0816705204c43ed4430af2b2e814df1de7a35bc7d464e9054f395ecfa7c604c7",
+        "baseline_sha256": "0816705204c43ed4430af2b2e814df1de7a35bc7d464e9054f395ecfa7c604c7",
+        "unchanged_from_baseline": true
+      },
+      {
+        "path": "orchestration/__init__.py",
+        "sha256": "2fd0245b385f2edef25621ae174c0610db10bd3555d51c358f8e74d701ccebc2",
+        "baseline_sha256": "2fd0245b385f2edef25621ae174c0610db10bd3555d51c358f8e74d701ccebc2",
+        "unchanged_from_baseline": true
+      },
+      {
+        "path": "orchestration/assets.py",
+        "sha256": "7b79b7aeccd638c4dfacfbf33d2010dced4a843f7f1461b522037a9606817c9d",
+        "baseline_sha256": "7b79b7aeccd638c4dfacfbf33d2010dced4a843f7f1461b522037a9606817c9d",
+        "unchanged_from_baseline": true
+      },
+      {
+        "path": "orchestration/aws_adapters.py",
+        "sha256": "bb5c91c9b41e08415680c123c6e0895c8d97b3fad0d65c2f63c63b218d4b9259",
+        "baseline_sha256": "bb5c91c9b41e08415680c123c6e0895c8d97b3fad0d65c2f63c63b218d4b9259",
+        "unchanged_from_baseline": true
+      },
+      {
+        "path": "orchestration/backfill_service.py",
+        "sha256": "f6a25f4131061b1da52a391b1a732d02bdaa052b6569172bfdf6c820bdb9faf7",
+        "baseline_sha256": "f6a25f4131061b1da52a391b1a732d02bdaa052b6569172bfdf6c820bdb9faf7",
+        "unchanged_from_baseline": true
+      },
+      {
+        "path": "orchestration/dbt_cli.py",
+        "sha256": "efa28e48647df143fa09e0a722af76253fa87ae2a9f9bd699a11f46d42806f45",
+        "baseline_sha256": "efa28e48647df143fa09e0a722af76253fa87ae2a9f9bd699a11f46d42806f45",
+        "unchanged_from_baseline": true
+      },
+      {
+        "path": "orchestration/dbt_lock.py",
+        "sha256": "bc08aab46990f65acb4b60479e2fd2d7019f0b06e35593d1105f88dbe735e698",
+        "baseline_sha256": "bc08aab46990f65acb4b60479e2fd2d7019f0b06e35593d1105f88dbe735e698",
+        "unchanged_from_baseline": true
+      },
+      {
+        "path": "orchestration/dbt_runner.py",
+        "sha256": "0bc7b6cb195395c32ef61066df7dbc7ef2ee3a61f89f41c2c35b5fe4de44bb2c",
+        "baseline_sha256": "0bc7b6cb195395c32ef61066df7dbc7ef2ee3a61f89f41c2c35b5fe4de44bb2c",
+        "unchanged_from_baseline": true
+      },
+      {
+        "path": "orchestration/load_service.py",
+        "sha256": "208a1a405523fcefcf5513a31d5082f9af9196fe6658502b181033b61d52a6de",
+        "baseline_sha256": "208a1a405523fcefcf5513a31d5082f9af9196fe6658502b181033b61d52a6de",
+        "unchanged_from_baseline": true
+      },
+      {
+        "path": "orchestration/messages.py",
+        "sha256": "4eea694bad56b12e0d292004abdd06146d7829c086ab913597f1d3a6798ccc2a",
+        "baseline_sha256": "4eea694bad56b12e0d292004abdd06146d7829c086ab913597f1d3a6798ccc2a",
+        "unchanged_from_baseline": true
+      },
+      {
+        "path": "orchestration/runtime.py",
+        "sha256": "8c8403d6a867357523d74784e3f971a5cca5291b3109ddc9be4cf5ec7913b96e",
+        "baseline_sha256": "8c8403d6a867357523d74784e3f971a5cca5291b3109ddc9be4cf5ec7913b96e",
+        "unchanged_from_baseline": true
+      },
+      {
+        "path": "orchestration/snowflake_lock.py",
+        "sha256": "a10a16cefcdde6d0a3da2675405abf1e0589a2e74f731ade0df1be6455d51507",
+        "baseline_sha256": "a10a16cefcdde6d0a3da2675405abf1e0589a2e74f731ade0df1be6455d51507",
+        "unchanged_from_baseline": true
+      },
+      {
+        "path": "serving/__init__.py",
+        "sha256": "69844719ee00a3f5698346de7afc5d9f9d938f02deb733bc25cfd4a951a03862",
+        "baseline_sha256": "69844719ee00a3f5698346de7afc5d9f9d938f02deb733bc25cfd4a951a03862",
+        "unchanged_from_baseline": true
+      },
+      {
+        "path": "serving/app.py",
+        "sha256": "bd0efe4e4e34f423a59bfafafc89685c89d8e0a0ead96119951cca2898f775a0",
+        "baseline_sha256": "bd0efe4e4e34f423a59bfafafc89685c89d8e0a0ead96119951cca2898f775a0",
+        "unchanged_from_baseline": true
+      },
+      {
+        "path": "serving/benchmark.py",
+        "sha256": "b6694d6783eda347ea1a2f4ab3f99c9e76dc36a78016f2d6c9e667c3a9826f4d",
+        "baseline_sha256": "b6694d6783eda347ea1a2f4ab3f99c9e76dc36a78016f2d6c9e667c3a9826f4d",
+        "unchanged_from_baseline": true
+      },
+      {
+        "path": "serving/benchmark_fixture.py",
+        "sha256": "91000b07cb64d966bfeff4b5b6db2204fe4124259ecba37b7c668c10e45d17d3",
+        "baseline_sha256": "91000b07cb64d966bfeff4b5b6db2204fe4124259ecba37b7c668c10e45d17d3",
+        "unchanged_from_baseline": true
+      },
+      {
+        "path": "serving/model.py",
+        "sha256": "b4c6c4358ba6a4a82f6ef73b5a3491ade531777da66aa913ec34af59eb680263",
+        "baseline_sha256": "b4c6c4358ba6a4a82f6ef73b5a3491ade531777da66aa913ec34af59eb680263",
+        "unchanged_from_baseline": true
+      },
+      {
+        "path": "serving/repository.py",
+        "sha256": "5f984a137613597f5501c951818bffaac0f21ee31e6a1f687c34fbf352f648a8",
+        "baseline_sha256": "5f984a137613597f5501c951818bffaac0f21ee31e6a1f687c34fbf352f648a8",
+        "unchanged_from_baseline": true
+      },
+      {
+        "path": "serving/service.py",
+        "sha256": "9df420956121602653721aa910a6b820e2ff64d423d4d378990a3b1a9a786524",
+        "baseline_sha256": "9df420956121602653721aa910a6b820e2ff64d423d4d378990a3b1a9a786524",
+        "unchanged_from_baseline": true
+      }
+    ],
+    "combined_source_sha256": "5c55f89fe46b7bb9437a6aed9ee8719db7d59bd6336ff3d2b7ec0875fa8b11b3",
+    "combined_source_hash_method": "SHA256 over sorted relative Python path, NUL, contents, NUL in ingest/orchestration/ml/serving"
+  },
+  "supplemental_test_development": {
+    "production_python_changed": false,
+    "failed_attempts": [
+      {
+        "kind": "Local sandbox access error",
+        "private_log": {
+          "filename": "pytest-serving-cli-smoke-sandbox-error.log",
+          "sha256": "71ed4a2009537bac2e0064b4b1f1c954c68722031cc0758204abaf2d56810753"
+        }
+      },
+      {
+        "kind": "Test assertion compared integer fixture version with the API string version contract",
+        "private_log": {
+          "filename": "pytest-serving-cli-smoke-version-assertion-failure.log",
+          "sha256": "faed3f172959c9ee88865bba844e460b605784724202df710ad500cac23f5514"
+        }
+      }
+    ],
+    "coverage_provenance": "The writable coverage data was restored from pristine full-suite-only.coverage before the final passing smoke and neighboring tests; failed development attempts contribute no arcs to the reported combined coverage."
+  },
+  "superseded_run": {
+    "status": "Gracefully interrupted after fixes settled; not used as the final result.",
+    "passed": 92,
+    "failed": 2,
+    "elapsed_seconds": 675.49,
+    "private_log": {
+      "filename": "pytest-superseded-partial.log",
+      "sha256": "7e78e831daff6b12f1b74f098a09cc851e8de4f32330e25a6e5eebaca3472a7a"
+    },
+    "regressions_detected": [
+      "PostgreSQL offline compile attempted a maturity-registry lookup without an acquired connection.",
+      "The portability test expected three temporal tests after the label-maturity policy added a fourth."
+    ],
+    "resolution": "The policy probes PostgreSQL only during test/build; the test preserves the original three-test assertions and verifies the additive policy explicitly. The fresh complete suite above validates the fixes."
+  },
+  "final_test_collection": {
+    "command": "python -m pytest --collect-only -q",
+    "exit_code": 0,
+    "tests": 438,
+    "new_regular_tests": 1,
+    "private_log": {
+      "filename": "pytest-collection-final.log",
+      "sha256": "0766bc54e701618247e97b2b13c29ce56f3f3cd4a47616dc3608b3fa01ad44d3"
+    }
+  }
+}

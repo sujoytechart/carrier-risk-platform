@@ -1,0 +1,61 @@
+{
+  "observed_at_utc": "2026-09-11T22:53:01.512085+00:00",
+  "scope": "Local Phase 4 demonstration and verification resources only",
+  "containers_absent": [
+    "carrier-risk-phase4-postgres",
+    "carrier-risk-phase4-minio",
+    "carrier-risk-phase4-elasticmq"
+  ],
+  "postgres_anonymous_volume": {
+    "name": "b1732a961c8c1b05828e1d329fe17fe263285108bf699e76d8a5cd032e709a89",
+    "removed": true
+  },
+  "loopback_endpoints": [
+    {
+      "service": "postgresql",
+      "loopback_port": 5544,
+      "closed": true
+    },
+    {
+      "service": "minio",
+      "loopback_port": 9010,
+      "closed": true
+    },
+    {
+      "service": "minio_console",
+      "loopback_port": 9011,
+      "closed": true
+    },
+    {
+      "service": "elasticmq",
+      "loopback_port": 9344,
+      "closed": true
+    },
+    {
+      "service": "airflow_api",
+      "loopback_port": 8084,
+      "closed": true
+    },
+    {
+      "service": "readme_preview",
+      "loopback_port": 8064,
+      "closed": true
+    }
+  ],
+  "earlier_project_containers_present": [
+    "phase-1-spine-airflow-1",
+    "phase-1-spine-elasticmq-1",
+    "phase-1-spine-localstack-1",
+    "phase-1-spine-minio-1",
+    "phase-1-spine-minio-init-1",
+    "phase-1-spine-postgres-1"
+  ],
+  "cloud_resources_created_for_phase4": false,
+  "cloud_cleanup_rechecked": false,
+  "screenshot_sha256": {
+    "airflow-backfills.png": "cff99016a4749f84f3079d1ad7f157cdd1880476f221565f5a3149a5116d282b",
+    "airflow-missing-object.png": "241b54bb5a164003d47194332dd2e974132f5d54bf477c613c6300e4c85bd5d0",
+    "airflow-recovered.png": "30b5369ede85b5aa9d3c6b1ef9de8ada9fb37173e1745158120d34452d63ed7f",
+    "airflow-up-for-retry.png": "700c401d8a6729ea7af7224b390f6080d14905873c3339e538f119c3a0a1d993"
+  }
+}

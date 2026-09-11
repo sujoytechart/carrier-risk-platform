@@ -1,11 +1,11 @@
 # Warehouse build boundary
 
-PostgreSQL is the supported execution target. Shared transformation SQL compiles
-for Snowflake, but its history publication and full live regression proof remain
-incomplete. The Snowflake writer guard and a one-row dbt seed have live acceptance
-evidence. The [adapter guide](../docs/adapter-differences.md)
-records the semantic differences; the [Phase 2 verification record](../docs/phase-2-verification.md)
-separates compilation checks from warehouse execution evidence.
+PostgreSQL is the default execution target. Phase 2 also verified Snowflake
+history publication, replay, temporal guards, and rollback against a trial
+account. Snowflake demonstrates dbt portability; it is not a scale claim.
+The [adapter guide](../docs/adapter-differences.md) records the semantic
+differences, and the [Phase 2 verification record](../docs/phase-2-verification.md)
+distinguishes offline compilation from the live acceptance results.
 
 Use `python -m orchestration.dbt_cli build`, `run`, or `seed` for mutating dbt
 commands.
