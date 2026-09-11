@@ -5,9 +5,16 @@ The Phase 1 event spine is an optional module inside the single
 Phase 0 immutable raw S3 bucket while removing the RDS warehouse, SQS queues,
 loader role, and their small isolated VPC.
 
-No live Phase 1 resources have been planned, applied, connected to, or tested as
-part of this implementation. The Terraform tests use a mock AWS provider and no
-credentials.
+The module was exercised in a short-lived AWS acceptance run on 2026-09-11 and
+then disabled. The run proved S3 notifications, SQS consumption, retry handling,
+TLS-verified RDS loading, dbt builds, temporal corrections, and repeatable
+backfills. The teardown removed all 19 module resources while preserving the
+Phase 0 raw bucket and ingest role. See
+[the verification report](phase-1-verification.md) for sanitized evidence.
+
+Routine Terraform tests still use a mock AWS provider and no credentials. They
+do not replace the recorded acceptance run, and running them cannot create AWS
+resources.
 
 ## Permission and cost gate
 

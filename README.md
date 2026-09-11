@@ -59,6 +59,29 @@ right and miss the second.
 
 ![Carrier Risk Platform architecture](docs/architecture.svg)
 
+Phase 1 implements the event spine shown across the center of the diagram:
+
+```text
+immutable S3 manifest -> SQS -> Airflow -> raw PostgreSQL -> dbt history/features
+```
+
+The manifest is published last, after the compressed snapshot and its checksums
+have been validated. SQS therefore carries a small reference to committed data,
+not the data itself. Airflow coordinates the load and build boundaries; Python
+owns transactional I/O, while dbt owns conformance, correction-aware history,
+crash-incident deduplication, and point-in-time features.
+
+Every source event has two distinct timelines:
+
+- the event and reported dates describe when the event happened and became
+  available from the source;
+- the half-open knowledge interval `[knowledge_valid_from,
+  knowledge_valid_to)` describes which corrected version the warehouse knew at
+  a particular instant.
+
+This separation lets a correction change today's answer without rewriting the
+answer that was knowable yesterday.
+
 ## Data
 
 V0 uses FMCSA's Vehicle Inspection File and Crash File from the DOT open data
@@ -87,6 +110,42 @@ checksummed and validated before its manifest is published as the commit marker;
 rerunning a completed partition is a no-op. Manifests include a deterministic
 batch identifier used by warehouse loads and backfills.
 
+## Running Phase 1 locally
+
+The default workflow uses only local containers. It exercises the same message,
+loader, and dbt boundaries as AWS without creating cloud resources:
+
+```bash
+cp .env.example .env
+docker compose up -d postgres minio elasticmq
+.venv/bin/python -m tests.local_airflow_fixture
+.venv/bin/pytest
+```
+
+See [the Phase 1 operator guide](docs/phase-1-infrastructure.md) before enabling
+AWS. The event spine is disabled by default and its RDS/SQS resources must be
+destroyed at the end of every approved working session.
+
+## Verified behavior
+
+The short-lived AWS acceptance run proved the complete manifest-to-feature path,
+including a retryable missing-object failure, duplicate-message idempotency, a
+later correction, two identical backfills, TLS-verified RDS access, and all three
+blocking temporal invariants. The RDS instance, queues, and temporary VPC were
+then destroyed; the immutable Phase 0 S3 evidence remains.
+
+Exact commands, sanitized counts, temporal results, test totals, teardown checks,
+and screenshot guidance are recorded in
+[the Phase 1 verification report](docs/phase-1-verification.md).
+
+### Acceptance evidence
+
+![Successful Airflow load, build, and backfill runs](docs/evidence/phase-1/airflow-successful-runs.jpg)
+
+![RDS inventory after the required teardown](docs/evidence/phase-1/aws-rds-teardown.jpg)
+
+![SQS inventory after the required teardown](docs/evidence/phase-1/aws-sqs-teardown.jpg)
+
 ## Stack
 
 Airflow, dbt-core, Postgres, MLflow, FastAPI, Terraform, AWS (S3, SQS, RDS, Glue,
@@ -94,9 +153,11 @@ Athena).
 
 ## Status
 
-Phase 0 is complete. The tested landing workflow and Terraform baseline have
-landed both full event feeds in AWS and passed a completed-partition no-op rerun.
-Warehouse loading and temporal models begin in Phase 1.
+Phases 0 and 1 are complete. The project can land immutable FMCSA snapshots,
+load them transactionally from SQS notifications, preserve correction-aware
+event history, build two-clock features, and replay bounded date ranges without
+changing the result. Phase 1 was verified in AWS and its continuously billable
+resources were removed after the proof.
 
 ## License
 
