@@ -91,13 +91,15 @@ domain. Raw data is not committed; tests use generated fixtures instead.
 
 ## Landing a snapshot
 
-Authenticate to AWS and create an account-level budget before provisioning the
-Phase 0 resources. Then:
+Authenticate to AWS and verify the existing account-level budget and credit
+eligibility before provisioning resources. Follow the
+[state bootstrap and migration guide](infra/state-bootstrap/README.md) to create
+the backend bucket and prepare the ignored `infra/base/backend.hcl`. Then:
 
 ```bash
 python3.12 -m venv .venv
 .venv/bin/pip install -e '.[dev]'
-terraform -chdir=infra/base init
+terraform -chdir=infra/base init -backend-config=backend.hcl
 terraform -chdir=infra/base apply
 export CARRIER_RISK_RAW_BUCKET="$(terraform -chdir=infra/base output -raw raw_bucket_name)"
 export CARRIER_RISK_INGEST_ROLE_ARN="$(terraform -chdir=infra/base output -raw ingest_role_arn)"
@@ -158,6 +160,13 @@ load them transactionally from SQS notifications, preserve correction-aware
 event history, build two-clock features, and replay bounded date ranges without
 changing the result. Phase 1 was verified in AWS and its continuously billable
 resources were removed after the proof.
+
+Phase 2 is in progress. The repository adds remote-state and ECR configuration,
+validated Athena catalog publication, and shared transformation SQL. See
+[the Phase 2 operator guide](docs/phase-2-infrastructure.md) and
+[the adapter differences](docs/adapter-differences.md) for the current boundary:
+Snowflake history and concurrency, live Athena reconciliation, remote lock
+contention, and a full disposable-stack teardown still require verification.
 
 ## License
 

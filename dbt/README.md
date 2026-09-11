@@ -1,5 +1,11 @@
 # Warehouse build boundary
 
+PostgreSQL is the supported execution target. Shared transformation SQL compiles
+for Snowflake, but its history publication, writer guard, and full live regression
+proof remain incomplete. The [adapter guide](../docs/adapter-differences.md)
+records the semantic differences; the [Phase 2 verification record](../docs/phase-2-verification.md)
+separates compilation checks from warehouse execution evidence.
+
 Use `python -m orchestration.dbt_cli build`, `run`, or `seed` for mutating dbt
 commands.
 The Python launcher holds PostgreSQL session advisory lock `764301234` for the
