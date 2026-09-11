@@ -13,7 +13,7 @@
     {% endfor %}
 {% endif %}
 
-with scoring_grid(scoring_date) as (
+with requested_scoring_dates(scoring_date) as (
 
     {% if scoring_dates is not none %}
         select distinct scoring_date
@@ -33,18 +33,26 @@ with scoring_grid(scoring_date) as (
         from {{ this.schema }}.event_version_batches
     {% endif %}
 
+), scoring_grid as (
+
+    select
+        scoring_date,
+        scoring_date::timestamp at time zone 'UTC' as scoring_timestamp
+    from requested_scoring_dates
+
 ), eligible_carriers as (
 
     select distinct
         events.usdot_number,
-        grid.scoring_date
+        grid.scoring_date,
+        grid.scoring_timestamp
     from scoring_grid grid
     join {{ ref('events_union') }} events
       on events.event_type = 'inspection'
-     and events.knowledge_valid_from < grid.scoring_date::timestamp
+     and events.knowledge_valid_from < grid.scoring_timestamp
      and (
             events.knowledge_valid_to is null
-            or events.knowledge_valid_to > grid.scoring_date::timestamp
+            or events.knowledge_valid_to > grid.scoring_timestamp
          )
      and not events.is_deleted
      and events.event_date >= (grid.scoring_date - interval '6 months')::date
@@ -84,10 +92,10 @@ with scoring_grid(scoring_date) as (
     from eligible_carriers carriers
     left join {{ ref('events_union') }} events
       on events.usdot_number = carriers.usdot_number
-     and events.knowledge_valid_from < carriers.scoring_date::timestamp
+     and events.knowledge_valid_from < carriers.scoring_timestamp
      and (
             events.knowledge_valid_to is null
-            or events.knowledge_valid_to > carriers.scoring_date::timestamp
+            or events.knowledge_valid_to > carriers.scoring_timestamp
          )
      and not events.is_deleted
      and events.event_date < carriers.scoring_date

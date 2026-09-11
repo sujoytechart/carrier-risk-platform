@@ -41,6 +41,8 @@ Without that list, the monthly grid spans the first through last successfully
 applied complete-batch observation month in UTC, inclusive. This is reproducible
 from stored input metadata and deliberately independent of today's date. Supply
 explicit historical month starts when a retrospective scoring window is needed.
+Every scoring date means midnight UTC regardless of the PostgreSQL session
+timezone.
 
 Changing the event-history schema or canonical hash requires a controlled rebuild
 from immutable snapshots; existing histories are not silently migrated. The custom

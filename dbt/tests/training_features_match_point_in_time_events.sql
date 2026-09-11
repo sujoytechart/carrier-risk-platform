@@ -2,7 +2,10 @@
 
 with feature_keys as (
 
-    select usdot_number, scoring_date
+    select
+        usdot_number,
+        scoring_date,
+        scoring_date::timestamp at time zone 'UTC' as scoring_timestamp
     from {{ ref('training_features') }}
 
 ), expected as (
@@ -38,10 +41,10 @@ with feature_keys as (
     from feature_keys keys
     left join {{ ref('events_union') }} events
       on events.usdot_number = keys.usdot_number
-     and events.knowledge_valid_from < keys.scoring_date::timestamp
+     and events.knowledge_valid_from < keys.scoring_timestamp
      and (
             events.knowledge_valid_to is null
-            or events.knowledge_valid_to > keys.scoring_date::timestamp
+            or events.knowledge_valid_to > keys.scoring_timestamp
          )
      and not events.is_deleted
      and events.event_date < keys.scoring_date
