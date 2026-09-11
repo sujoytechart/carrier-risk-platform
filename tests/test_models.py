@@ -76,10 +76,8 @@ def test_manifest_json_round_trip_preserves_tuple_columns() -> None:
         ),
     )
 
-    restored = SnapshotManifest.from_json(manifest.to_json())
-
-    assert restored == manifest
-    assert restored.batch_id == (
+    assert SnapshotManifest.from_json(manifest.to_json()) == manifest
+    assert manifest.batch_id == (
         "f80c1cc855a61502ad4c11cc0afef5ba1cc812b42b03bae74dbfb438d4666b5b"
     )
 
