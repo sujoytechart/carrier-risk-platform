@@ -1,7 +1,8 @@
-# Snowflake writer guard
+# Snowflake history and writer guard
 
-The Snowflake launcher supports guarded synthetic verification. Full event-history
-publication and transformation parity remain incomplete; see the
+The Snowflake target implements guarded candidate publication and event-history
+materialization. Local SQL checks cover the transaction structure and contracts;
+live acceptance status is recorded separately in the
 [verification record](../../docs/phase-2-verification.md).
 
 Use a dedicated writer user and a small test warehouse with auto-resume disabled,
@@ -49,7 +50,7 @@ ownership and no unattended force-unlock command.
    and verify terminal query state. Closing a client or aborting its guard
    transaction alone is insufficient.
 3. Reconcile any partially completed model work. The whole-command guard does
-   not make dbt's separate model DDL or future publication transactions atomic.
+   not make dbt's separate model DDL or the separate publication and history transactions atomic.
 4. Abort any remaining guard transaction only after old work is stopped. Verify
    no old writer remains, then clear the exact reviewed `owner_run` with a
    conditional update that affects exactly one row.
@@ -63,3 +64,45 @@ The live acceptance checks use synthetic rows. They cover normal completion,
 failed-worker retention, independent worker DDL, killed-process recovery, direct
 command rejection, stale transaction rejection, and suspension. They do not prove
 full event-history rollback, replay, or the three temporal detectors on Snowflake.
+
+## Business transactions
+
+`event_change_candidates` uses a Snowflake materialization that stages candidates
+and complete-batch metadata before a DML-only publication transaction. The old
+candidate/registry pair remains intact if validation or insertion fails. Empty
+complete batches remain explicit registry rows; duplicate batch IDs, duplicate
+nonnull source identities within a batch, mismatched feeds, observation timestamps,
+and row counts reject publication.
+
+`event_versions` precreates history, applied-batch, retention, and temporary prior
+relations outside its transaction. It validates the persisted history schema and
+then applies all pending batches in observation-time/batch-ID order inside one
+transaction. An exception explicitly rolls back transitions, last-seen updates,
+successor links, retention rows, and application markers. Snowflake sequences can
+consume values during rollback; gaps in surrogate IDs do not represent events.
+
+The first processed batch for each feed uses source-proxy knowledge time. Later
+batches use observed knowledge time, including when the first batch was empty.
+Crash disappearance produces tombstones; inspection disappearance older than the
+batch minimum event date records retention lineage. Excluded corrections close
+previous eligible history. Replaying already-applied batches leaves history and
+application timestamps unchanged.
+
+Persisted schema checks distinguish NUMBER(38,0), timestamp_tz(9), and explicit
+VARCHAR widths. Text widening is accepted; narrowing below 16,777,216 characters,
+fractional integer scale, changed timezone types, missing/extra columns, identity,
+or nullability drift requires an explicit migration. Standard-table constraints
+are supplemented by transaction-local uniqueness, chronology, current-version,
+link, and retention validation. Source timestamps are interpreted explicitly as
+UTC and observation dates are extracted in UTC.
+
+Run the focused offline checks with:
+
+```sh
+.venv/bin/pytest tests/test_snowflake_history_sql.py tests/test_dbt_portability_sql.py
+```
+
+These checks render production macros, exercise validation predicates locally,
+and compile all models. They are not evidence of live Snowflake grammar, rollback,
+replay, or transformation parity. A bounded guarded build must establish those
+properties in the dedicated disposable warehouse before claiming acceptance.

@@ -160,6 +160,10 @@ resource "aws_iam_role_policy" "analytics" {
               "catalog/*",
               "catalog-metadata",
               "catalog-metadata/*",
+              "derived",
+              "derived/*",
+              "derived-metadata",
+              "derived-metadata/*",
               "raw",
               "raw/*",
             ]
@@ -179,6 +183,8 @@ resource "aws_iam_role_policy" "analytics" {
         Resource = [
           "${aws_s3_bucket.raw.arn}/catalog/*",
           "${aws_s3_bucket.raw.arn}/catalog-metadata/*",
+          "${aws_s3_bucket.raw.arn}/derived/*",
+          "${aws_s3_bucket.raw.arn}/derived-metadata/*",
         ]
       },
       {
@@ -190,6 +196,8 @@ resource "aws_iam_role_policy" "analytics" {
         Resource = [
           "${aws_s3_bucket.raw.arn}/catalog/*",
           "${aws_s3_bucket.raw.arn}/catalog-metadata/*",
+          "${aws_s3_bucket.raw.arn}/derived/*",
+          "${aws_s3_bucket.raw.arn}/derived-metadata/*",
         ]
         Condition = {
           StringEquals = {
@@ -249,6 +257,9 @@ resource "aws_iam_role_policy" "analytics" {
           aws_glue_catalog_table.raw["crashes"].arn,
           aws_glue_catalog_table.raw["inspections"].arn,
           aws_glue_catalog_table.snapshot_metadata.arn,
+          aws_glue_catalog_table.derived["crashes"].arn,
+          aws_glue_catalog_table.derived["inspections"].arn,
+          aws_glue_catalog_table.derived_metadata.arn,
         ]
       },
     ]

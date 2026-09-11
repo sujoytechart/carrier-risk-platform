@@ -240,7 +240,7 @@ run "analytics_role_least_privilege_contract" {
         Resource = [aws_s3_bucket.raw.arn]
         Condition = {
           StringLike = {
-            "s3:prefix" = ["catalog", "catalog/*", "catalog-metadata", "catalog-metadata/*", "raw", "raw/*"]
+            "s3:prefix" = ["catalog", "catalog/*", "catalog-metadata", "catalog-metadata/*", "derived", "derived/*", "derived-metadata", "derived-metadata/*", "raw", "raw/*"]
           }
         }
       },
@@ -254,13 +254,13 @@ run "analytics_role_least_privilege_contract" {
         Sid      = "ReadCatalogDocuments"
         Effect   = "Allow"
         Action   = ["s3:GetObject"]
-        Resource = ["${aws_s3_bucket.raw.arn}/catalog/*", "${aws_s3_bucket.raw.arn}/catalog-metadata/*"]
+        Resource = ["${aws_s3_bucket.raw.arn}/catalog/*", "${aws_s3_bucket.raw.arn}/catalog-metadata/*", "${aws_s3_bucket.raw.arn}/derived/*", "${aws_s3_bucket.raw.arn}/derived-metadata/*"]
       },
       {
         Sid      = "PublishCatalogDocuments"
         Effect   = "Allow"
         Action   = ["s3:PutObject"]
-        Resource = ["${aws_s3_bucket.raw.arn}/catalog/*", "${aws_s3_bucket.raw.arn}/catalog-metadata/*"]
+        Resource = ["${aws_s3_bucket.raw.arn}/catalog/*", "${aws_s3_bucket.raw.arn}/catalog-metadata/*", "${aws_s3_bucket.raw.arn}/derived/*", "${aws_s3_bucket.raw.arn}/derived-metadata/*"]
         Condition = {
           StringEquals = {
             "s3:if-none-match" = "*"
@@ -306,6 +306,9 @@ run "analytics_role_least_privilege_contract" {
           aws_glue_catalog_table.raw["crashes"].arn,
           aws_glue_catalog_table.raw["inspections"].arn,
           aws_glue_catalog_table.snapshot_metadata.arn,
+          aws_glue_catalog_table.derived["crashes"].arn,
+          aws_glue_catalog_table.derived["inspections"].arn,
+          aws_glue_catalog_table.derived_metadata.arn,
         ]
       },
     ]
@@ -437,4 +440,39 @@ run "reject_fractional_scan_cutoff" {
   }
 
   expect_failures = [var.athena_query_scan_cutoff_bytes]
+}
+
+run "derived_parquet_preserves_source_order_and_lineage" {
+  command = apply
+
+  assert {
+    condition = alltrue([
+      for feed, table in aws_glue_catalog_table.derived :
+      table.name == "derived_${feed}" &&
+      table.storage_descriptor[0].input_format == "org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat" &&
+      table.storage_descriptor[0].ser_de_info[0].parameters["parquet.column.index.access"] == "true" &&
+      [for column in table.storage_descriptor[0].columns : column.name] == local.raw_catalog_tables[feed].columns &&
+      alltrue([for column in table.storage_descriptor[0].columns : column.type == "string"])
+    ])
+    error_message = "Derived Parquet must preserve every source field as a string in validated source order."
+  }
+
+  assert {
+    condition = alltrue([
+      for feed, partition in aws_glue_partition.derived :
+      partition.storage_descriptor[0].location == "s3://${aws_s3_bucket.raw.id}/derived/v1/feed=${feed}/acquisition_date=${var.catalog_acquisition_dates[feed]}/data/" &&
+      partition.storage_descriptor[0].ser_de_info[0].parameters["parquet.column.index.access"] == "true"
+    ])
+    error_message = "Derived partitions must isolate validated data from manifests and original raw files."
+  }
+
+  assert {
+    condition = (
+      aws_glue_catalog_table.derived_metadata.name == "derived_snapshot_metadata" &&
+      contains([for column in aws_glue_catalog_table.derived_metadata.storage_descriptor[0].columns : column.name], "observed_at") &&
+      contains([for column in aws_glue_catalog_table.derived_metadata.storage_descriptor[0].columns : column.name], "converter_version") &&
+      contains([for column in aws_glue_catalog_table.derived_metadata.storage_descriptor[0].columns : column.name], "parquet_sha256")
+    )
+    error_message = "Derived metadata must expose original observation time and converter/output lineage."
+  }
 }

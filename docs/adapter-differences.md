@@ -2,10 +2,13 @@
 
 PostgreSQL remains the operational warehouse. Snowflake is an optional
 transformation-portability target, as described in [ADR 0005](adr/0005-snowflake-for-portability-not-scale.md).
-The shared transformations compile for both adapters. A complete Snowflake build
-is not yet supported: candidate publication, event-history mutation, persisted
-contract checks, and full regression parity still require implementation and live
-verification. The whole-command writer guard now has a bounded live proof.
+The shared transformations compile for both adapters. Snowflake now has dedicated
+candidate publication, event-history mutation, and persisted contract checks.
+Live synthetic-fixture acceptance passed the full build, nine-relation business
+parity, exact replay, three deliberately failing temporal tests, persisted-schema
+rejection, and transaction rollback. The whole-command writer guard also passed
+competing-writer and killed-process probes. See the
+[verification record](phase-2-verification.md) for scope and recovery details.
 
 ## Target configuration
 
@@ -65,12 +68,13 @@ The PostgreSQL launcher holds a session advisory lock for the entire dbt command
 including worker connection changes. Its existing transactional history
 materialization remains in place.
 
-Snowflake DDL commits an active transaction. A future Snowflake implementation
-must precreate persistent and staging relations outside the transaction, then
-publish candidates and apply history with DML-only transactions. Closing an old
-version, inserting its successor, linking versions, and recording batch application
-must either all commit or all roll back. Standard-table uniqueness and chronology
-also need explicit validation. See the [Snowflake transaction reference](https://docs.snowflake.com/en/sql-reference/transactions).
+Snowflake DDL commits an active transaction. Its materializations precreate
+persistent and staging relations outside business transactions, then publish the
+candidate/registry pair and apply history using separate DML-only transactions.
+All pending history batches share one transaction; closing versions, inserting
+successors, linking versions, recording retention, and marking application either
+commit together or explicitly roll back in the exception handler. Standard-table
+uniqueness, chronology, and lineage are checked before and after history mutation. See the [Snowflake transaction reference](https://docs.snowflake.com/en/sql-reference/transactions).
 
 The Snowflake launcher combines a committed run claim with a separate write
 transaction. Failure retains the claim even when the transaction lock disappears;
@@ -85,6 +89,11 @@ availability or correction-knowledge clocks maintained by this project.
 
 `tests/test_dbt_portability_sql.py` compiles both targets with dummy profiles and
 checks rendered model contracts and temporal tests without warehouse access.
+`tests/test_snowflake_history_sql.py` additionally compiles intermediate models,
+renders both materializations and production transaction macros, executes shared
+validation predicates locally, and checks persisted type matching. Integer aliases
+require NUMBER(38,0); timestamp_tz requires precision 9. Text widening is accepted
+but narrowing below the explicit 16,777,216-character contract is rejected.
 Compilation checks Jinja and dependency resolution; it does not validate warehouse
 grammar, execution, transaction safety, or persisted types.
 

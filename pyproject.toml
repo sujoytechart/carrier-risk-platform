@@ -25,11 +25,15 @@ dbt = [
 snowflake = [
     "dbt-snowflake>=1.12,<2",
 ]
+parquet = [
+    "pyarrow>=23.0.1,<24",
+]
 dev = [
     "dbt-core>=1.10,<2",
     "dbt-postgres>=1.9,<2",
     "dbt-snowflake>=1.12,<2",
     "mypy>=1.13,<2",
+    "pyarrow>=23.0.1,<24",
     "psycopg[binary]>=3.2,<4",
     "pytest>=9.0.3,<10",
     "pytest-cov>=6,<7",
@@ -53,6 +57,10 @@ select = ["E", "F", "I", "UP", "B", "SIM"]
 [tool.mypy]
 python_version = "3.12"
 strict = true
+
+[[tool.mypy.overrides]]
+module = ["pyarrow", "pyarrow.*"]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 addopts = "--strict-config --strict-markers"

@@ -1,7 +1,7 @@
 {{ config(
-    materialized='table',
+    materialized='snowflake_candidate_publication' if target.type == 'snowflake' else 'table',
     indexes=[{'columns': ['batch_id', 'feed_name', 'source_record_key']}],
-    post_hook='{{ publish_candidate_batches() }}'
+    post_hook=[] if target.type == 'snowflake' else '{{ publish_candidate_batches() }}'
 ) }}
 
 -- depends_on: {{ ref('clean_snapshot_batches') }}
@@ -31,7 +31,7 @@ with inspections as (
         null::integer as injuries,
         null::boolean as tow_away,
         record_hash,
-        cardinality(parse_reasons) = 0
+        {{ portable_array_length('parse_reasons') }} = 0
             and source_record_key is not null
             and usdot_number is not null
             and event_date is not null
@@ -39,7 +39,7 @@ with inspections as (
             and source_proxy_valid_from::date >= event_date
             as is_model_eligible,
         case
-            when cardinality(parse_reasons) > 0 then parse_reasons[1]
+            when {{ portable_array_length('parse_reasons') }} > 0 then {{ portable_array_first('parse_reasons') }}
             when source_record_key is null then 'missing_source_record_key'
             when usdot_number is null then 'missing_usdot_number'
             when event_date is null then 'missing_event_date'

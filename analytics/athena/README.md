@@ -1,5 +1,48 @@
 # Athena raw snapshot operator guide
 
+## Optional validated Parquet derivation
+
+Valid CSV records that Athena's CSV reader cannot represent can be converted
+locally without changing the authoritative raw snapshot or its knowledge clock.
+Install the optional dependency with `pip install -e '.[parquet]'`, then provide
+the same manifest-verified snapshot boundary used by the raw loader:
+
+```python
+from pathlib import Path
+
+from ingest.models import SnapshotManifest
+from ingest.object_store import FileSnapshotObjectStore
+from ingest.parquet_converter import ParquetSnapshotConverter
+
+raw_root = Path("/retained-snapshots")
+manifest = SnapshotManifest.from_json(Path("/selected/manifest.json").read_bytes())
+converter = ParquetSnapshotConverter(FileSnapshotObjectStore(raw_root))
+publication = converter.convert(
+    manifest,
+    Path("/derived") / manifest.feed_name / manifest.batch_id,
+)
+print(publication.parquet_path, publication.lineage_path)
+```
+
+The caller chooses the local publication directory. The converter exclusively
+reserves that directory, moves `snapshot.parquet`, and publishes `lineage.json`
+last as the completion marker. A matching
+retry returns `created=False`, while incomplete or conflicting existing content
+raises `FileExistsError`. Conversion has no cloud calls and buffers the
+configured row batch in memory. The default is 10,000 rows. This bounds the
+number of resident records, while bytes still depend on field sizes up to
+Python's CSV parser limit; an oversized field fails closed rather than being
+truncated. Parquet also retains row-group/footer metadata, so total memory is not
+strictly bounded by the row batch alone.
+
+All original headers and field values remain strings. The lineage document embeds
+the complete source manifest, preserves `observed_at`, and records the converter,
+schema, Parquet checksum, row/value counts, null count, and matching source/output
+value hashes. Upload and catalog publication are separate infrastructure
+boundaries and must treat both files as one immutable derived publication. The
+[architectural decision](../../docs/adr/0006-derived-parquet-preserves-raw-evidence.md)
+records why this copy never replaces raw evidence.
+
 This directory contains the two queries used to reconcile and describe one
 complete immutable crash snapshot and one complete immutable inspection snapshot
 in place. The catalog publisher validates the original gzip objects and creates
@@ -148,3 +191,24 @@ The publisher and queries have local fixture and contract coverage, including
 failure paths and idempotent retry behavior. No live Athena execution or
 real-feed OpenCSV compatibility proof has been recorded yet. The project status
 and remaining live boundaries are tracked in the [main README](../../README.md#status).
+
+## Publish and query validated Parquet
+
+`DerivedCatalogPublisher(S3DerivedStore(bucket, client), converter).publish(manifest,
+local_directory)` revalidates the local artifact before uploading it. S3 checks
+the file SHA-256; conditional creates reject conflicting publications. Lineage
+and data are written before the flat metadata completion marker. An exact retry
+can finish an interrupted upload.
+
+The `derived_crashes` and `derived_inspections` Glue partitions point only to
+the corresponding `derived/v1/feed=…/acquisition_date=…/data/` directory. The
+reader maps columns by validated source order, preserving uppercase Parquet
+headers behind lowercase SQL names. `derived_snapshot_metadata` contains the
+original manifest identity and unchanged acquisition timestamp plus conversion
+and reconciliation hashes. Raw CSV tables remain available for compatible feeds.
+
+Run [`validate_derived.sql`](validate_derived.sql) first, replacing both date
+sentinels. Require exactly one metadata row and zero row-count delta for each
+feed. Only then run [`report_lag_derived.sql`](report_lag_derived.sql) for the same
+partitions. Review invalid dates, exclusions and negative lags before interpreting
+percentiles. The result remains a source-row, source-proxy distribution.
