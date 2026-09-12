@@ -112,6 +112,20 @@ jobs:
             --cov-report=term-missing --cov-report=json:coverage.json \
             --cov-report=lcov:coverage.lcov
 
+      - name: Exercise serving interactions under coverage
+        run: |
+          python -m pytest -q \
+            tests/test_serving_cli_smoke.py \
+            tests/test_serving_api.py \
+            tests/test_serving_benchmark.py \
+            tests/test_serving_model.py \
+            tests/test_serving_normalization.py \
+            tests/test_serving_repository.py \
+            tests/test_mlflow_tracking.py \
+            --cov=ingest --cov=orchestration --cov=ml --cov=serving --cov-branch \
+            --cov-append --cov-report=term-missing \
+            --cov-report=json:coverage.json --cov-report=lcov:coverage.lcov
+
       - name: Enforce exact project and changed-line coverage
         env:
           DIFF_BASE: ${{ github.event.pull_request.base.sha || github.event.before || '' }}
