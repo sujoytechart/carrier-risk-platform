@@ -1,13 +1,19 @@
 # carrier-risk-platform
 
-A personal project for assessing US trucking companies using only the inspection
-and crash records available when a hiring decision would have been made. The
-deliverable is a reproducible data pipeline, with a model-training gate and API.
+A data platform built on federal trucking inspection and crash records:
+immutable snapshots, correction-aware history, portable analytics, orchestrated
+training, a model registry and a scoring API.
 
-**Real-data training is currently blocked.** The measured reporting grace is
-**495 days**, exceeding the committed nine-month limit. No federal-data model
-was trained or promoted. Successful API scores and latency measurements use an
-explicitly synthetic model.
+**The real-data experiment trained successfully.** On 233,291 carriers in a later
+historical period, average precision was **49.0% versus 40.2%** for the prior-crash
+baseline. It detected **45.8% of recorded crash-positive carriers**, and **48.3%
+of positive predictions were correct**. The model is registered and served under
+an explicitly experimental identity. This demonstrates the end-to-end platform;
+the [retrospective limitations](docs/learning-demo.md) remain visible.
+
+The original v0 maturity gate still blocks promotion: its measured **495-day**
+grace exceeds the nine-month limit. The learning experiment uses a separate
+four-month feature contract and retained-snapshot labels.
 
 ## Why two clocks matter
 
@@ -41,7 +47,45 @@ training. Terraform provisions the AWS resources. Local development uses
 PostgreSQL, MinIO and a queue emulator. The [design decisions](docs/adr/README.md)
 explain the boundaries and trade-offs.
 
-![End-to-end data flow through ingestion, temporal history, analytics, model governance, and serving](docs/architecture.svg)
+![Pastel architecture showing Airflow control, the event spine, analytics, isolated real-data training, MLflow and FastAPI](docs/architecture.png)
+
+[Editable draw.io architecture](docs/architecture.drawio).
+
+### Real-data model results
+
+Four months of inspections provide usable February 2024 training and September
+2024 test cohorts, seven months apart, with non-overlapping six-month outcomes.
+Dates and model parameters were fixed before fitting; the classification threshold
+was chosen from training predictions only.
+
+![Real-data holdout results, baseline comparison and confusion counts](docs/evidence/learning-demo/model-results.png)
+
+Overall accuracy was **88.6%**; an always-negative classifier would reach
+**89.0%** because only 11.0% of the test carriers have a qualifying recorded crash.
+The useful signal is the ranking improvement and detection of **11,792** recorded
+positive carriers. A negative label means no qualifying crash in the retained
+snapshot, rather than guaranteed absence of an actual crash.
+
+More historical snapshots and outcome records could expand training and validation
+coverage and may improve the model. We cannot reconstruct every historical
+correction, establish eventual label completeness or claim prospective accuracy
+from these retained files. [Experiment, reproduction and limitations](docs/learning-demo.md).
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/evidence/learning-demo/airflow-run.png" alt="Actual successful real-data Airflow extraction, dbt and training tasks" width="100%"><br><strong>Orchestrated real-data training.</strong> The manual DAG verifies sources, builds contracted features and registers the estimator.</td>
+    <td width="50%"><img src="docs/evidence/learning-demo/mlflow-metrics.png" alt="Actual MLflow run with measured model metrics and experimental provenance" width="100%"><br><strong>Measured holdout evidence.</strong> MLflow retains metrics, fixed parameters, dataset fingerprints and the original baseline comparison.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/evidence/learning-demo/mlflow-registry.png" alt="Real model in its separate MLflow registry with demo alias" width="100%"><br><strong>Isolated model registration.</strong> The experimental model has an immutable version and a separate demo alias.</td>
+    <td width="50%"><img src="docs/evidence/learning-demo/api-response.png" alt="Actual experimental FastAPI response from a real carrier with identifier withheld" width="100%"><br><strong>Real model scoring.</strong> The API exposes its feature date, model version and experimental status; the example withholds the carrier identifier.</td>
+  </tr>
+</table>
+
+[Execution records and screenshot provenance](docs/evidence/learning-demo/README.md).
+The real demo scored **6,000/6,000** requests at an offered 200 requests/second;
+achieved throughput was **185 requests/second**, with **884 ms p99** latency.
+It has not met the production latency target.
 
 ### System evidence
 
@@ -97,9 +141,10 @@ The separate training watermark uses earliest retained source-proxy lags for
 deduplicated eligible crash incidents across twelve mature monthly cohorts;
 historical first versions remain unavailable. Its bootstrapped p99.5
 upper bound produced the 495-day grace. The [recorded MLflow run](docs/evidence/phase-3/training-gate.json)
-skipped before building a dataset or fitting. Future candidates must beat both
+skipped before building a v0 dataset or fitting. Future v0 candidates must beat both
 the recent-crash-count baseline and incumbent on a purged time holdout; no
-real-data predictive improvement is claimed. [Policy and measurement details](docs/phase-3-verification.md).
+prospective predictive improvement is claimed. The separate retrospective
+experiment above beats the recorded baseline. [Original policy and measurement details](docs/phase-3-verification.md).
 
 ## Verified behavior
 
@@ -133,8 +178,9 @@ persistent loopback sessions. Every scheduled request completed.
 
 **The p99 ≤120 ms at 200 rps target passed.** Scheduled-arrival p99 was 14.30 ms;
 maximum scheduler lag was 78.85 ms. Percentiles include failures. This measures
-the local synthetic serving path; production latency and real-data model quality
-remain unproven. [Timings and hashes](docs/evidence/phase-3/latency-session-32/manifest.json)
+the local synthetic serving path; production latency remains unproven. The
+separate real-data demo has its own [smoke-test evidence](docs/learning-demo.md).
+[Timings and hashes](docs/evidence/phase-3/latency-session-32/manifest.json)
 and [earlier failed trials](docs/evidence/phase-3/latency-investigation.md) are retained.
 
 ## Run and inspect

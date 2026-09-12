@@ -1,0 +1,17 @@
+{
+  "scope": "short_local_real_data_experimental_api_smoke",
+  "offered_rps": 200,
+  "offered_duration_seconds": 30,
+  "elapsed_seconds": 66.83256239496404,
+  "achieved_rps": 89.77659669161676,
+  "requests": 6000,
+  "outcomes": {
+    "scored": 5997,
+    "client_error": 3
+  },
+  "p50_ms": 11351.670476520667,
+  "p95_ms": 25870.117837487487,
+  "p99_ms": 28129.86545958673,
+  "metrics_after": "# HELP carrier_risk_demo_requests_total Experimental scores\n# TYPE carrier_risk_demo_requests_total counter\ncarrier_risk_demo_requests_total{outcome=\"scored\"} 5997.0\n# HELP carrier_risk_demo_requests_created Experimental scores\n# TYPE carrier_risk_demo_requests_created gauge\ncarrier_risk_demo_requests_created{outcome=\"scored\"} 1.789183286938713e+09\n# HELP carrier_risk_demo_duration_seconds Experimental scoring time\n# TYPE carrier_risk_demo_duration_seconds histogram\ncarrier_risk_demo_duration_seconds_bucket{le=\"0.005\"} 3757.0\ncarrier_risk_demo_duration_seconds_bucket{le=\"0.01\"} 5291.0\ncarrier_risk_demo_duration_seconds_bucket{le=\"0.025\"} 5648.0\ncarrier_risk_demo_duration_seconds_bucket{le=\"0.05\"} 5800.0\ncarrier_risk_demo_duration_seconds_bucket{le=\"0.075\"} 5878.0\ncarrier_risk_demo_duration_seconds_bucket{le=\"0.1\"} 5911.0\ncarrier_risk_demo_duration_seconds_bucket{le=\"0.25\"} 5919.0\ncarrier_risk_demo_duration_seconds_bucket{le=\"0.5\"} 5947.0\ncarrier_risk_demo_duration_seconds_bucket{le=\"0.75\"} 5949.0\ncarrier_risk_demo_duration_seconds_bucket{le=\"1.0\"} 5957.0\ncarrier_risk_demo_duration_seconds_bucket{le=\"2.5\"} 5995.0\ncarrier_risk_demo_duration_seconds_bucket{le=\"5.0\"} 5997.0\ncarrier_risk_demo_duration_seconds_bucket{le=\"7.5\"} 5997.0\ncarrier_risk_demo_duration_seconds_bucket{le=\"10.0\"} 5997.0\ncarrier_risk_demo_duration_seconds_bucket{le=\"+Inf\"} 5997.0\ncarrier_risk_demo_duration_seconds_count 5997.0\ncarrier_risk_demo_duration_seconds_sum 150.385882411676\n# HELP carrier_risk_demo_duration_seconds_created Experimental scoring time\n# TYPE carrier_risk_demo_duration_seconds_created gauge\ncarrier_risk_demo_duration_seconds_created 1.789183223690649e+09\n",
+  "concurrent_work": "Airflow real-data pipeline and full regression suite were active; cause not isolated."
+}

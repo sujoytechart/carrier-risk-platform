@@ -1,0 +1,17 @@
+{
+  "scope": "short_local_real_data_experimental_api_smoke",
+  "offered_rps": 30,
+  "offered_duration_seconds": 30,
+  "elapsed_seconds": 29.97498233098304,
+  "achieved_rps": 30.02503854922153,
+  "requests": 900,
+  "outcomes": {
+    "scored": 900
+  },
+  "p50_ms": 7.491430500522256,
+  "p95_ms": 11.12228432612028,
+  "p99_ms": 30.220178729505264,
+  "metrics_after": "# HELP carrier_risk_demo_requests_total Experimental scores\n# TYPE carrier_risk_demo_requests_total counter\ncarrier_risk_demo_requests_total{outcome=\"scored\"} 6901.0\n# HELP carrier_risk_demo_requests_created Experimental scores\n# TYPE carrier_risk_demo_requests_created gauge\ncarrier_risk_demo_requests_created{outcome=\"scored\"} 1.789184055221668e+09\n# HELP carrier_risk_demo_duration_seconds Experimental scoring time\n# TYPE carrier_risk_demo_duration_seconds histogram\ncarrier_risk_demo_duration_seconds_bucket{le=\"0.005\"} 6470.0\ncarrier_risk_demo_duration_seconds_bucket{le=\"0.01\"} 6776.0\ncarrier_risk_demo_duration_seconds_bucket{le=\"0.025\"} 6836.0\ncarrier_risk_demo_duration_seconds_bucket{le=\"0.05\"} 6888.0\ncarrier_risk_demo_duration_seconds_bucket{le=\"0.075\"} 6889.0\ncarrier_risk_demo_duration_seconds_bucket{le=\"0.1\"} 6892.0\ncarrier_risk_demo_duration_seconds_bucket{le=\"0.25\"} 6897.0\ncarrier_risk_demo_duration_seconds_bucket{le=\"0.5\"} 6901.0\ncarrier_risk_demo_duration_seconds_bucket{le=\"0.75\"} 6901.0\ncarrier_risk_demo_duration_seconds_bucket{le=\"1.0\"} 6901.0\ncarrier_risk_demo_duration_seconds_bucket{le=\"2.5\"} 6901.0\ncarrier_risk_demo_duration_seconds_bucket{le=\"5.0\"} 6901.0\ncarrier_risk_demo_duration_seconds_bucket{le=\"7.5\"} 6901.0\ncarrier_risk_demo_duration_seconds_bucket{le=\"10.0\"} 6901.0\ncarrier_risk_demo_duration_seconds_bucket{le=\"+Inf\"} 6901.0\ncarrier_risk_demo_duration_seconds_count 6901.0\ncarrier_risk_demo_duration_seconds_sum 25.950712145364378\n# HELP carrier_risk_demo_duration_seconds_created Experimental scoring time\n# TYPE carrier_risk_demo_duration_seconds_created gauge\ncarrier_risk_demo_duration_seconds_created 1.789184035185282e+09\n",
+  "model_version": "2",
+  "environment_note": "Lighter demo smoke after full regression work and the repeat 200 requests/second trial completed; background local services remained running."
+}

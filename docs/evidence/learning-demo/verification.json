@@ -1,0 +1,40 @@
+{
+  "verified_at_utc": "2026-09-12T03:55:48.928484+00:00",
+  "scope": "local real-data demonstration; GitHub CI for these changes has not run",
+  "source_head": "4f3d1b0516394015c253fa14c7674cf94aa7d7b9",
+  "comparison_base": "d5eb044decb1fd3a5389c5b8f594480cabc96f5f",
+  "full_suite": {
+    "passed": 464,
+    "failed": 0,
+    "duration_seconds": 1684.16
+  },
+  "serving_and_updated_demo_batch": {
+    "passed": 134,
+    "failed": 0,
+    "duration_seconds": 109.83,
+    "coverage_appended": true
+  },
+  "coverage": {
+    "branch_percent": "88.96934588462467",
+    "project_minimum": "88.09963099630997",
+    "changed_lines_covered": 310,
+    "changed_executable_lines": 323,
+    "changed_percent": "95.975",
+    "changed_minimum": "80"
+  },
+  "checks": {
+    "ruff_check": "passed",
+    "ruff_format_check": "passed",
+    "mypy_strict": "passed: 44 source files",
+    "floor_guard": "passed",
+    "coverage_gate": "passed",
+    "public_working_files_secrets_scan": "passed",
+    "local_links_and_proof_json": "passed"
+  },
+  "identity": {
+    "author_email": "sujoy.tech.art@gmail.com",
+    "committer_email": "sujoy.tech.art@gmail.com"
+  },
+  "pushed": false,
+  "real_api_latency_target_met": false
+}

@@ -40,6 +40,9 @@ snowflake = [
 parquet = [
     "pyarrow>=23.0.1,<24",
 ]
+charts = [
+    "matplotlib>=3.11,<4",
+]
 dev = [
     "carrier-risk-platform[model,serving]",
     "httpx>=0.28,<1",

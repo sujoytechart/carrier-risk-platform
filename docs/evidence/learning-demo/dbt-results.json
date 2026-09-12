@@ -1,0 +1,70 @@
+{
+  "results": [
+    {
+      "id": "operation.carrier_risk_platform.carrier_risk_platform-on-run-start-0",
+      "status": "success",
+      "seconds": 0.043485
+    },
+    {
+      "id": "test.carrier_risk_platform.demo_inspection_identity",
+      "status": "pass",
+      "seconds": 17.947059392929077
+    },
+    {
+      "id": "model.carrier_risk_platform.demo_training_features",
+      "status": "success",
+      "seconds": 79.71399807929993
+    },
+    {
+      "id": "test.carrier_risk_platform.not_null_demo_training_features_days_since_last_inspection.f189fde751",
+      "status": "pass",
+      "seconds": 0.4395289421081543
+    },
+    {
+      "id": "test.carrier_risk_platform.accepted_values_demo_training_features_label__False__0__1.bfda0f9dd7",
+      "status": "pass",
+      "seconds": 0.518505334854126
+    },
+    {
+      "id": "test.carrier_risk_platform.not_null_demo_training_features_crashes_24m.c508fed664",
+      "status": "pass",
+      "seconds": 0.531944990158081
+    },
+    {
+      "id": "test.carrier_risk_platform.demo_feature_boundaries",
+      "status": "pass",
+      "seconds": 0.5508561134338379
+    },
+    {
+      "id": "test.carrier_risk_platform.not_null_demo_training_features_inspections_4m.c369dfa536",
+      "status": "pass",
+      "seconds": 0.16036462783813477
+    },
+    {
+      "id": "test.carrier_risk_platform.not_null_demo_training_features_usdot_number.1e159d1b84",
+      "status": "pass",
+      "seconds": 0.15939116477966309
+    },
+    {
+      "id": "test.carrier_risk_platform.not_null_demo_training_features_oos_violations_4m.9985bfdce1",
+      "status": "pass",
+      "seconds": 0.2958109378814697
+    },
+    {
+      "id": "test.carrier_risk_platform.not_null_demo_training_features_scoring_date.61d41f1c30",
+      "status": "pass",
+      "seconds": 0.2963869571685791
+    },
+    {
+      "id": "test.carrier_risk_platform.not_null_demo_training_features_violations_4m.9244c166f8",
+      "status": "pass",
+      "seconds": 0.2526102066040039
+    },
+    {
+      "id": "test.carrier_risk_platform.not_null_demo_training_features_violations_per_inspection.ae494ca90a",
+      "status": "pass",
+      "seconds": 0.19121003150939941
+    }
+  ],
+  "generated_at": "2026-09-12T03:25:11.771304Z"
+}
