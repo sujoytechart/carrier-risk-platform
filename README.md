@@ -38,8 +38,45 @@ The manifest commits a validated snapshot; repeated loads and backfills preserve
 the same event versions. Python handles transactional I/O, dbt resolves history
 and deduplicates crash incidents, and Airflow coordinates arrivals and monthly
 training. Terraform provisions the AWS resources. Local development uses
-PostgreSQL, MinIO and a queue emulator. See the [architecture](docs/architecture.svg)
-and [design decisions](docs/adr/README.md).
+PostgreSQL, MinIO and a queue emulator. The [design decisions](docs/adr/README.md)
+explain the boundaries and trade-offs.
+
+![End-to-end data flow through ingestion, temporal history, analytics, model governance, and serving](docs/architecture.svg)
+
+### System evidence
+
+The screenshots below come from the recorded acceptance runs. They connect the
+flow above to the systems that actually executed it; the linked phase reports
+retain commands, hashes, limitations, and cleanup evidence.
+
+<table>
+  <tr>
+    <td width="50%">
+      <img src="docs/evidence/phase-1/airflow-successful-runs.jpg" alt="Successful Airflow ingestion and backfill runs" width="100%"><br>
+      <strong>AWS ingestion and orchestration.</strong> S3 notifications reached
+      SQS, Airflow loaded PostgreSQL, and replayed backfills produced the same
+      event history.
+    </td>
+    <td width="50%">
+      <img src="docs/evidence/phase-2/snowflake-after-guard-tests.jpg" alt="Isolated Snowflake warehouse suspended after temporal guard verification" width="100%"><br>
+      <strong>Warehouse portability.</strong> The same history models and temporal
+      guards ran against Snowflake after PostgreSQL acceptance; the isolated
+      trial warehouse was suspended when verification finished.
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <img src="docs/evidence/phase-4/airflow-recovered.png" alt="Airflow task recovery on its third attempt" width="100%"><br>
+      <strong>Failure recovery.</strong> A missing object failed twice, remained
+      retryable, then loaded successfully after the object and manifest arrived.
+    </td>
+    <td width="50%">
+      <img src="docs/evidence/phase-4/airflow-backfills.png" alt="Two successful parameterized Airflow backfill runs" width="100%"><br>
+      <strong>Replay safety.</strong> Two bounded backfills completed through the
+      normal DAG with identical raw counts and modeled-table hashes.
+    </td>
+  </tr>
+</table>
 
 ## What the data showed
 
