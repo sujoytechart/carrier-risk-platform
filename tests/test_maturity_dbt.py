@@ -101,17 +101,22 @@ def test_registry_guard_accepts_absence_and_large_grace_but_detects_summary_drif
 
 
 @pytest.mark.parametrize(
-    ("adapter_type", "execute"), [("snowflake", True), ("postgres", False)]
+    ("adapter_type", "execute", "command"),
+    [
+        ("snowflake", True, "test"),
+        ("postgres", False, "test"),
+        ("postgres", True, "compile"),
+    ],
 )
 def test_guard_does_not_probe_registry_or_emit_postgres_json_outside_pg_execution(
-    adapter_type: str, execute: bool
+    adapter_type: str, execute: bool, command: str
 ) -> None:
     from types import SimpleNamespace
 
     from jinja2 import Environment, StrictUndefined
 
     def unexpected_lookup(**kwargs: object) -> None:
-        raise AssertionError("Non-Postgres execution must not inspect the registry")
+        raise AssertionError("Only PostgreSQL test/build may inspect the registry")
 
     template = Environment(undefined=StrictUndefined).from_string(
         (ROOT / "dbt/tests/label_maturity_policy.sql").read_text()
@@ -119,6 +124,7 @@ def test_guard_does_not_probe_registry_or_emit_postgres_json_outside_pg_executio
     rendered = template.render(
         config=lambda **kwargs: "",
         execute=execute,
+        flags=SimpleNamespace(WHICH=command),
         target=SimpleNamespace(type=adapter_type, database="isolated_target"),
         adapter=SimpleNamespace(get_relation=unexpected_lookup),
         dbt=SimpleNamespace(type_string=lambda: "varchar"),
@@ -156,6 +162,7 @@ def test_nonempty_registry_requires_exactly_one_current_policy(
         .render(
             config=lambda **kwargs: "",
             execute=True,
+            flags=SimpleNamespace(WHICH="test"),
             target=SimpleNamespace(type="postgres", database=DATABASE_NAME),
             adapter=SimpleNamespace(get_relation=registry_relation),
             dbt=SimpleNamespace(type_string=lambda: "text"),

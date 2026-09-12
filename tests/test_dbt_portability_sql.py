@@ -34,7 +34,10 @@ def test_source_identity_json_scalar_matches_postgres_encoding(value: str) -> No
     module = environment.from_string(MACRO_PATH.read_text()).make_module()
     expression = module.snowflake__portable_json_string("source_value")
     with sqlite3.connect(":memory:") as connection:
-        connection.create_function("chr", 1, chr)
+        connection.create_function("to_variant", 1, lambda value: value)
+        connection.create_function(
+            "to_json", 1, lambda value: json.dumps(value, ensure_ascii=False)
+        )
         result = connection.execute(
             f"select {expression} from (select ? as source_value)", (value,)
         ).fetchone()
@@ -130,10 +133,22 @@ def test_models_compile_offline_with_enforced_contracts(
         for column in ("knowledge_valid_from", "knowledge_valid_to"):
             if column in node["columns"]:
                 assert node["columns"][column]["data_type"] == expected_timestamp
-    temporal_tests = [node for node in nodes.values() if "temporal" in node["tags"]]
+    all_temporal_tests = [node for node in nodes.values() if "temporal" in node["tags"]]
+    temporal_tests = [
+        node for node in all_temporal_tests if node["name"] != "label_maturity_policy"
+    ]
     assert len(temporal_tests) == 3
+    assert {node["name"] for node in all_temporal_tests} == {
+        "no_impossible_event_chronology",
+        "no_overlapping_event_versions",
+        "training_features_match_point_in_time_events",
+        "label_maturity_policy",
+    }
     assert all(node["config"]["severity"] == "error" for node in temporal_tests)
     assert all(node["compiled_code"].strip() for node in temporal_tests)
+    maturity_policy = nodes["test.carrier_risk_platform.label_maturity_policy"]
+    assert maturity_policy["config"]["severity"] == "error"
+    assert maturity_policy["compiled_code"].strip()
     seed = nodes["seed.carrier_risk_platform.raw_snapshot_batches"]
     assert seed["config"]["column_types"]["observed_at"] == expected_timestamp
 
@@ -160,7 +175,10 @@ def test_complete_fallback_identity_matches_existing_json_bytes(
         "state", "report_number", "event_date", "report_time", "sequence"
     )
     with sqlite3.connect(":memory:") as connection:
-        connection.create_function("chr", 1, chr)
+        connection.create_function("to_variant", 1, lambda value: value)
+        connection.create_function(
+            "to_json", 1, lambda value: json.dumps(value, ensure_ascii=False)
+        )
         connection.create_function("to_char", 2, lambda value, _: value)
         connection.create_function("hex_encode", 1, lambda value: value.encode().hex())
         result = connection.execute(
