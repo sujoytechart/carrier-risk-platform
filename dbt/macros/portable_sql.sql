@@ -91,18 +91,12 @@
     )::text, 'UTF8'), 'hex')
 {%- endmacro %}
 
-{# PostgreSQL json_build_array scalar encoding, including its spaces and control
-   escapes, is part of existing source identity. Do not substitute Snowflake's
-   session-dependent date formatting or JSON serialization here. #}
+{# PostgreSQL json_build_array scalar encoding, including its spaces, is part of
+   existing source identity. Serialize each already-formatted string separately
+   so Snowflake owns JSON escaping while this macro retains PostgreSQL's array
+   separators and explicit date/number formatting. #}
 {% macro snowflake__portable_json_string(expression) -%}
-    {%- set escaped = namespace(sql='replace(' ~ expression ~ ', chr(92), chr(92) || chr(92))') %}
-    {%- set escaped.sql = 'replace(' ~ escaped.sql ~ ', chr(34), chr(92) || chr(34))' %}
-    {%- set short_escapes = {8: 'b', 9: 't', 10: 'n', 12: 'f', 13: 'r'} %}
-    {%- for code in range(32) %}
-        {%- set suffix = short_escapes.get(code, 'u%04x' % code) %}
-        {%- set escaped.sql = 'replace(' ~ escaped.sql ~ ', chr(' ~ code ~ "), chr(92) || '" ~ suffix ~ "')" %}
-    {%- endfor %}
-    chr(34) || {{ escaped.sql }} || chr(34)
+    to_json(to_variant({{ expression }}))
 {%- endmacro %}
 {% macro snowflake__portable_crash_source_key(state, report_number, event_date, report_time, sequence) -%}
     'fallback:' || lower(hex_encode('[' ||
