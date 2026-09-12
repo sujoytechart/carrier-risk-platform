@@ -153,7 +153,8 @@ For other entry points, see [warehouse builds](dbt/README.md),
 [source contracts](docs/source-schemas.md). Tests use synthetic fixtures; raw
 federal data is not committed. [.env.example](.env.example) and
 [Compose services](docker-compose.yml) document local configuration; the
-[CI workflow](.github/workflows/checks.yml) lists check dependencies and commands.
+[CI workflow](.github/workflows/checks.yml) lists check dependencies and commands;
+[check details](.github/checks.md) explain the quality gates.
 
 ## Deliberate exclusions
 
