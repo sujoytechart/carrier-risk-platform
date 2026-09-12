@@ -75,6 +75,8 @@ def load_promoted_model(
         client = MlflowClient(tracking_uri=tracking_uri)
         version = client.get_model_version_by_alias(model_name, alias)
         is_fixture = version.tags.get("validation_fixture") == "true"
+        if version.tags.get("experimental") == "true":
+            raise ValueError("Experimental models require the separate demo service")
         if is_fixture != validation_fixture:
             raise ValueError("Model validation provenance does not match serving mode")
         if version.tags.get("feature_names") != ",".join(FEATURE_NAMES):
