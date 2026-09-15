@@ -48,14 +48,14 @@ def comparison_base(requested: str, fallback: str) -> str | None:
         except subprocess.CalledProcessError:
             base = ""
         if base and base != resolve_commit("HEAD"):
-            print(f"Event base unavailable; comparing merge-base {base} with HEAD")
+            print(f"Event base unavailable. Comparing merge-base {base} with HEAD")
             return base
-    print("Event base unavailable; checking all tracked executable source lines")
+    print("Event base unavailable. Checking all tracked executable source lines")
     return None
 
 
 def changed_lines(base: str, filename: str) -> set[int]:
-    """Read added line numbers; renamed destinations count as entirely new files."""
+    """Read added line numbers. Renamed destinations count as entirely new files."""
     diff = git(
         "diff",
         "--no-ext-diff",
