@@ -33,6 +33,9 @@ encoding as training. Every score includes `validation_fixture` provenance.
 
 ## Start locally
 
+The default app, `serving.app`, serves the scheduled training workflow.
+`carrier-risk-v0` is its model registry name. Scoring requires a promoted model.
+
 Install `.[serving]`, supply the warehouse connection and MLflow tracking URI, and
 run `uvicorn serving.app:app --host 127.0.0.1 --port 8000`. Keep passwords in the
 process environment or a private libpq password file. The container entry point
@@ -52,13 +55,21 @@ handles subsequent warehouse failures. `/metrics` exposes bounded outcome
 counters, a scoring-handler duration histogram, and model availability. USDOTs
 are never metric labels. Client latency is measured separately by the load test.
 
+## Run the retrospective experiment
+
+The experiment runs in a separate app, `serving.demo_app`, with a
+`/demo/score/{identifier}` endpoint. It loads `carrier-risk-learning-demo` using
+the `demo` alias and marks responses as experimental. The default app rejects
+experimental models. Follow the [experiment guide](../docs/learning-demo.md)
+to prepare its data and start that app explicitly.
+
 ## Reproduce synthetic validation
 
-The real retrospective model can remain blocked by its maturity or promotion
-gate. The explicit synthetic profile exists to verify the successful serving
+Scheduled training can remain blocked by its data eligibility or promotion
+checks. The explicit synthetic profile exists to verify the successful serving
 path independently. It uses 512 fictional feature rows and the same frozen
-gradient-boosting parameters as v0. It does not establish real predictive quality
-or production-scale warehouse latency.
+gradient-boosting parameters as scheduled training. It does not establish real
+predictive quality or production-scale warehouse latency.
 
 Point `CARRIER_RISK_DATABASE_URL` at a **loopback** PostgreSQL database named
 `carrier_risk_phase3_serving`, and supply its password through `PGPASSWORD`.
