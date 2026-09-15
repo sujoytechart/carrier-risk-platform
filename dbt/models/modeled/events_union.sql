@@ -27,9 +27,7 @@ select
     event_key,
     event_version_key,
     'crash'::text as event_type,
-    md5(concat_ws(chr(31),
-        usdot_number, state, report_number, event_date::text, report_time::text
-    )) as carrier_crash_key,
+    {{ portable_incident_key('usdot_number', 'state', 'report_number', 'event_date', 'report_time') }} as carrier_crash_key,
     usdot_number,
     event_date,
     reported_date,

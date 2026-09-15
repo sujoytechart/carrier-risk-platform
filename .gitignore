@@ -8,12 +8,21 @@ data/
 
 # Secrets
 .env
+.aws/
+*.key
+*.pem
 profiles.yml
 *.tfvars
 !*.tfvars.example
 
 # Terraform
 .terraform/
+.terraform-offline/
+.terraformrc
+terraform.rc
+backend.hcl
+*.tfplan
+crash.log
 *.tfstate
 *.tfstate.*
 
@@ -31,6 +40,7 @@ __pycache__/
 .venv/
 *.egg-info/
 .coverage
+.coverage.*
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/

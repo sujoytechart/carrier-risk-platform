@@ -2,13 +2,7 @@ with keyed_crash_versions as (
 
     select
         *,
-        md5(concat_ws(chr(31),
-            usdot_number,
-            state,
-            report_number,
-            event_date::text,
-            report_time::text
-        )) as carrier_crash_key
+        {{ portable_incident_key('usdot_number', 'state', 'report_number', 'event_date', 'report_time') }} as carrier_crash_key
     from {{ ref('crashes') }}
 
 ), incident_boundaries as (
@@ -61,19 +55,19 @@ select
     usdot_number,
     min(event_date) as event_date,
     max(reported_date) as reported_date,
-    (max(reported_date) - min(event_date))::integer as report_lag_days,
+    {{ dbt.datediff('min(event_date)', 'max(reported_date)', 'day') }}::integer as report_lag_days,
     state,
     report_number,
     report_time,
-    max(fatalities) filter (where not is_deleted) as fatalities,
-    max(injuries) filter (where not is_deleted) as injuries,
-    bool_or(tow_away) filter (where not is_deleted) as tow_away,
+    max(case when not is_deleted then fatalities end) as fatalities,
+    max(case when not is_deleted then injuries end) as injuries,
+    {{ portable_bool_or('case when not is_deleted then tow_away end') }} as tow_away,
     segment_valid_from as knowledge_valid_from,
     segment_valid_to as knowledge_valid_to,
     segment_valid_to is null as is_current,
-    bool_and(is_deleted) as is_deleted,
-    case when bool_and(is_deleted) then max(deletion_reason) end as deletion_reason,
-    md5(string_agg(record_hash, chr(31) order by source_record_key)) as record_hash
+    {{ portable_bool_and('is_deleted') }} as is_deleted,
+    case when {{ portable_bool_and('is_deleted') }} then max(deletion_reason) end as deletion_reason,
+    {{ portable_hash_aggregate('record_hash', 'source_record_key') }} as record_hash
 from active_vehicle_versions
 group by
     carrier_crash_key,

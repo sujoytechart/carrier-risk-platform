@@ -1,0 +1,113 @@
+{
+  "date": "2026-09-11",
+  "full_build_passed_nodes": 108,
+  "model_counts": {
+    "crash_incidents": 5,
+    "crashes": 6,
+    "current_events": 5,
+    "event_version_batches": 4,
+    "event_versions": 12,
+    "events_union": 12,
+    "inspection_retention_expiries": 1,
+    "inspections": 6,
+    "training_features": 3
+  },
+  "checks": {
+    "chronology_detector_negative": true,
+    "exact_replay": true,
+    "feature_detector_negative": true,
+    "nine_relation_business_parity": true,
+    "overlap_detector_negative": true,
+    "persisted_schema_rejection": true,
+    "temporal_restored_all_pass": true,
+    "after-probes_parent_exactly_unchanged": true,
+    "all_pending_history_batches_rolled_back": true,
+    "atomic-history-rollback_expected_error": {
+      "errno": -20002,
+      "sqlstate": "P0001"
+    },
+    "before-clear_parent_exactly_unchanged": true,
+    "candidate-publication-rollback_expected_error": {
+      "errno": -20001,
+      "sqlstate": "P0001"
+    },
+    "candidate_pair_preserved_on_rejection": true,
+    "exact_known_owner_cleared": true,
+    "old_isolated_schema_reconciled": true,
+    "prior_worker_queries_terminal": true,
+    "recorded_processes_terminal": true
+  },
+  "negative_tests": [
+    {
+      "name": "negative-chronology",
+      "exit_code": 1,
+      "results": [
+        {
+          "failures": 0,
+          "status": "success",
+          "unique_id": "operation.carrier_risk_platform.carrier_risk_platform-on-run-start-0"
+        },
+        {
+          "failures": 1,
+          "status": "fail",
+          "unique_id": "test.carrier_risk_platform.no_impossible_event_chronology"
+        }
+      ]
+    },
+    {
+      "name": "negative-overlap",
+      "exit_code": 1,
+      "results": [
+        {
+          "failures": 0,
+          "status": "success",
+          "unique_id": "operation.carrier_risk_platform.carrier_risk_platform-on-run-start-0"
+        },
+        {
+          "failures": 1,
+          "status": "fail",
+          "unique_id": "test.carrier_risk_platform.no_overlapping_event_versions"
+        }
+      ]
+    },
+    {
+      "name": "negative-feature",
+      "exit_code": 1,
+      "results": [
+        {
+          "failures": 0,
+          "status": "success",
+          "unique_id": "operation.carrier_risk_platform.carrier_risk_platform-on-run-start-0"
+        },
+        {
+          "failures": 1,
+          "status": "fail",
+          "unique_id": "test.carrier_risk_platform.training_features_match_point_in_time_events"
+        }
+      ]
+    },
+    {
+      "name": "negative-schema",
+      "exit_code": 1,
+      "results": [
+        {
+          "failures": 0,
+          "status": "success",
+          "unique_id": "operation.carrier_risk_platform.carrier_risk_platform-on-run-start-0"
+        },
+        {
+          "failures": null,
+          "status": "error",
+          "unique_id": "model.carrier_risk_platform.event_versions"
+        }
+      ]
+    }
+  ],
+  "warehouse_suspended": true,
+  "auto_resume_disabled": true,
+  "running": 0,
+  "queued": 0,
+  "remaining_locks": 0,
+  "guard_released_normally": true,
+  "scope": "Synthetic fixtures; normalized business parity across nine relations; no federal source load on Snowflake."
+}

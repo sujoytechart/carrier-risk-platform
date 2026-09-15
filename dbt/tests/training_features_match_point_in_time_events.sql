@@ -5,7 +5,7 @@ with feature_keys as (
     select
         usdot_number,
         scoring_date,
-        scoring_date::timestamp at time zone 'UTC' as scoring_timestamp
+        {{ portable_utc_timestamp('scoring_date') }} as scoring_timestamp
     from {{ ref('training_features') }}
 
 ), expected as (
@@ -13,31 +13,21 @@ with feature_keys as (
     select
         keys.usdot_number,
         keys.scoring_date,
-        count(*) filter (
-            where events.event_type = 'inspection'
+        count(case when events.event_type = 'inspection'
               and events.event_date >=
-                  (keys.scoring_date - interval '6 months')::date
-        )::bigint as inspections_6m,
-        coalesce(sum(events.violation_count) filter (
-            where events.event_type = 'inspection'
+                  ({{ dbt.dateadd('month', -6, 'keys.scoring_date') }})::date then 1 end)::bigint as inspections_6m,
+        coalesce(sum(case when events.event_type = 'inspection'
               and events.event_date >=
-                  (keys.scoring_date - interval '6 months')::date
-        ), 0)::bigint as violations_6m,
-        coalesce(sum(events.oos_violation_count) filter (
-            where events.event_type = 'inspection'
+                  ({{ dbt.dateadd('month', -6, 'keys.scoring_date') }})::date then events.violation_count end), 0)::bigint as violations_6m,
+        coalesce(sum(case when events.event_type = 'inspection'
               and events.event_date >=
-                  (keys.scoring_date - interval '6 months')::date
-        ), 0)::bigint as oos_violations_6m,
-        count(distinct events.carrier_crash_key) filter (
-            where events.event_type = 'crash'
+                  ({{ dbt.dateadd('month', -6, 'keys.scoring_date') }})::date then events.oos_violation_count end), 0)::bigint as oos_violations_6m,
+        count(distinct case when events.event_type = 'crash'
               and events.event_date >=
-                  (keys.scoring_date - interval '24 months')::date
-        )::bigint as crashes_24m,
-        max(events.event_date) filter (
-            where events.event_type = 'inspection'
+                  ({{ dbt.dateadd('month', -24, 'keys.scoring_date') }})::date then events.carrier_crash_key end)::bigint as crashes_24m,
+        max(case when events.event_type = 'inspection'
               and events.event_date >=
-                  (keys.scoring_date - interval '6 months')::date
-        ) as last_inspection_date
+                  ({{ dbt.dateadd('month', -6, 'keys.scoring_date') }})::date then events.event_date end) as last_inspection_date
     from feature_keys keys
     left join {{ ref('events_union') }} events
       on events.usdot_number = keys.usdot_number
@@ -49,7 +39,7 @@ with feature_keys as (
      and not events.is_deleted
      and events.event_date < keys.scoring_date
      and events.reported_date < keys.scoring_date
-     and events.event_date >= (keys.scoring_date - interval '24 months')::date
+     and events.event_date >= ({{ dbt.dateadd('month', -24, 'keys.scoring_date') }})::date
     group by keys.usdot_number, keys.scoring_date
 
 )

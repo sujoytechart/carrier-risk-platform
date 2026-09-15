@@ -13,3 +13,4 @@ the decision to be revisited.
 | [0003](0003-six-month-feature-and-label-windows.md) | Six-month inspection and label windows | Accepted |
 | [0004](0004-crash-eligibility-and-deduplication.md) | Crash eligibility rules and the carrier incident key | Accepted |
 | [0005](0005-snowflake-for-portability-not-scale.md) | Snowflake as a portability target, not a scale decision | Accepted |
+| [0006](0006-derived-parquet-preserves-raw-evidence.md) | Derived Parquet preserves immutable raw evidence | Accepted |

@@ -1,3 +1,32 @@
+{% set parse_reason_expressions %}
+case when inspection_id is not null
+          and parsed_source_key is null
+     then 'invalid_source_record_key' end,
+case when dot_number is not null
+          and parsed_usdot_number is null
+     then 'invalid_usdot_number' end,
+case when insp_date is not null
+          and parsed_event_date is null
+     then 'invalid_event_date' end,
+case when mcmis_add_date is not null
+          and parsed_source_add_at is null
+     then 'invalid_source_add_at' end,
+case when change_date is not null
+          and parsed_source_change_at is null
+     then 'invalid_source_change_at' end,
+case when viol_total is not null
+          and parsed_violation_count is null
+     then 'invalid_violation_count' end,
+case when oos_total is not null
+          and parsed_oos_count is null
+     then 'invalid_oos_violation_count' end,
+case when parsed_event_date is not null
+          and parsed_source_add_at is not null
+          and ({{ dbt.dateadd('day', 1, 'parsed_source_add_at') }})::date
+              < parsed_event_date
+     then 'impossible_event_chronology' end
+{% endset %}
+
 with source_rows as (
 
     select
@@ -18,34 +47,7 @@ with source_rows as (
 
     select
         *,
-        array_remove(array[
-            case when inspection_id is not null
-                       and parsed_source_key is null
-                 then 'invalid_source_record_key' end,
-            case when dot_number is not null
-                       and parsed_usdot_number is null
-                 then 'invalid_usdot_number' end,
-            case when insp_date is not null
-                       and parsed_event_date is null
-                 then 'invalid_event_date' end,
-            case when mcmis_add_date is not null
-                       and parsed_source_add_at is null
-                 then 'invalid_source_add_at' end,
-            case when change_date is not null
-                       and parsed_source_change_at is null
-                 then 'invalid_source_change_at' end,
-            case when viol_total is not null
-                       and parsed_violation_count is null
-                 then 'invalid_violation_count' end,
-            case when oos_total is not null
-                       and parsed_oos_count is null
-                 then 'invalid_oos_violation_count' end,
-            case when parsed_event_date is not null
-                       and parsed_source_add_at is not null
-                       and (parsed_source_add_at + interval '1 day')::date
-                           < parsed_event_date
-                 then 'impossible_event_chronology' end
-        ]::text[], null) as parse_reasons
+        {{ portable_reason_array(parse_reason_expressions) }} as parse_reasons
     from source_rows
 
 )
@@ -60,20 +62,20 @@ select
     parsed_source_add_at as source_add_at,
     parsed_source_change_at as source_change_at,
     observed_at as first_observed_at,
-    (parsed_source_add_at + interval '1 day')::date as source_proxy_reported_date,
-    parsed_source_add_at + interval '1 day' as source_proxy_valid_from,
-    nullif(btrim(report_state), '') as state,
+    ({{ dbt.dateadd('day', 1, 'parsed_source_add_at') }})::date as source_proxy_reported_date,
+    {{ dbt.dateadd('day', 1, 'parsed_source_add_at') }} as source_proxy_valid_from,
+    nullif(trim(report_state), '') as state,
     parsed_violation_count as violation_count,
     parsed_oos_count as oos_violation_count,
     parse_reasons,
-    md5(jsonb_build_array(
-        parsed_usdot_number,
-        parsed_event_date,
-        parsed_source_add_at,
-        parsed_source_change_at,
-        nullif(btrim(report_state), ''),
-        parsed_violation_count,
-        parsed_oos_count,
-        parse_reasons
-    )::text) as record_hash
+    {{ portable_payload_hash([
+        'parsed_usdot_number',
+        portable_payload_date('parsed_event_date'),
+        portable_payload_timestamp('parsed_source_add_at'),
+        portable_payload_timestamp('parsed_source_change_at'),
+        "nullif(trim(report_state), '')",
+        'parsed_violation_count',
+        'parsed_oos_count',
+        'parse_reasons'
+    ]) }} as record_hash
 from normalized

@@ -1,5 +1,12 @@
 # Warehouse build boundary
 
+PostgreSQL is the supported execution target. Shared transformation SQL compiles
+for Snowflake, but its history publication and full live regression proof remain
+incomplete. The Snowflake writer guard and a one-row dbt seed have live acceptance
+evidence. The [adapter guide](../docs/adapter-differences.md)
+records the semantic differences; the [Phase 2 verification record](../docs/phase-2-verification.md)
+separates compilation checks from warehouse execution evidence.
+
 Use `python -m orchestration.dbt_cli build`, `run`, or `seed` for mutating dbt
 commands.
 The Python launcher holds PostgreSQL session advisory lock `764301234` for the
@@ -8,6 +15,12 @@ The startup hook verifies that PID owns this exact lock in the target database.
 Unsupported direct mutations fail with the launcher command. Plain `dbt test`,
 `compile`, and `list` do not need the lock. The lock must outlive all worker
 connections: this adapter closes its startup-hook connection before models run.
+
+For Snowflake, use `python -m orchestration.dbt_cli --warehouse-target snowflake`
+before the command name. Initialize the dedicated singleton once and follow the
+[Snowflake guard procedure](../analytics/snowflake/README.md). Its committed run
+claim prevents an interrupted build from admitting a new writer after losing its
+transaction lock. Uncertain outcomes require explicit recovery.
 
 `clean_snapshot_batches` pins the loaded input metadata before either feed is
 conformed. Candidate publication reconciles every pinned batch's row count,

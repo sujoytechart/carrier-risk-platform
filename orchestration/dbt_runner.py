@@ -81,11 +81,11 @@ class DbtRunner:
                 cwd=self._project_dir,
                 environment=environment,
             )
-        if result.returncode != 0:
-            diagnostics = "\n".join(
-                part for part in (result.stdout, result.stderr) if part
-            )
-            raise DbtCommandError(f"dbt {command_name} failed:\n{diagnostics}")
+            if result.returncode != 0:
+                diagnostics = "\n".join(
+                    part for part in (result.stdout, result.stderr) if part
+                )
+                raise DbtCommandError(f"dbt {command_name} failed:\n{diagnostics}")
         logging.getLogger(__name__).info(
             "dbt %s completed\n%s", command_name, result.stdout
         )
