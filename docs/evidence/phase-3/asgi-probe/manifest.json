@@ -1,0 +1,150 @@
+{
+  "attempt_1_limitation": "The load completed, but an atexit hook did not flush server records after Uvicorn re-raised SIGTERM. There is no server timing trace for this attempt. Its client traces and failing latency summary remain preserved.",
+  "cleanup": "Both temporary APIs completed graceful shutdown; recorded server exit code -15 is subsequent SIGTERM termination. No further load was run for publication.",
+  "files": [
+    {
+      "bytes": 2175,
+      "description": "Exact executed temporary probe source; local paths are references only, with no credential file contents.",
+      "file": "attempt-1/server_wrapper.py.txt",
+      "sha256": "d9537f0cb3e3d38084a3750d96b7ec87fc6279e9e942bbe178eb79a758c58fa2"
+    },
+    {
+      "bytes": 1966,
+      "description": "Exact executed temporary probe source; local paths are references only, with no credential file contents.",
+      "file": "attempt-1/client_probe.py.txt",
+      "sha256": "bcea7464f6026e11a7a341fcf798c6c8f9a669b04a27ba971eef1de4f3a9e00d"
+    },
+    {
+      "bytes": 4889,
+      "description": "Archived probe source with a placeholder checkout path. Original execution hash retained separately.",
+      "file": "attempt-1/run_probe.py.txt",
+      "sha256": "f582bea9bdc9559c22b9c808a881e0d5bec265b7eeb174b71f6fddd55082b2de",
+      "original_executed_sha256": "695eccbec0b35d56b32a9dc991dc3bd0a1772f07a64a9f7f51db470f71c9d5c1",
+      "original_executed_bytes": 4790
+    },
+    {
+      "bytes": 1332,
+      "file": "attempt-1/summary.json",
+      "sha256": "aad850f18b82c03e9c8b0fd44d2241d6d019d692944b98ccaa6b5e8afe9558ce"
+    },
+    {
+      "bytes": 1232,
+      "file": "attempt-1/probe-configuration.json",
+      "sha256": "4aaf09e97e1598c4d1e2a388392f09d0d6f8b699239c48c635b546b9b0969a28"
+    },
+    {
+      "bytes": 137549,
+      "file": "attempt-1/client-requests.jsonl.gz",
+      "sha256": "38899fc94324e42e33d56766609404cc3d247177d8c349d881eecef416833ca7",
+      "uncompressed_bytes": 1027088,
+      "uncompressed_sha256": "d9e1c4fd10420dd05296af963a8d2ca8564f6f9614986509f545a0278400fb63"
+    },
+    {
+      "bytes": 48416,
+      "file": "attempt-1/locust-200rps.csv.gz",
+      "sha256": "1e69ac40715a77f9f18d09072f93f9e4771dd7caedc30cb5463e615a12b0f411",
+      "uncompressed_bytes": 126492,
+      "uncompressed_sha256": "d9fa274d560efe684eaf4e9c3c5d521f4545ec4a992fb178db4e6142d1bf372b"
+    },
+    {
+      "bytes": 401,
+      "file": "attempt-1/metrics-before.txt",
+      "sha256": "aa123f221ffb8813f9138b387bc35630ceffee01088d8b9b199ae7e64c56093a"
+    },
+    {
+      "bytes": 2085,
+      "file": "attempt-1/metrics-after.txt",
+      "sha256": "8cf36614c51b89139916ac2ab842db9c9bb4dd901c62467695b1f9ec4e99ffdc"
+    },
+    {
+      "bytes": 2446,
+      "description": "Exact executed temporary probe source; local paths are references only, with no credential file contents.",
+      "file": "recovery/server_wrapper.py.txt",
+      "sha256": "04be52e67a29923154d6b2a094ec052a0ddbe8e685086ed5975afa7868da87bd"
+    },
+    {
+      "bytes": 2132,
+      "description": "Exact executed temporary probe source; local paths are references only, with no credential file contents.",
+      "file": "recovery/client_probe.py.txt",
+      "sha256": "dc490db9d809a7a91c70003420f53b35794072ff5e0050eeb3508c28a99d121c"
+    },
+    {
+      "bytes": 4898,
+      "description": "Archived probe source with a placeholder checkout path. Original execution hash retained separately.",
+      "file": "recovery/run_probe.py.txt",
+      "sha256": "e26a38d83b988637f4f59fac47d4e992988c8196c3a578a69a4ee23dcee8b2c9",
+      "original_executed_sha256": "3a0c398407cd03daa0cc90bc87baace6256cd2d5c9fa76d3b44d59aa2e3b2860",
+      "original_executed_bytes": 4799
+    },
+    {
+      "bytes": 1327,
+      "file": "recovery/summary.json",
+      "sha256": "6a14fcd579163eb7e2e49da6880321e671f9ef78aee33be2e7aebcc5ffbec4f8"
+    },
+    {
+      "bytes": 1232,
+      "file": "recovery/probe-configuration.json",
+      "sha256": "d81187add1d01078adc359e182b6ad62c55bbdeaf86a1c16ee652d01e0e1864d"
+    },
+    {
+      "bytes": 178270,
+      "file": "recovery/client-requests.jsonl.gz",
+      "sha256": "8a38814c58b9aecceaf87ad0f5d2c138d16fcdff75ec05234515c315198e36a5",
+      "uncompressed_bytes": 1295176,
+      "uncompressed_sha256": "0656e6ba23ddad4238d283d483f34243fb1d3d80bfa5be65e656e0a3133d5205"
+    },
+    {
+      "bytes": 47968,
+      "file": "recovery/locust-200rps.csv.gz",
+      "sha256": "84deae0b13c81d878d8a9642f5298ebe29ab227f918b729e0454309d92bb6c6a",
+      "uncompressed_bytes": 125653,
+      "uncompressed_sha256": "bafcc778d3617903aef01f4ad15f24f6647807049adf14c2597353e55845bac2"
+    },
+    {
+      "bytes": 401,
+      "file": "recovery/metrics-before.txt",
+      "sha256": "aa123f221ffb8813f9138b387bc35630ceffee01088d8b9b199ae7e64c56093a"
+    },
+    {
+      "bytes": 2091,
+      "file": "recovery/metrics-after.txt",
+      "sha256": "dd31cfd2dd12ef86b0af97596c6265438139891ea949418859833c07c03a8521"
+    },
+    {
+      "bytes": 107496,
+      "file": "recovery/server-requests.jsonl.gz",
+      "sha256": "edd28b83779f5cab593a78b39f856bb9f8917bbb22cd34b68896f65c820f7466",
+      "uncompressed_bytes": 811890,
+      "uncompressed_sha256": "fd6ba471a1df850aa914d63cc482955ec81f10943a1206a925835455e6ec93fc"
+    },
+    {
+      "bytes": 6258,
+      "file": "correlation-summary.json",
+      "sha256": "4186c2dfc772e3829487c6f548d01f016d52dcb49da8524a789e96ad40b5a421"
+    },
+    {
+      "bytes": 219337,
+      "file": "recovery/correlated-requests.jsonl.gz",
+      "sha256": "b1a5ff5624811211f3c827299355d39c893f5a4708dce09ccfbcc1219cd69f5d",
+      "uncompressed_bytes": 1567451,
+      "uncompressed_sha256": "06e2c52ac508dd8cbe8bec797b57522484c27f75e3a530d8b6f1a60a112cdf4c"
+    },
+    {
+      "bytes": 5361,
+      "description": "Exact analysis source; source output contains per-request examples omitted from the published aggregate.",
+      "file": "correlate.py.txt",
+      "sha256": "39dc10ce389f0986891348a38f8d3ab875c1be49d62727b8b0551e82cf5fd48a"
+    },
+    {
+      "bytes": 10399,
+      "description": "Exact unchanged underlying harness, matching both diagnostic native summaries.",
+      "file": "benchmark.py.txt",
+      "sha256": "6cea1526ba8b88ef8c2d4f8028d12bd239ba3dc4948af4ef96e3076fa108e0ce"
+    }
+  ],
+  "recovery_change": "Only temporary instrumentation changed: server records flush at lifespan.shutdown.complete, and the client records response timing headers. No product code, server tuning, load configuration or acceptance threshold changed.",
+  "sanitization": "No private environment file contents, credentials, federal source rows, carrier features or response bodies are included. Compressed traces contain timing values, synthetic request IDs, status codes and empty transport-error fields. The two runner scripts use placeholder checkout paths and identify the edits in comments.",
+  "scope": "Two bounded instrumented ASGI diagnostics, each 200 rps for 10 measured seconds after 5 seconds warmup, using synthetic model version 2 and default single-worker Uvicorn. These do not replace the failed complete acceptance curve.",
+  "validation_fixture": true,
+  "verification": "Published file hashes identify the archived copies. The two run_probe.py.txt files have placeholder checkout paths and differ from the original executed files. Original execution hashes remain recorded in their probe configurations and manifest entries. Compressed traces and all measured results are unchanged."
+}

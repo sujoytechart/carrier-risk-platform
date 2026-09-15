@@ -1,0 +1,68 @@
+{
+  "run_role": "one controlled two-worker configuration trial after ASGI delay investigation",
+  "validation_fixture": true,
+  "hypothesis": "Two worker processes may reduce framework queue delay and isolate interpreter contention",
+  "result": "Rejected as an acceptance fix: required 200-rps stage failed the unchanged latency checks; production configuration was not changed",
+  "api_command": "python -m uvicorn serving.app:app --host 127.0.0.1 --port 8002 --workers 2 --no-access-log",
+  "load_command": "python -m serving.benchmark --host http://127.0.0.1:8002 --output-dir <isolated-trial-directory> --seconds 30 --warmup 5",
+  "api_workers": 2,
+  "model_name": "carrier-risk-fixture",
+  "model_version": "2",
+  "model_parameters": {
+    "n_estimators": 100,
+    "max_depth": 3,
+    "learning_rate": 0.1,
+    "random_state": 20260911
+  },
+  "concurrent_workload": "Repository tests, other load runs, and other verification work were stopped; ordinary desktop applications remained active and uncontrolled",
+  "resource_sampling": "Independent parent observer, approximately one sample per second; API aggregates worker, supervisor, and resource-tracker processes. Process CPU percentages use one core as 100%.",
+  "resource_summary": {
+    "samples": 142,
+    "peak_system_cpu_percent": 82.6,
+    "peak_api_cpu_percent": 112.2,
+    "peak_client_cpu_percent": 86.3,
+    "minimum_available_memory_bytes": 1448640512,
+    "swap_in_delta_bytes": 362156032,
+    "swap_out_delta_bytes": 22683648
+  },
+  "metrics_limitation": "The existing Prometheus registry is per process. This rejected trial did not aggregate server metrics or change the supported one-worker configuration.",
+  "cleanup": "Both worker processes and the parent supervisor shut down after the complete curve; the load process exited successfully",
+  "files": [
+    {
+      "file": "latency-two-worker-trial.json",
+      "sha256": "c1a7954fe2fc622c86039c06c4578538073d12b9385a7f881eea3747e4d5bd3a"
+    },
+    {
+      "file": "latency-two-worker-trial-resources.json",
+      "sha256": "5d64be3c4045564d6737b8547ed7b4a7989d35b3918a5264e7bd09261b36c6c7"
+    },
+    {
+      "file": "latency-two-worker-trial-50rps.csv.gz",
+      "sha256": "262977a4829b93a266334223037b27fd21c7371806aa50e236c3ebfe3da0894e",
+      "uncompressed_sha256": "f42e2cc9fa45f3ef24bc0b0b6d563790b4851157f7e7dc0bf5743863c0baf4a3",
+      "requests": 1500,
+      "failures": 0
+    },
+    {
+      "file": "latency-two-worker-trial-100rps.csv.gz",
+      "sha256": "2f30f4ab28df040b0be04d66a141c4aa084a1894748e2adcf5e90072e7e03c32",
+      "uncompressed_sha256": "98702e5040af898e6d92b3c3a23335b42b9c776d61dfd46ef9fae968f0769576",
+      "requests": 3000,
+      "failures": 0
+    },
+    {
+      "file": "latency-two-worker-trial-200rps.csv.gz",
+      "sha256": "8402733a88543cdf82c8a448eaf0dccc689724e9fc3268202df1a3643a10ef7e",
+      "uncompressed_sha256": "82e227500028c17bded07643784c557e44d1a34e08cf130c1579f6f2f8224ce3",
+      "requests": 6000,
+      "failures": 0
+    },
+    {
+      "file": "latency-two-worker-trial-300rps.csv.gz",
+      "sha256": "b240a00d4994462dc7cc1966b6e1cd4c2f86649187c2505af128fbe6e8726cec",
+      "uncompressed_sha256": "8bfde215d5d3ad7d4d3f378fc9136f8dd5f7fdcc951db2a2eb532e2b00a8485e",
+      "requests": 9000,
+      "failures": 0
+    }
+  ]
+}

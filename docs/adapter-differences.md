@@ -99,6 +99,22 @@ grammar, execution, transaction safety, or persisted types.
 
 `dbt/tests/portable_scalar_regressions.sql` is executable warehouse SQL. It and the
 shared model regression scenarios still have to pass on each real target before
-full transformation parity can be claimed. Live event-history mutation, rollback,
-schema-drift, and replay evidence remains outstanding; the guard and one-row dbt
-seed proof are recorded separately.
+full transformation parity can be claimed. Phase 2's live event-history mutation,
+rollback, schema-drift, replay, and business-parity results are recorded in the
+[verification report](phase-2-verification.md).
+
+## Phase 3 operational additions
+
+The monthly Python pipeline owns `modeled.label_maturity_watermarks` in
+PostgreSQL. Its immutable metadata and current-version pointer are outside dbt's
+event-model graph, so rebuilding features does not erase measurement history.
+The additive `label_maturity_policy` temporal test validates that registry on
+PostgreSQL. It returns no rows when the registry is absent and during Snowflake
+execution; absence does not authorize training. Python independently requires a
+complete, valid persisted policy before constructing training rows.
+
+PostgreSQL-only dbt index configuration accelerates carrier/date lookups in
+`inspections` and `training_features`. Model projections and the original three
+temporal tests are unchanged. Offline adapter checks passed, but Phase 3 did not
+resume Snowflake compute or rerun its live acceptance. See the
+[Phase 3 verification report](phase-3-verification.md) for the local scope.

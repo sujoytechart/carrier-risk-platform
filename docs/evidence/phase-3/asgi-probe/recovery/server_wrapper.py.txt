@@ -1,0 +1,70 @@
+"""Temporary ASGI boundary timestamps; no product code or tuning changes."""
+
+import atexit
+import json
+import os
+from pathlib import Path
+from time import perf_counter_ns
+
+from serving.app import app as original_app
+
+records = []
+
+
+def flush_records():
+    destination = Path(os.environ["ASGI_PROBE_OUTPUT"]) / "server-requests.jsonl"
+    destination.write_text("".join(json.dumps(row, sort_keys=True) + "\n" for row in records))
+
+
+atexit.register(flush_records)
+
+
+async def app(scope, receive, send):
+    if scope["type"] == "lifespan":
+        async def lifespan_send(message):
+            if message["type"] == "lifespan.shutdown.complete":
+                flush_records()
+            await send(message)
+        return await original_app(scope, receive, lifespan_send)
+    if scope["type"] != "http" or not scope["path"].startswith("/score/"):
+        return await original_app(scope, receive, send)
+    entered = perf_counter_ns()
+    headers = dict(scope.get("headers", ()))
+    record = {
+        "request_id": headers.get(b"x-probe-request-id", b"").decode("ascii"),
+        "asgi_entry_ns": entered,
+        "response_start_ns": None,
+        "final_body_before_send_ns": None,
+        "final_body_after_send_ns": None,
+        "asgi_return_ns": None,
+        "status": None,
+        "exception_type": None,
+    }
+
+    async def timed_send(message):
+        if message["type"] == "http.response.start":
+            started = perf_counter_ns()
+            record["response_start_ns"] = started
+            record["status"] = message["status"]
+            message = {
+                **message,
+                "headers": list(message.get("headers", ())) + [
+                    (b"x-probe-asgi-entry-ns", str(entered).encode("ascii")),
+                    (b"x-probe-response-start-ns", str(started).encode("ascii")),
+                ],
+            }
+        is_final_body = message["type"] == "http.response.body" and not message.get("more_body", False)
+        if is_final_body:
+            record["final_body_before_send_ns"] = perf_counter_ns()
+        await send(message)
+        if is_final_body:
+            record["final_body_after_send_ns"] = perf_counter_ns()
+
+    try:
+        await original_app(scope, receive, timed_send)
+    except BaseException as error:
+        record["exception_type"] = type(error).__name__
+        raise
+    finally:
+        record["asgi_return_ns"] = perf_counter_ns()
+        records.append(record)

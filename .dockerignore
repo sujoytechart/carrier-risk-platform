@@ -15,3 +15,14 @@ target
 *.tfvars
 .terraform
 config
+AGENTS.md
+CLAUDE.md
+CARRIER_RISK_SPEC.md
+CONSTRAINTS.md
+Makefile
+scripts
+.constraintsignore
+.coverage*
+mlruns
+mlartifacts
+mlflow.db

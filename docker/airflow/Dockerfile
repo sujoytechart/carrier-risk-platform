@@ -7,4 +7,4 @@ COPY --chown=airflow:root . /opt/carrier-risk
 WORKDIR /opt/carrier-risk
 
 RUN pip install --no-cache-dir --no-build-isolation \
-    -e '.[dbt,airflow]'
+    -e '.[dbt,airflow,model]'

@@ -3,6 +3,12 @@
 Risk scoring for US motor carriers, built so that every prediction uses only the
 records that were actually available on the date the decision would have been made.
 
+Personal project. The current empirical label-maturity grace is **495 days**,
+which exceeds the committed nine-month limit. Scheduled training is
+therefore skipped before a model is fitted. The API's successful scoring path is
+validated with an explicitly synthetic model. There is no trained federal-data
+risk model.
+
 ## Background
 
 Freight brokers can face negligent hiring liability when a carrier they dispatch
@@ -84,9 +90,9 @@ answer that was knowable yesterday.
 
 ## Data
 
-V0 uses FMCSA's Vehicle Inspection File and Crash File from the DOT open data
-portal. Violation and out-of-service features come from totals on each inspection
-row, so a separate violation feed is not ingested. US government work, public
+The pipeline uses FMCSA's Vehicle Inspection File and Crash File from the DOT
+open data portal. Violation and out-of-service features come from totals on each
+inspection row, so a separate violation feed is not ingested. US government work, public
 domain. Raw data is not committed; tests use generated fixtures instead.
 
 ## Landing a snapshot
@@ -166,8 +172,100 @@ full-snapshot Athena reconciliation through lossless Parquet derivatives, and
 Snowflake build/replay/temporal/rollback parity were verified. Temporary AWS
 resources were removed and Snowflake compute is suspended. See the
 [verification record](docs/phase-2-verification.md) for results, cost controls,
-security findings and the limits of the acceptance scope. Model training and
-serving remain Phase 3 work.
+security findings and the limits of the acceptance scope.
+
+## Scheduled training and evaluation
+
+The `train_model` Airflow workflow is scheduled monthly. It checks data
+eligibility before building a dataset or fitting a model. Its model registry
+name is `carrier-risk-v0`, and the default scoring API uses its `champion` alias.
+
+The September 3, 2026 full crash snapshot contains 4,986,413 source rows.
+After carrier-level incident deduplication, the latest twelve mature event-month
+cohorts (December 2024–November 2025) contain 140,706 eligible incidents.
+The largest bootstrapped 95% upper bound of the empirical p99.5 first-report lag
+is 494.87 days; rounding up gives **495 days**. This exceeds nine calendar months,
+so the recorded MLflow run skipped before dataset generation or fitting, and
+registered no model. See the [measurement](docs/evidence/phase-3/maturity-september-3-source-proxy.json)
+and [actual training-gate result](docs/evidence/phase-3/training-gate.json).
+
+This calculation uses source-add timestamps plus one publication day for the
+bootstrap snapshot. It is explicitly `source_proxy`, not observed historical
+public availability. One current-version snapshot cannot recover earlier
+corrections or deleted rows. The calculation excludes 1,371,090 rows without
+USDOT identifiers, representing 1,344,754 distinct source incident keys whose
+carrier identity is unknown. These counts travel with the watermark.
+
+When evidence permits training, the implemented pipeline uses monthly scoring
+dates, six-month inspection features, 24-month crash features, and a six-month
+forward label. It reserves the final three dates for evaluation and discards the
+preceding six dates. The fixed gradient-boosted classifier must strictly beat
+both the recent-crash-count baseline and the incumbent on those same held-out
+rows, measured with average precision. No real-data quality improvement is
+claimed while training is blocked. Watermark decreases require review;
+increases apply automatically.
+
+## Serving locally
+
+```bash
+.venv/bin/pip install -e '.[dev,airflow]'
+docker compose up -d postgres minio-init mlflow api
+curl http://localhost:8000/score/123
+curl http://localhost:8000/metrics
+```
+
+Set the development passwords in `.env` first. A scored response contains
+`risk_score`, `model_version`, `features_as_of`, `computed_at`, and
+`validation_fixture`. Startup resolves the MLflow `champion` alias to one fixed
+model version. Without a promoted model, eligible carriers receive a typed
+`model_unavailable` response; carriers without a valid identifier or a visible
+inspection in the preceding six months receive `insufficient_history`.
+Features must belong to the current UTC month. `/health/live`, `/health/ready`
+and `/metrics` distinguish liveness, startup readiness and request outcomes.
+
+The validation profile requires both the separate `carrier-risk-fixture`
+registry name and a synthetic-model tag. Every fixture score says
+`validation_fixture: true`; the default production profile rejects that model.
+
+The final September 11 local Locust run used 512 fictional carriers, PostgreSQL,
+and the frozen 100-tree classifier loaded through MLflow. Each stage had five
+seconds of warmup and thirty measured seconds, with independent scheduled
+arrivals and all completions drained. The client used 32 persistent loopback
+sessions, which keeps connections warm without flooding the API with hundreds of
+idle sockets. No other repository test suite ran concurrently.
+
+| Target rps | Achieved rps | p50 ms | p95 ms | p99 ms | Failed / completed |
+|---:|---:|---:|---:|---:|---:|
+| 50 | 50.00 | 7 | 10 | 12 | 0 / 1,500 |
+| 100 | 100.00 | 6 | 8 | 10 | 0 / 3,000 |
+| 200 | 200.00 | 5 | 8 | 14 | 0 / 6,000 |
+| 300 | 299.98 | 6 | 24 | 86 | 0 / 9,000 |
+
+**The committed p99 ≤ 120 ms at 200 rps target was met.** The 200-rps stage had
+14.30 ms scheduled-arrival p99 and 78.85 ms maximum scheduler lag, both within
+the same 120 ms limit. Percentiles include failures.
+This is a local synthetic serving measurement, with no production latency or
+real-data model-quality claim. The [final curve and hashes](docs/evidence/phase-3/latency-session-32/manifest.json)
+and [Phase 3 verification report](docs/phase-3-verification.md) record the evidence.
+
+Earlier 256-session and two-worker trials failed and remain preserved in the
+[latency investigation](docs/evidence/phase-3/latency-investigation.md). They
+identified excessive idle loopback connections as benchmark-induced pressure;
+the final 32-session run is the accepted configuration.
+
+## Deliberate exclusions
+
+Historical carrier attributes are excluded because their historical vintages
+are unavailable. Kafka and Kinesis do not suit periodic file snapshots.
+Spark, EMR and Databricks are unnecessary for these data volumes; Kubernetes
+is unnecessary for one stateless API. Managed Airflow was excluded for cost.
+The model uses underlying event records and does not reproduce federal safety
+scores. Snowflake was a trial-account dbt portability exercise, not a scale claim.
+
+Snowflake Time Travel restores a past warehouse table state, bounded by its
+retention period. That state depends on ingestion time. The event and reported
+clocks answer which source facts were knowable at the historical scoring date;
+Time Travel cannot substitute for them.
 
 ## License
 

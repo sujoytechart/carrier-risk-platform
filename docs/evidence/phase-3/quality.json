@@ -1,0 +1,109 @@
+{
+  "recorded_at": "2026-09-11T20:23:50.713191+00:00",
+  "scope": "Local verification; overlapping full and final component runs are reported separately",
+  "full_suite": {
+    "passed": 363,
+    "elapsed_seconds": 1628.04,
+    "command": "python -m pytest --cov --cov-report=json --cov-report=lcov"
+  },
+  "final_component_runs": [
+    {
+      "scope": "maturity",
+      "passed": 17
+    },
+    {
+      "scope": "monthly and dataset",
+      "passed": 44,
+      "elapsed_seconds": 12.19
+    },
+    {
+      "scope": "training, tracking and promotion",
+      "passed": 21,
+      "elapsed_seconds": 68.19
+    },
+    {
+      "scope": "serving",
+      "passed": 88,
+      "elapsed_seconds": 5.92
+    },
+    {
+      "scope": "independent dbt maturity guard",
+      "passed": 4,
+      "elapsed_seconds": 33.4
+    },
+    {
+      "scope": "Compose contracts",
+      "passed": 5,
+      "elapsed_seconds": 0.21
+    }
+  ],
+  "coverage": {
+    "method": "Unchanged ingest/orchestration arcs from full suite; final per-module ml/serving arcs; stale arcs excluded; separate ten-request serving smoke included",
+    "project_totals": {
+      "covered_lines": 2723,
+      "num_statements": 2950,
+      "percent_covered": 89.93576017130621,
+      "percent_covered_display": "90",
+      "missing_lines": 227,
+      "excluded_lines": 42,
+      "percent_statements_covered": 92.30508474576271,
+      "percent_statements_covered_display": "92",
+      "num_branches": 786,
+      "num_partial_branches": 129,
+      "covered_branches": 637,
+      "missing_branches": 149,
+      "percent_branches_covered": 81.04325699745547,
+      "percent_branches_covered_display": "81"
+    },
+    "project_minimum_percent": "88.09963099630997",
+    "changed_lines_covered": 1415,
+    "changed_lines_executable": 1522,
+    "changed_line_percent": 92.96977660972404,
+    "changed_line_minimum_percent": 80,
+    "coverage_json_sha256": "b47ee115e3f1dc7bf0dacfe2ceef43d93bcac2d93fdc47c8ba85f51b4f5c3ced"
+  },
+  "runtime_source_sha256": "5c55f89fe46b7bb9437a6aed9ee8719db7d59bd6336ff3d2b7ec0875fa8b11b3",
+  "runtime_source_hash_method": "SHA256 over sorted relative Python path, NUL, contents, NUL in ingest/orchestration/ml/serving",
+  "runtime_source_files": 40,
+  "passed_checks": [
+    "floor guard",
+    "ruff check",
+    "ruff format",
+    "strict mypy (40 files)",
+    "docker compose config",
+    "actionlint",
+    "wheel packaging"
+  ],
+  "osv": {
+    "installed_packages_scanned": 266,
+    "findings": 0,
+    "mode": "exact installed versions, no dependency re-resolution"
+  },
+  "versions": {
+    "numpy": "2.5.3",
+    "scikit-learn": "1.9.1",
+    "mlflow": "3.16.0",
+    "fastapi": "0.136.3",
+    "uvicorn": "0.52.4",
+    "psycopg": "3.3.5",
+    "dbt-core": "1.12.4",
+    "dbt-postgres": "1.11.0",
+    "locust": "2.46.5",
+    "pytest": "9.1.1",
+    "coverage": "7.16.0"
+  },
+  "new_cloud_usage": false,
+  "hosted_ci_run": false,
+  "new_images_built": false,
+  "known_limits": [
+    "No real-data model fitted: measured 495-day grace exceeds nine calendar months.",
+    "The accepted bounded-session frozen-model run met the 120 ms p99 target at 200 rps; earlier failed curves and the rejected two-worker trial remain as investigation evidence.",
+    "Prior infrastructure/image hardening findings remain; this is not production readiness."
+  ],
+  "secret_scan": {
+    "scanner": "gitleaks 8.30.1",
+    "findings": 0,
+    "scope": "Public repository source and evidence snapshot, including decompressed timing and diagnostic records",
+    "report_sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+  }
+}

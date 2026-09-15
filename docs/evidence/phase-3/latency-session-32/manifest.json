@@ -1,0 +1,52 @@
+{
+  "run_role": "final acceptance run after a measured benchmark-client connection fix",
+  "validation_fixture": true,
+  "fixture": "512 fictional carriers; no federal data",
+  "model": {
+    "name": "carrier-risk-fixture",
+    "version": "1",
+    "parameters": {
+      "n_estimators": 100,
+      "max_depth": 3,
+      "learning_rate": 0.1,
+      "random_state": 20260911
+    }
+  },
+  "client_session_count": 32,
+  "connection_policy": "32 persistent loopback sessions; open arrivals remain independent of response completion",
+  "acceptance": "Met: the 200-rps stage completed 6,000 requests with zero failures, 14 ms HTTP p99, 14.30 ms scheduled-arrival p99, and 78.85 ms maximum scheduler lag.",
+  "summary_file": "summary.json",
+  "summary_sha256": "33e402c6f3e6aaa4ea7edb1b8401631230ed41a2e2c414adf34e8bdfd683c0cb",
+  "benchmark_source_file": "benchmark.py.txt",
+  "benchmark_source_sha256": "b6694d6783eda347ea1a2f4ab3f99c9e76dc36a78016f2d6c9e667c3a9826f4d",
+  "files": [
+    {
+      "file": "locust-50rps.csv.gz",
+      "sha256": "896dde165c56dcb21f82527a765c9dbc0b50bfc964d3fa13b64100dcaef95895",
+      "requests": 1500,
+      "failures": 0
+    },
+    {
+      "file": "locust-100rps.csv.gz",
+      "sha256": "79eeb580362fbc41510b55520934e226b61369dd9aa591e46a28634458874f1f",
+      "requests": 3000,
+      "failures": 0
+    },
+    {
+      "file": "locust-200rps.csv.gz",
+      "sha256": "49d968b92a256cd5b32c6e44c135029944bf7c204e64e3cb8f63cc833580b9dd",
+      "requests": 6000,
+      "failures": 0
+    },
+    {
+      "file": "locust-300rps.csv.gz",
+      "sha256": "103c2584a094ef110081facada173778ae88d0835808d88b1a506b92517dd3b9",
+      "requests": 9000,
+      "failures": 0
+    }
+  ],
+  "limitations": [
+    "This validates an isolated loopback synthetic model, PostgreSQL lookup, and HTTP path. It does not establish real-data model quality or cloud production latency.",
+    "The earlier failed curves and rejected two-worker trial remain retained as investigation evidence; this final run uses the corrected bounded session count."
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "run_role": "diagnostic",
+  "validation_fixture": true,
+  "concurrent_workload": "Repository dbt/Terraform and local verification suite",
+  "model_version": "1",
+  "model_parameters": {
+    "n_estimators": 32,
+    "max_depth": 2,
+    "random_state": 42
+  },
+  "limitation": "This earlier fixture has fewer trees than the frozen v0 model; use the final full curve for representative inference cost.",
+  "summary_sha256": "698f029ece7db14a47405cbf67986821f119edc3e0faf31b46c41c6cb1bcdf28",
+  "files": [
+    {
+      "file": "latency-diagnostic-50rps.csv.gz",
+      "sha256": "ca835138fc0cc58e4034246f066e01a30e40f8f2358b5e25edb48934284ffd1e",
+      "uncompressed_sha256": "433b4793af1b53c6046e121f8e699bb46deaaed7913f9083f8f8c28eb71dcad9",
+      "requests": 1500,
+      "failures": 0
+    },
+    {
+      "file": "latency-diagnostic-100rps.csv.gz",
+      "sha256": "fa23edd8ef31bc1281b8a09804bda60225a713f69e779056d9de5efa506d6092",
+      "uncompressed_sha256": "be782c4316dc1e552dceb6dca2d46ca0ab8e0e5dbb9dc0c764867752643093fe",
+      "requests": 3000,
+      "failures": 1
+    },
+    {
+      "file": "latency-diagnostic-200rps.csv.gz",
+      "sha256": "15b76a796cffe184b91fde08378d0b3ddee42d070217aedc3c926ab5b82be9c1",
+      "uncompressed_sha256": "4aa563a0de22aec298b914a2bd88df6f64608d90e695901c9c3f8986247fc763",
+      "requests": 6000,
+      "failures": 0
+    },
+    {
+      "file": "latency-diagnostic-300rps.csv.gz",
+      "sha256": "fe6f195e70b97e3fe736ecd80ca5a385e9d6cc45f3e68dc6065de4dbeaa42a17",
+      "uncompressed_sha256": "01ba6df8986bc8505c14d203bc702154d56dbed3dbdd51bbc06a6dc77aee102b",
+      "requests": 9000,
+      "failures": 0
+    }
+  ]
+}

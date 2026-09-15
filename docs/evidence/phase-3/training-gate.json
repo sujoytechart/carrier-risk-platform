@@ -1,0 +1,31 @@
+{
+  "performed_at": "2026-09-11T19:33:09.420337+00:00",
+  "scope": "Real full-snapshot source-proxy incident maturity; local MLflow run; no fitting or registered model",
+  "watermark_version": "3ad130d750933bc937ab29734612392ca5c851b414c99441c33bb0e47dc9785e",
+  "grace_days": 495,
+  "result": {
+    "run_id": "336c04fc7bd549b4929260d806731ae2",
+    "status": "skipped",
+    "reason": "grace_exceeds_nine_calendar_months",
+    "model_version": null
+  },
+  "run_status": "FINISHED",
+  "run_parameters": {
+    "n_estimators": "100",
+    "max_depth": "3",
+    "learning_rate": "0.1",
+    "random_state": "20260911",
+    "model_specification": "gradient-boosting-v0-20260911",
+    "evaluation_metric": "average_precision",
+    "feature_names": "inspections_6m,violations_6m,oos_violations_6m,crashes_24m,violations_per_inspection,oos_violation_rate,days_since_last_inspection",
+    "watermark_version": "3ad130d750933bc937ab29734612392ca5c851b414c99441c33bb0e47dc9785e"
+  },
+  "run_tags": {
+    "validation_fixture": "false",
+    "training_status": "skipped",
+    "reason": "grace_exceeds_nine_calendar_months"
+  },
+  "metrics": {},
+  "registered_models": 0,
+  "cloud_usage": 0
+}

@@ -1,0 +1,7 @@
+# HELP carrier_risk_score_requests_total Score responses by outcome
+# TYPE carrier_risk_score_requests_total counter
+# HELP carrier_risk_score_request_duration_seconds Scoring handler elapsed time
+# TYPE carrier_risk_score_request_duration_seconds histogram
+# HELP carrier_risk_model_available A promoted classifier is loaded
+# TYPE carrier_risk_model_available gauge
+carrier_risk_model_available 1.0

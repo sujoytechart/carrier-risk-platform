@@ -1,0 +1,57 @@
+"""Run the unchanged native benchmark with an instrumented HttpSession.get."""
+
+import hashlib
+import itertools
+import json
+import os
+from pathlib import Path
+from time import perf_counter_ns
+
+# Import Locust before the HTTP clients, preserving its cooperative patch order.
+import locust
+from locust.clients import HttpSession
+
+from serving.benchmark import run_load
+
+output = Path(os.environ["ASGI_PROBE_OUTPUT"])
+original_get = HttpSession.get
+sequence = itertools.count()
+records = []
+
+
+def timed_get(self, url, *args, **kwargs):
+    number = next(sequence)
+    request_id = f"asgi-probe-{number}"
+    started = perf_counter_ns()
+    lag_ms = kwargs.get("context", {}).get("scheduler_lag_ms", 0.0)
+    kwargs["headers"] = {**kwargs.get("headers", {}), "x-probe-request-id": request_id}
+    response = original_get(self, url, *args, **kwargs)
+    ended = perf_counter_ns()
+    error = getattr(response, "error", None)
+    records.append({
+        "request_id": request_id,
+        "sequence": number,
+        "phase": "warmup" if number < 1000 else "measured",
+        "client_start_ns": started,
+        "client_response_ns": ended,
+        "scheduler_lag_ms": lag_ms,
+        "approximate_scheduled_ns": started - round(lag_ms * 1_000_000),
+        "client_elapsed_ms": (ended - started) / 1_000_000,
+        "status": response.status_code,
+        "transport_exception_type": type(error).__name__ if error is not None else None,
+        "transport_exception": str(error) if error is not None else None,
+        "server_asgi_entry_ns": response.headers.get("x-probe-asgi-entry-ns"),
+        "server_response_start_ns": response.headers.get("x-probe-response-start-ns"),
+    })
+    return response
+
+
+HttpSession.get = timed_get
+try:
+    run_load("http://127.0.0.1:8003", output / "native-load", seconds=10, warmup=5, rates=(200,))
+finally:
+    HttpSession.get = original_get
+    (output / "client-requests.jsonl").write_text(
+        "".join(json.dumps(record, sort_keys=True) + "\n" for record in records)
+    )
+    (output / "client-probe-sha256.txt").write_text(hashlib.sha256(Path(__file__).read_bytes()).hexdigest() + "\n")

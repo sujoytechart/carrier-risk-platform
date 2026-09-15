@@ -1,0 +1,39 @@
+{
+  "validation_fixture": true,
+  "scope": "Synthetic model loaded from MLflow; PostgreSQL lookup and HTTP score",
+  "not_evidence_of": [
+    "real model quality",
+    "production/cloud latency"
+  ],
+  "load_generator": "Locust 2.46.5",
+  "arrival_model": "independent scheduled open arrivals; all completions drained",
+  "percentiles": "Locust's rounded response-time histogram, including failures",
+  "measured_seconds_per_stage": 10,
+  "warmup_seconds_per_stage": 5,
+  "completed_at": "2026-09-11T20:16:02.700779+00:00",
+  "client_platform": "macOS-15.7.9-x86_64-i386-64bit",
+  "python_version": "3.12.14",
+  "harness_sha256": "6cea1526ba8b88ef8c2d4f8028d12bd239ba3dc4948af4ef96e3076fa108e0ce",
+  "stages": [
+    {
+      "target_rps": 200,
+      "scheduled_requests": 2000,
+      "completed_requests": 2000,
+      "failures": 0,
+      "elapsed_seconds_including_drain": 10.019496124004945,
+      "achieved_rps": 199.61083623839653,
+      "p50_ms": 230.0,
+      "p95_ms": 1400.0,
+      "p99_ms": 2000.0,
+      "max_ms": 2471.1727740359493,
+      "maximum_scheduler_lag_ms": 1266.7073380434886,
+      "scheduled_arrival_to_response_p99_ms": 2023.2834120397456,
+      "model_versions": [
+        "2"
+      ],
+      "failure_details": [],
+      "all_scheduled_requests_completed": true,
+      "latency_target_met": false
+    }
+  ]
+}

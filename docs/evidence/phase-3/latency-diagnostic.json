@@ -1,0 +1,78 @@
+{
+  "validation_fixture": true,
+  "scope": "Synthetic model loaded from MLflow; PostgreSQL lookup and HTTP score",
+  "not_evidence_of": [
+    "real model quality",
+    "production/cloud latency"
+  ],
+  "load_generator": "Locust 2.46.5",
+  "arrival_model": "independent scheduled open arrivals; all completions drained",
+  "percentiles": "Locust's rounded response-time histogram, including failures",
+  "measured_seconds_per_stage": 30,
+  "warmup_seconds_per_stage": 5,
+  "completed_at": "2026-09-11T19:33:02.952044+00:00",
+  "client_platform": "macOS-15.7.9-x86_64-i386-64bit",
+  "python_version": "3.12.14",
+  "stages": [
+    {
+      "target_rps": 50,
+      "scheduled_requests": 1500,
+      "completed_requests": 1500,
+      "failures": 0,
+      "elapsed_seconds_including_drain": 29.990705471020192,
+      "achieved_rps": 50.015495682468675,
+      "p50_ms": 7.0,
+      "p95_ms": 9.0,
+      "p99_ms": 31.0,
+      "max_ms": 130.69567899219692,
+      "maximum_scheduler_lag_ms": 88.01339095225558,
+      "all_scheduled_requests_completed": true,
+      "latency_target_met": true
+    },
+    {
+      "target_rps": 100,
+      "scheduled_requests": 3000,
+      "completed_requests": 3000,
+      "failures": 1,
+      "elapsed_seconds_including_drain": 29.998591570998542,
+      "achieved_rps": 100.00469498375656,
+      "p50_ms": 8.0,
+      "p95_ms": 70.0,
+      "p99_ms": 160.0,
+      "max_ms": 418.1437229854055,
+      "maximum_scheduler_lag_ms": 171.1875139735639,
+      "all_scheduled_requests_completed": true,
+      "latency_target_met": false
+    },
+    {
+      "target_rps": 200,
+      "scheduled_requests": 6000,
+      "completed_requests": 6000,
+      "failures": 0,
+      "elapsed_seconds_including_drain": 30.001471611030865,
+      "achieved_rps": 199.99018974102376,
+      "p50_ms": 7.0,
+      "p95_ms": 17.0,
+      "p99_ms": 110.0,
+      "max_ms": 228.43992902198806,
+      "maximum_scheduler_lag_ms": 121.23000802239403,
+      "all_scheduled_requests_completed": true,
+      "latency_target_met": false
+    },
+    {
+      "target_rps": 300,
+      "scheduled_requests": 9000,
+      "completed_requests": 9000,
+      "failures": 0,
+      "elapsed_seconds_including_drain": 30.005670359998476,
+      "achieved_rps": 299.94330711565067,
+      "p50_ms": 9.0,
+      "p95_ms": 800.0,
+      "p99_ms": 1100.0,
+      "max_ms": 1601.1226810514927,
+      "maximum_scheduler_lag_ms": 439.419373346027,
+      "all_scheduled_requests_completed": true,
+      "latency_target_met": false
+    }
+  ]
+}

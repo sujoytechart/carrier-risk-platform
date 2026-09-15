@@ -1,0 +1,67 @@
+"""Correlate same-host monotonic timestamps from the bounded ASGI diagnostic."""
+import json
+import math
+from pathlib import Path
+
+output = Path('/private/tmp/carrier-risk-asgi-probe/evidence-recovery')
+clients = [json.loads(line) for line in (output/'client-requests.jsonl').read_text().splitlines()]
+servers = {row['request_id']: row for row in (json.loads(line) for line in (output/'server-requests.jsonl').read_text().splitlines())}
+
+def quantiles(values):
+    values = sorted(values)
+    return {**{name: values[max(0, math.ceil(len(values)*p)-1)] for name,p in [('p50',.5),('p95',.95),('p99',.99)]}, 'max': max(values), 'mean':sum(values)/len(values)}
+
+rows = []
+for client in clients:
+    server = servers.get(client['request_id'])
+    if server is None:
+        continue
+    row = {'request_id':client['request_id'], 'phase':client['phase'], 'status':client['status'],
+        'client_elapsed_ms':client['client_elapsed_ms'], 'scheduler_lag_ms':client['scheduler_lag_ms'],
+        'client_start_to_asgi_entry_ms':(server['asgi_entry_ns']-client['client_start_ns'])/1e6,
+        'asgi_entry_to_response_start_ms':(server['response_start_ns']-server['asgi_entry_ns'])/1e6,
+        'response_start_to_client_return_ms':(client['client_response_ns']-server['response_start_ns'])/1e6,
+        'asgi_final_body_send_ms':(server['final_body_after_send_ns']-server['final_body_before_send_ns'])/1e6,
+        'asgi_total_ms':(server['asgi_return_ns']-server['asgi_entry_ns'])/1e6,
+        'scheduled_to_asgi_entry_ms':(server['asgi_entry_ns']-client['approximate_scheduled_ns'])/1e6,
+        'scheduled_to_client_return_ms':(client['client_response_ns']-client['approximate_scheduled_ns'])/1e6,
+        'header_entry_matches':str(server['asgi_entry_ns'])==client['server_asgi_entry_ns'],
+        'header_response_matches':str(server['response_start_ns'])==client['server_response_start_ns']}
+    row['outside_asgi_ms'] = row['client_start_to_asgi_entry_ms'] + row['response_start_to_client_return_ms']
+    rows.append(row)
+
+summaries = {}
+for phase in ('warmup','measured'):
+    selected = [row for row in rows if row['phase']==phase]
+    slow = [row for row in selected if row['client_elapsed_ms']>120]
+    summaries[phase] = {
+        'matched_requests':len(selected),
+        'all_status_200':all(row['status']==200 for row in selected),
+        'all_response_header_times_match_server':all(row['header_entry_matches'] and row['header_response_matches'] for row in selected),
+        'distributions_ms':{key:quantiles([row[key] for row in selected]) for key in selected[0] if key.endswith('_ms')},
+        'requests_over_120ms':len(slow),
+        'requests_over_1s':sum(row['client_elapsed_ms']>1000 for row in selected),
+        'over_120ms_outside_asgi_dominant':sum(row['outside_asgi_ms']>row['asgi_entry_to_response_start_ms'] for row in slow),
+        'over_120ms_asgi_dominant':sum(row['outside_asgi_ms']<=row['asgi_entry_to_response_start_ms'] for row in slow),
+        'slowest_requests': sorted(selected,key=lambda row:row['client_elapsed_ms'],reverse=True)[:10],
+    }
+result = {
+    'purpose':'Bounded diagnostic; does not replace the retained failed final benchmark curve.',
+    'measurement':'Same-host perf_counter_ns timestamps; client entry through HttpSession.get return, ASGI callable entry through response-start; approximate schedule uses native harness recorded launch lag.',
+    'clock_sanity_nonnegative':all(row[key]>=0 for row in rows for key in ['client_start_to_asgi_entry_ms','asgi_entry_to_response_start_ms','response_start_to_client_return_ms']),
+    'client_records':len(clients),'server_records':len(servers),
+    'client_without_server': [client['request_id'] for client in clients if client['request_id'] not in servers],
+    'server_without_client':sorted(set(servers)-{client['request_id'] for client in clients}),
+    'phases':summaries,
+    'limitations':[
+        'No transport failures reproduced in this short diagnostic; it cannot attribute the previous 516 HTTP0 failures.',
+        'ASGI interval includes framework scheduling, synchronous endpoint thread queue, endpoint execution, validation and response construction; individual stages are not instrumented.',
+        'Outside-ASGI time includes client scheduling, connection/accept/parser time and network/read scheduling; individual components are not distinguished.',
+        'Handler metrics captured before warmup and after measured stage combine both phases; slow warmup cannot be assigned to measured requests from aggregate metrics.',
+        'Added headers/timestamp buffering are diagnostic instrumentation, so this is not an uninstrumented acceptance result.',
+        'First attempt retained under evidence/ lost server rows due to an atexit hook bypassed by Uvicorn SIGTERM; recovery uses lifespan shutdown completion and response headers.'
+    ]
+}
+(output/'correlated-requests.jsonl').write_text(''.join(json.dumps(row,sort_keys=True)+'\n' for row in rows))
+(output/'correlation-summary.json').write_text(json.dumps(result,indent=2,sort_keys=True)+'\n')
+print(json.dumps({**{k:v for k,v in result.items() if k!='phases'},'measured':{k:v for k,v in summaries['measured'].items() if k!='slowest_requests'},'slowest_measured':summaries['measured']['slowest_requests'][0], 'warmup_requests_over_1s':summaries['warmup']['requests_over_1s']},indent=2))

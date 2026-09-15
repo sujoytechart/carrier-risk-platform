@@ -1,0 +1,94 @@
+"""Coordinate one bounded local ASGI timing probe and clean up its server."""
+
+import hashlib
+import json
+import os
+import subprocess
+import sys
+import time
+import urllib.request
+from datetime import UTC, datetime
+from pathlib import Path
+
+from psycopg.conninfo import conninfo_to_dict
+
+# Archived copy: local checkout path replaced with a placeholder.
+# Recorded source hashes refer to the original captured file.
+project = Path("/path/to/carrier-risk-platform")
+directory = Path(__file__).resolve().parent
+output = directory / "evidence-recovery"
+output.mkdir(exist_ok=True)
+environment = os.environ | json.loads(Path("/private/tmp/carrier-risk-phase3-test-env.json").read_text())
+parameters = conninfo_to_dict(environment["CARRIER_RISK_DATABASE_URL"])
+if parameters.get("dbname") != "carrier_risk_phase3_serving":
+    raise ValueError("Probe requires the existing dedicated synthetic serving database")
+environment.update({
+    "MLFLOW_TRACKING_URI": "sqlite:////private/tmp/carrier-risk-phase3-serving-fixture/fixture-mlflow.db",
+    "CARRIER_RISK_MODEL_NAME": "carrier-risk-fixture",
+    "CARRIER_RISK_MODEL_ALIAS": "champion",
+    "CARRIER_RISK_VALIDATION_PROFILE": "synthetic",
+    "MLFLOW_DISABLE_AGENT_HINT": "1",
+    "ASGI_PROBE_OUTPUT": str(output),
+    "PYTHONPATH": str(directory) + os.pathsep + str(project),
+})
+configuration = {
+    "validation_fixture": True,
+    "purpose": "Diagnostic only; does not replace the retained full latency curve",
+    "rate": 200, "measured_seconds": 10, "warmup_seconds": 5,
+    "server_host": "127.0.0.1", "server_port": 8003,
+    "uvicorn_options": "default single worker/loop/http; --no-access-log",
+    "timing_clock": "same-host time.perf_counter_ns",
+    "scheduled_timestamp_note": "client-start minus native scheduler lag; includes a small wrapper-entry offset",
+    "instrumentation": "two response timing headers; rows buffered in memory and flushed after load/shutdown",
+    "probe_sources": {path.name: hashlib.sha256(path.read_bytes()).hexdigest()
+                      for path in (directory / "server_wrapper.py", directory / "client_probe.py", Path(__file__))},
+    "original_harness_sha256": hashlib.sha256((project / "serving/benchmark.py").read_bytes()).hexdigest(),
+    "started_at": datetime.now(UTC).isoformat(),
+}
+server = None
+client_result = None
+with (output / "server.log").open("w") as server_log:
+    try:
+        server = subprocess.Popen(
+            [sys.executable, "-m", "uvicorn", "server_wrapper:app", "--host", "127.0.0.1", "--port", "8003", "--no-access-log"],
+            cwd=project, env=environment, stdout=server_log, stderr=subprocess.STDOUT,
+        )
+        deadline = time.monotonic() + 45
+        while time.monotonic() < deadline:
+            if server.poll() is not None:
+                raise RuntimeError("Temporary API exited before readiness")
+            try:
+                with urllib.request.urlopen("http://127.0.0.1:8003/health/ready", timeout=1) as response:
+                    readiness = json.load(response)
+                if readiness.get("status") == "ready" and readiness.get("validation_fixture") is True:
+                    configuration["readiness"] = readiness
+                    break
+            except (OSError, ValueError):
+                time.sleep(0.25)
+        else:
+            raise TimeoutError("Temporary API did not become ready within 45 seconds")
+        with urllib.request.urlopen("http://127.0.0.1:8003/metrics", timeout=3) as response:
+            (output / "metrics-before.txt").write_bytes(response.read())
+        with (output / "client.log").open("w") as client_log:
+            client_result = subprocess.run(
+                [sys.executable, str(directory / "client_probe.py")],
+                cwd=project, env=environment, stdout=client_log, stderr=subprocess.STDOUT,
+                timeout=45, check=False,
+            )
+        configuration["client_exit_code"] = client_result.returncode
+        with urllib.request.urlopen("http://127.0.0.1:8003/metrics", timeout=3) as response:
+            (output / "metrics-after.txt").write_bytes(response.read())
+    finally:
+        if server is not None and server.poll() is None:
+            server.terminate()
+            try:
+                server.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                server.kill()
+                server.wait(timeout=5)
+                configuration["server_required_kill"] = True
+        configuration["server_exit_code"] = None if server is None else server.returncode
+        configuration["completed_at"] = datetime.now(UTC).isoformat()
+        (output / "probe-configuration.json").write_text(json.dumps(configuration, indent=2) + "\n")
+print(json.dumps({"output": str(output), "client_exit_code": None if client_result is None else client_result.returncode,
+                  "server_exit_code": configuration["server_exit_code"]}))

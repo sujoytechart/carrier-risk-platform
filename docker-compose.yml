@@ -40,7 +40,83 @@ services:
       - >-
         until mc alias set local http://minio:9000 "$${MINIO_ROOT_USER}"
         "$${MINIO_ROOT_PASSWORD}"; do sleep 2; done;
-        mc mb --ignore-existing local/carrier-risk-raw
+        mc mb --ignore-existing local/carrier-risk-raw;
+        mc mb --ignore-existing local/carrier-risk-models
+
+  mlflow-postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: carrier_risk_mlflow
+      POSTGRES_USER: carrier_risk
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U carrier_risk -d carrier_risk_mlflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    volumes:
+      - mlflow-postgres-data:/var/lib/postgresql/data
+
+  mlflow:
+    build:
+      context: .
+      dockerfile: docker/mlflow/Dockerfile
+    command:
+      - mlflow
+      - server
+      - --host
+      - 0.0.0.0
+      - --port
+      - "5000"
+      - --backend-store-uri
+      - postgresql+psycopg://carrier_risk@mlflow-postgres/carrier_risk_mlflow
+      - --artifacts-destination
+      - s3://carrier-risk-models
+      - --serve-artifacts
+      - --allowed-hosts
+      - "localhost:*,127.0.0.1:*,mlflow:*"
+    depends_on:
+      mlflow-postgres:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      AWS_ACCESS_KEY_ID: minio
+      AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:?set MINIO_ROOT_PASSWORD in .env}
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+      MLFLOW_ENABLE_TELEMETRY: "false"
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://localhost:5000/health', timeout=2).read()"
+      interval: 5s
+      timeout: 5s
+      start_period: 20s
+      retries: 12
+    ports:
+      - "127.0.0.1:5000:5000"
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mlflow:
+        condition: service_healthy
+    environment:
+      CARRIER_RISK_DATABASE_URL: host=postgres port=5432 user=carrier_risk dbname=carrier_risk
+      PGPASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      CARRIER_RISK_MODEL_NAME: carrier-risk-v0
+      CARRIER_RISK_MODEL_ALIAS: champion
+      MLFLOW_ENABLE_TELEMETRY: "false"
+    ports:
+      - "127.0.0.1:8000:8000"
 
   elasticmq:
     image: softwaremill/elasticmq-native:1.6.16
@@ -90,6 +166,9 @@ services:
       POSTGRES_PORT: "5432"
       POSTGRES_SSLMODE: disable
       POSTGRES_USER: carrier_risk
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      CARRIER_RISK_MODEL_NAME: carrier-risk-v0
+      MLFLOW_ENABLE_TELEMETRY: "false"
     ports:
       - "127.0.0.1:8080:8080"
     volumes:
@@ -100,4 +179,5 @@ services:
 
 volumes:
   postgres-data:
+  mlflow-postgres-data:
   minio-data:

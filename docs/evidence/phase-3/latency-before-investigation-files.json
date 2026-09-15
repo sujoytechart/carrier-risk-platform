@@ -1,0 +1,51 @@
+{
+  "run_role": "complete representative failed baseline",
+  "validation_fixture": true,
+  "concurrent_workload": "Repository verification stopped before this run; ordinary desktop background applications remained active and uncontrolled",
+  "model_version": "2",
+  "model_parameters": {
+    "n_estimators": 100,
+    "max_depth": 3,
+    "learning_rate": 0.1,
+    "random_state": 20260911
+  },
+  "acceptance": "Not met: 200-rps stage has failures and p99 above 120 ms",
+  "summary_file": "latency-before-investigation.json",
+  "summary_sha256": "30ab5ec3e1e1df93c5f6dd1573ff4ce7500ad793f16ae71633aa12ab5adc4c6e",
+  "limitation": "Original harness replaced transport errors with generic HTTP 0; the lost underlying exception cannot be recovered retrospectively. All original durations and failures are retained unchanged.",
+  "files": [
+    {
+      "file": "latency-before-investigation-50rps.csv.gz",
+      "sha256": "51857ff0c4530d693de2b679a2794dca95717a9e8305763bc222758fba8937b5",
+      "uncompressed_sha256": "7d02a3af3d97a29dd48093bafccb70dddf237fb2ca2f6b3b7802f15d082a7d04",
+      "requests": 1500,
+      "failures": 0
+    },
+    {
+      "file": "latency-before-investigation-100rps.csv.gz",
+      "sha256": "2864b762523c05d280600556f7567ee2067e478c6dba98b1ecfdfd8790fa91cc",
+      "uncompressed_sha256": "f5043975c2821366ee1045bfa4c6ceaba76db91f5959331301aaebae7bef021f",
+      "requests": 3000,
+      "failures": 1
+    },
+    {
+      "file": "latency-before-investigation-200rps.csv.gz",
+      "sha256": "28c354f6efe396ec4eae1563c0df708d5f3f5cc772b7a0fd5d7226a01f1ac26d",
+      "uncompressed_sha256": "031a3232645739cd6439c567ec0e701fcbc2b0d9293bdd82a65a8d83c8db85f4",
+      "requests": 6000,
+      "failures": 516
+    },
+    {
+      "file": "latency-before-investigation-300rps.csv.gz",
+      "sha256": "f59919698e4f5191885284529b2a4c68195610758564adc135fd15c2e477c6b7",
+      "uncompressed_sha256": "21bf6eb3da41d3cb899ccf57e63f797af7362f27bfe59367faadf4636c1a2e7a",
+      "requests": 9000,
+      "failures": 0
+    }
+  ],
+  "harness_source": {
+    "file": "benchmark-before-diagnostics.py.txt",
+    "sha256": "48907a705c2fb1a35c7f38d6ec0aee6a5c3e2a9f0ba9cd29f00bb0a253f27f75",
+    "provenance": "Exact pre-diagnostic source retained by clean public export verification; hash matches original full-curve summary"
+  }
+}

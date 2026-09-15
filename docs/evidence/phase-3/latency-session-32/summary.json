@@ -1,0 +1,99 @@
+{
+  "validation_fixture": true,
+  "scope": "Synthetic model loaded from MLflow; PostgreSQL lookup and HTTP score",
+  "not_evidence_of": [
+    "real model quality",
+    "production/cloud latency"
+  ],
+  "load_generator": "Locust 2.46.5",
+  "arrival_model": "independent scheduled open arrivals; all completions drained",
+  "percentiles": "Locust's rounded response-time histogram, including failures",
+  "measured_seconds_per_stage": 30,
+  "warmup_seconds_per_stage": 5,
+  "completed_at": "2026-09-11T21:49:41.575433+00:00",
+  "client_platform": "macOS-15.7.9-x86_64-i386-64bit",
+  "python_version": "3.12.14",
+  "harness_sha256": "b6694d6783eda347ea1a2f4ab3f99c9e76dc36a78016f2d6c9e667c3a9826f4d",
+  "stages": [
+    {
+      "target_rps": 50,
+      "scheduled_requests": 1500,
+      "completed_requests": 1500,
+      "failures": 0,
+      "elapsed_seconds_including_drain": 30.002992881985847,
+      "achieved_rps": 49.99501236093742,
+      "p50_ms": 7.0,
+      "p95_ms": 10.0,
+      "p99_ms": 12.0,
+      "max_ms": 18.638049019500613,
+      "maximum_scheduler_lag_ms": 63.081094005610794,
+      "scheduled_arrival_to_response_p99_ms": 14.957113075070083,
+      "model_versions": [
+        "1"
+      ],
+      "failure_details": [],
+      "all_scheduled_requests_completed": true,
+      "latency_target_met": true
+    },
+    {
+      "target_rps": 100,
+      "scheduled_requests": 3000,
+      "completed_requests": 3000,
+      "failures": 0,
+      "elapsed_seconds_including_drain": 30.000689056003466,
+      "achieved_rps": 99.99770319940926,
+      "p50_ms": 6.0,
+      "p95_ms": 8.0,
+      "p99_ms": 10.0,
+      "max_ms": 21.504673990420997,
+      "maximum_scheduler_lag_ms": 1.8486669869162142,
+      "scheduled_arrival_to_response_p99_ms": 10.76065399684012,
+      "model_versions": [
+        "1"
+      ],
+      "failure_details": [],
+      "all_scheduled_requests_completed": true,
+      "latency_target_met": true
+    },
+    {
+      "target_rps": 200,
+      "scheduled_requests": 6000,
+      "completed_requests": 6000,
+      "failures": 0,
+      "elapsed_seconds_including_drain": 30.00023525499273,
+      "achieved_rps": 199.99843164568057,
+      "p50_ms": 5.0,
+      "p95_ms": 8.0,
+      "p99_ms": 14.0,
+      "max_ms": 119.30561898043379,
+      "maximum_scheduler_lag_ms": 78.85066902963445,
+      "scheduled_arrival_to_response_p99_ms": 14.297453977633268,
+      "model_versions": [
+        "1"
+      ],
+      "failure_details": [],
+      "all_scheduled_requests_completed": true,
+      "latency_target_met": true
+    },
+    {
+      "target_rps": 300,
+      "scheduled_requests": 9000,
+      "completed_requests": 9000,
+      "failures": 0,
+      "elapsed_seconds_including_drain": 30.002280239015818,
+      "achieved_rps": 299.9771993428734,
+      "p50_ms": 6.0,
+      "p95_ms": 24.0,
+      "p99_ms": 86.0,
+      "max_ms": 169.7952119866386,
+      "maximum_scheduler_lag_ms": 92.49525767518207,
+      "scheduled_arrival_to_response_p99_ms": 118.23447828646749,
+      "model_versions": [
+        "1"
+      ],
+      "failure_details": [],
+      "all_scheduled_requests_completed": true,
+      "latency_target_met": true
+    }
+  ]
+}

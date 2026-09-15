@@ -22,15 +22,18 @@ from ingest.object_store import FileSnapshotObjectStore, S3SnapshotObjectStore
 
 POSTGRES_DSN = os.environ["CARRIER_RISK_TEST_DATABASE_URL"]
 POSTGRES_PARAMETERS = conninfo_to_dict(POSTGRES_DSN)
+TEST_POSTGRES_PORT = os.getenv("CARRIER_RISK_TEST_PORT", "5432")
+if not TEST_POSTGRES_PORT.isdecimal() or not 1 <= int(TEST_POSTGRES_PORT) <= 65535:
+    raise RuntimeError("CARRIER_RISK_TEST_PORT must be a valid local TCP port")
 if POSTGRES_PARAMETERS != {
     "dbname": "carrier_risk_raw_test",
     "host": "localhost",
-    "port": "5432",
+    "port": TEST_POSTGRES_PORT,
     "user": "carrier_risk",
 }:
     raise RuntimeError(
         "Raw-loader tests require exact libpq conninfo for carrier_risk_raw_test "
-        "on localhost:5432 as carrier_risk"
+        f"on localhost:{TEST_POSTGRES_PORT} as carrier_risk"
     )
 
 
