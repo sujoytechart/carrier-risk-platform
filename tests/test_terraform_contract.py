@@ -6,21 +6,37 @@ import os
 import subprocess
 from pathlib import Path
 
+import pytest
+
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 TERRAFORM_ROOT = PROJECT_ROOT / "infra" / "base"
 
 
-def run_terraform(*arguments: str) -> subprocess.CompletedProcess[str]:
+def run_terraform(
+    terraform_data_dir: Path, *arguments: str
+) -> subprocess.CompletedProcess[str]:
     """Run Terraform without credentials and return complete diagnostic output."""
     environment = os.environ.copy()
     for credential_name in (
         "AWS_ACCESS_KEY_ID",
+        "AWS_CONFIG_FILE",
+        "AWS_CONTAINER_CREDENTIALS_FULL_URI",
+        "AWS_CONTAINER_CREDENTIALS_RELATIVE_URI",
+        "AWS_DEFAULT_PROFILE",
+        "AWS_ROLE_ARN",
         "AWS_SECRET_ACCESS_KEY",
+        "AWS_SHARED_CREDENTIALS_FILE",
         "AWS_SESSION_TOKEN",
         "AWS_PROFILE",
+        "AWS_WEB_IDENTITY_TOKEN_FILE",
     ):
         environment.pop(credential_name, None)
     environment["AWS_EC2_METADATA_DISABLED"] = "true"
+    environment["AWS_CONFIG_FILE"] = str(terraform_data_dir / "no-aws-credentials")
+    environment["AWS_SHARED_CREDENTIALS_FILE"] = str(
+        terraform_data_dir / "no-aws-credentials"
+    )
+    environment["TF_DATA_DIR"] = str(terraform_data_dir)
 
     return subprocess.run(
         ["terraform", f"-chdir={TERRAFORM_ROOT}", *arguments],
@@ -36,20 +52,43 @@ def assert_terraform_succeeded(result: subprocess.CompletedProcess[str]) -> None
     assert result.returncode == 0, result.stdout + result.stderr
 
 
-def test_terraform_configuration_is_formatted_and_valid() -> None:
+@pytest.fixture(scope="module")
+def initialized_terraform_root(tmp_path_factory: pytest.TempPathFactory) -> Path:
+    """Initialize providers and modules without configuring a remote backend."""
+    terraform_data_dir = tmp_path_factory.mktemp("terraform-base")
+    arguments = ["init", "-backend=false", "-input=false", "-lockfile=readonly"]
+    if plugin_directory := os.environ.get("TERRAFORM_PLUGIN_DIR"):
+        arguments.append(f"-plugin-dir={plugin_directory}")
+    assert_terraform_succeeded(run_terraform(terraform_data_dir, *arguments))
+    return terraform_data_dir
+
+
+def test_terraform_configuration_is_formatted_and_valid(
+    initialized_terraform_root: Path,
+) -> None:
     """Catch malformed or non-canonical Terraform before an operator plans it."""
-    assert_terraform_succeeded(run_terraform("fmt", "-check", "-recursive"))
-    assert_terraform_succeeded(run_terraform("validate", "-no-color"))
+    assert_terraform_succeeded(
+        run_terraform(initialized_terraform_root, "fmt", "-check", "-recursive")
+    )
+    assert_terraform_succeeded(
+        run_terraform(initialized_terraform_root, "validate", "-no-color")
+    )
 
 
-def test_mocked_plan_enforces_phase_1_security_and_cost_contracts() -> None:
+def test_mocked_plan_enforces_phase_1_security_and_cost_contracts(
+    initialized_terraform_root: Path,
+) -> None:
     """Exercise queue, database, network, and IAM plans without contacting AWS."""
-    assert_terraform_succeeded(run_terraform("test", "-no-color"))
+    assert_terraform_succeeded(
+        run_terraform(initialized_terraform_root, "test", "-no-color")
+    )
 
 
-def test_manifest_notification_depends_on_the_source_scoped_queue_policy() -> None:
+def test_manifest_notification_depends_on_the_source_scoped_queue_policy(
+    initialized_terraform_root: Path,
+) -> None:
     """Prevent S3 notification creation from racing queue-policy propagation."""
-    result = run_terraform("graph", "-type=plan")
+    result = run_terraform(initialized_terraform_root, "graph", "-type=plan")
     assert_terraform_succeeded(result)
     expected_edge = (
         'module.spine.aws_s3_bucket_notification.raw_manifest_arrival (expand)" '
@@ -58,9 +97,11 @@ def test_manifest_notification_depends_on_the_source_scoped_queue_policy() -> No
     assert expected_edge in result.stdout
 
 
-def test_redrive_policies_depend_on_their_actual_queues() -> None:
+def test_redrive_policies_depend_on_their_actual_queues(
+    initialized_terraform_root: Path,
+) -> None:
     """Prevent constructed ARNs from hiding queue replacement dependencies."""
-    result = run_terraform("graph", "-type=plan")
+    result = run_terraform(initialized_terraform_root, "graph", "-type=plan")
     assert_terraform_succeeded(result)
     expected_edges = (
         (
