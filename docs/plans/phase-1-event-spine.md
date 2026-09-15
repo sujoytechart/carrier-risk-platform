@@ -2,7 +2,7 @@
 
 **Goal:** Build an SQS-driven Airflow pipeline that loads complete FMCSA snapshots into RDS Postgres, preserves correction-aware event versions, and proves point-in-time correctness with three blocking dbt tests.
 
-**Architecture:** Immutable S3 manifests become deterministic warehouse batches. Python owns remote I/O and transactional raw loading; dbt owns strict conformance, version-aware modeled relations, feature computation, contracts, and temporal tests; Airflow only coordinates those boundaries. Local adapters exercise the same workflow against MinIO, an SQS-compatible endpoint, and container Postgres before the short-lived AWS integration run.
+**Architecture:** Immutable S3 manifests become deterministic warehouse batches. Python owns remote I/O and transactional raw loading. The dbt project owns strict conformance, version-aware modeled relations, feature computation, contracts, and temporal tests. Airflow only coordinates those boundaries. Local adapters exercise the same workflow against MinIO, an SQS-compatible endpoint, and container Postgres before the short-lived AWS integration run.
 
 **Tech Stack:** Python 3.12, PostgreSQL 17, psycopg 3, dbt-core/dbt-postgres, Apache Airflow with the Amazon provider, Docker Compose, Terraform, AWS S3/SQS/RDS/IAM.
 
@@ -12,13 +12,13 @@
 
 - Both `event_date < scoring_date` and `reported_date < scoring_date` are mandatory.
 - Knowledge intervals use `knowledge_valid_from < scoring_date` and an exclusive `knowledge_valid_to`.
-- Inspection lookback is six months; crash lookback is twenty-four months.
+- Inspection lookback is six months. Crash lookback is twenty-four months.
 - `record_hash` detects payload changes and is never a source or version identity.
 - Invalid non-null source values are quarantined with stable reasons.
-- Only complete snapshots can produce deletions; inspection retention expiry never creates a tombstone.
+- Only complete snapshots can produce deletions. Inspection retention expiry never creates a tombstone.
 - All modeled dbt relations have enforced contracts.
 - All three temporal tests are tagged `temporal` and retain error severity.
-- Changed-line coverage is at least 80%; lint, formatting, and strict typing have zero errors.
+- Changed-line coverage is at least 80%. Lint, formatting, and strict typing have zero errors.
 - No secrets, raw federal data, suppressed checks, skipped tests, or unfinished stubs enter source control.
 - Phase 1 RDS resources are destroyed between working sessions.
 
@@ -232,7 +232,7 @@
 - [ ] Run the contract tests and confirm failures precede resources.
 - [ ] Implement queue, DLQ, queue policy, and S3 notification dependencies.
 - [ ] Implement the smallest network and RDS configuration compatible with locally run Airflow, documenting the connectivity trade-off explicitly.
-- [ ] Split IAM permissions by snapshot writer and event loader; neither receives delete access to raw objects.
+- [ ] Split IAM permissions by snapshot writer and event loader. Neither receives delete access to raw objects.
 - [ ] Run Terraform format, validation, static contract tests, and a reviewed plan.
 - [ ] Commit as `infra: provision Phase 1 queue and warehouse`.
 
@@ -241,7 +241,7 @@
 **Files:**
 - Create: `docs/phase-1-verification.md`
 - Modify: `README.md`
-- Modify: `CONSTRAINTS.md` only in the local process checkout to record measured coverage; do not commit it.
+- Modify: `CONSTRAINTS.md` only in the local process checkout to record measured coverage. Do not commit it.
 
 **Interfaces:**
 - Produces: reproducible operator commands and sanitized evidence for the Phase 1 definition of done.

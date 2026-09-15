@@ -476,3 +476,22 @@ run "derived_parquet_preserves_source_order_and_lineage" {
     error_message = "Derived metadata must expose original observation time and converter/output lineage."
   }
 }
+
+run "analytics_trust_excludes_other_runtime_principals" {
+  command = plan
+
+  variables {
+    additional_analytics_principals     = ["arn:aws:iam::123456789012:role/AnalyticsReader"]
+    additional_ingest_principals        = ["arn:aws:iam::123456789012:role/SnapshotWriter"]
+    additional_loader_principals        = ["arn:aws:iam::123456789012:role/EventLoader"]
+    additional_ecr_publisher_principals = ["arn:aws:iam::123456789012:role/ImagePublisher"]
+  }
+
+  assert {
+    condition = toset(jsondecode(aws_iam_role.analytics.assume_role_policy).Statement[0].Principal.AWS) == toset([
+      data.aws_iam_role.terraform_operator.arn,
+      "arn:aws:iam::123456789012:role/AnalyticsReader",
+    ])
+    error_message = "Analytics trust must include its configured reader and exclude ingest, loader, and image publisher principals."
+  }
+}

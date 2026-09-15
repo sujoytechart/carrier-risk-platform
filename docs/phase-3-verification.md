@@ -12,7 +12,7 @@ The full retained September 3 snapshot was scanned locally: 4,986,413 crash
 source rows. The calculation selects first source versions before deduplicating
 carrier incidents, omits vehicle sequence from incident identity, and applies
 the existing federal-recordability rule. Source timestamps plus one publication
-day are labeled `source_proxy`; the current snapshot does not reconstruct deleted
+day are labeled `source_proxy`. The current snapshot does not reconstruct deleted
 or superseded historical versions.
 
 The latest twelve event-month cohorts mature under the committed month-end plus
@@ -21,7 +21,7 @@ incidents. A deterministic 2,000-replicate empirical histogram bootstrap uses
 linear p99.5 quantiles and the 95th percentile of replicate quantiles. This is
 ordinary bootstrap sampling with replacement represented as multinomial counts.
 The maximum upper bound is 494.87 days, yielding a 495-day grace. A second actual
-run reproduced all twelve cohort estimates exactly; the evidence includes source
+run reproduced all twelve cohort estimates exactly. The evidence includes source
 hashes, software version, seed, execution timestamps and elapsed time.
 
 Missing-carrier exclusions are 1,371,090 source rows and 1,344,754 distinct source
@@ -38,10 +38,10 @@ production score is claimed.
 ## Implemented policy
 
 Monthly feature rows retain both strict event/report clocks and knowledge-time
-version filters. Complete source-coverage bounds must be attested explicitly;
-the first event in a snapshot is not evidence of a complete historical window.
+version filters. Complete source-coverage bounds must be attested explicitly.
+The first event in a snapshot is not evidence of a complete historical window.
 Training requires a six-month forward label plus the validated empirical grace.
-The final three monthly dates form the holdout; the preceding six are purged,
+The final three monthly dates form the holdout. The preceding six are purged,
 and at least six earlier dates must remain for training. Empty population dates
 remain in the grid so sparse rows cannot shorten the purge.
 
@@ -54,7 +54,7 @@ synthetic test data while the real-data maturity gate fails.
 MLflow records model parameters, the dataset fingerprint, exact watermark,
 availability-quality mix, exclusion counts, retained dates and evaluation
 metrics. The champion alias changes only after passing the comparison. A
-warehouse advisory lock serializes cooperating publishers; an alias recheck
+warehouse advisory lock serializes cooperating publishers. An alias recheck
 also detects an operator change during evaluation. Model artifacts are trusted
 operator-controlled inputs, not an untrusted public upload interface.
 
@@ -70,7 +70,7 @@ existing registry rows.
 
 The additive dbt temporal guard independently compares summary columns with the
 immutable metadata. Changing the measured 495-day summary to 494 days produced
-one failing row; restoring 495 returned zero. A grace exceeding nine months is
+one failing row. Restoring 495 returned zero. A grace exceeding nine months is
 valid measurement evidence and is rejected by training eligibility, rather than
 being erased to make the consistency test pass. See the
 [negative and restored test results](evidence/phase-3/maturity-dbt-negative-test.json).
@@ -78,7 +78,7 @@ The original three temporal tests are unchanged.
 
 Training artifacts are immutable local files keyed by the dataset fingerprint.
 The API reads the shared feature table using PostgreSQL indexes. PostgreSQL
-index configuration is conditional; no Snowflake compute was resumed for this
+index configuration is conditional. No Snowflake compute was resumed for this
 phase, and no new live Snowflake acceptance is claimed.
 
 ## Local operation
@@ -97,21 +97,21 @@ YYYY-MM-DD` recomputes from the warehouse. `build` and `train` also require
 attested `--inspection-start` and `--crash-start` bounds (or their named
 `CARRIER_RISK_*_START` environment variables). Use
 `CARRIER_RISK_DBT_PROFILES_DIR` for the existing dbt profile directory.
-The extraction row limit is a memory guard; exceeding it fails without silently
+The extraction row limit is a memory guard. Exceeding it fails without silently
 truncating the source. The two Airflow DAGs use the same adapters and policy.
 
 The local Compose definition gives MLflow a separate PostgreSQL metadata
 database: both MLflow and Airflow use `public.alembic_version`, so sharing their
 database would collide during migration. MLflow artifacts use the separate
 MinIO model bucket, and the API waits for the registry health check before its
-startup alias lookup. Compose configuration and packaging were validated; these
+startup alias lookup. Compose configuration and packaging were validated. These
 new container images were not built or deployed in this acceptance run.
 
 The [monthly replay](evidence/phase-3/monthly-skip-replay.json) persists the actual
 watermark twice through the PostgreSQL/MLflow adapters and retains one registry
 row, one current version, and no registered model. An eligible fictional carrier
 against the default production profile returns HTTP 503 `model_unavailable`
-through actual PostgreSQL and MLflow lookups; readiness is also 503. The
+through actual PostgreSQL and MLflow lookups. Readiness is also 503. The
 [response evidence](evidence/phase-3/production-model-unavailable.json) contains
 no risk score.
 
@@ -122,7 +122,7 @@ actual MLflow-loaded 100-tree model, and PostgreSQL lookups over 512 fictional
 carriers. Locust scheduled independent open arrivals at 50, 100, 200 and 300 rps
 for thirty measured seconds each after five seconds of warmup. Thirty-two
 persistent loopback sessions kept connections warm while allowing overlapping
-requests; this avoids the benchmark's earlier 256 idle client connections.
+requests. This avoids the benchmark's earlier 256 idle client connections.
 
 | Target rps | Achieved rps | HTTP p99 ms | Scheduled-arrival p99 ms | Failures / completed |
 |---:|---:|---:|---:|---:|
@@ -136,14 +136,14 @@ scheduled-arrival p99, and 78.85 ms maximum scheduler lag. Each acceptance
 measure is within the committed 120-ms limit. The raw per-request timings,
 summary, harness source, SHA-256 hashes, fixture provenance, and limitations are
 in the [final latency manifest](evidence/phase-3/latency-session-32/manifest.json).
-This is local synthetic-path evidence; it does not claim real-data predictive
+This is local synthetic-path evidence. It does not claim real-data predictive
 quality or cloud production latency.
 
 The earlier 256-session curve, diagnostic probes, and rejected two-worker trial
 remain in the [latency investigation](evidence/phase-3/latency-investigation.md).
 They are historical failed experiments, not acceptance evidence. The failed
 256-session run held roughly 282 server file descriptors while 256 loopback
-clients remained connected; the final bounded-session configuration corrects
+clients remained connected. The final bounded-session configuration corrects
 that benchmark-induced connection pressure without changing model or service
 semantics.
 
@@ -155,7 +155,7 @@ infrastructure checks. Review fixes made while that long run was active were
 verified with fresh component runs: seventeen maturity tests, forty-four
 dataset/monthly tests, twenty-one training/tracking/promotion tests, eighty-eight
 serving tests, four independent dbt maturity-guard tests and five Compose
-contract tests. These runs overlap the full suite; their counts are not added
+contract tests. These runs overlap the full suite. Their counts are not added
 to claim a larger single run.
 
 Coverage uses the full run only for unchanged `ingest` and `orchestration`

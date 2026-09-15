@@ -8,8 +8,8 @@ from unittest.mock import MagicMock
 import pytest
 from mlflow.tracking import MlflowClient
 
+from ml.demo_features import DEMO_FEATURE_NAMES
 from ml.demo_pipeline import build_demo, run_demo, train_demo
-from ml.demo_training import DEMO_FEATURE_NAMES
 from serving.demo_app import load_demo_model
 
 
@@ -94,6 +94,27 @@ def test_missing_positive_class_stops_registration(
     connection.__enter__.return_value.execute.return_value.fetchall.return_value = rows
     monkeypatch.setattr("ml.demo_pipeline.psycopg.connect", lambda *a, **k: connection)
     with pytest.raises(ValueError, match="both classes"):
+        train_demo("unused", "unused", tmp_path)
+
+
+@pytest.mark.parametrize("missing_feature", ["violations_4m", "crashes_24m"])
+def test_missing_required_feature_stops_before_model_fit(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    missing_feature: str,
+) -> None:
+    (tmp_path / "source-provenance.json").write_text('{"data_as_of": "2026-09-03"}')
+    rows = training_rows()
+    rows[0][missing_feature] = None
+    connection = MagicMock()
+    connection.__enter__.return_value.execute.return_value.fetchall.return_value = rows
+    monkeypatch.setattr("ml.demo_pipeline.psycopg.connect", lambda *a, **k: connection)
+    estimator = MagicMock()
+    estimator.fit.side_effect = AssertionError("Invalid features reached model fitting")
+    monkeypatch.setattr(
+        "sklearn.ensemble.GradientBoostingClassifier", lambda **k: estimator
+    )
+    with pytest.raises(ValueError, match=missing_feature):
         train_demo("unused", "unused", tmp_path)
 
 

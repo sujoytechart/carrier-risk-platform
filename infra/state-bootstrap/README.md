@@ -60,7 +60,7 @@ output for the backend configuration.
 Here, `terraform_operator_role_name` selects the role whose inline state policy
 this root manages. The AWS provider uses the credentials supplied to Terraform
 to create resources. Choose a role whose policies the project is authorized to
-manage; organization-managed or SSO-managed login roles may be protected from
+manage. Organization-managed or SSO-managed login roles may be protected from
 policy changes.
 
 For a separate state-access role, create a project-owned role in a separately
@@ -72,7 +72,7 @@ object, and lockfile. The state role needs no resource-provisioning permissions.
 Creating and assuming it must remain allowed by the account's existing policies.
 
 Configure the base S3 backend's `assume_role` object using
-`terraform_deployment_role_arn`; a commented example is in
+`terraform_deployment_role_arn`. A commented example is in
 `infra/base/backend.hcl.example`. Backend authentication is independent of the
 AWS provider, so keep the provider's deployment credentials and the base root's
 `terraform_operator_role_name` runtime-trust principal unchanged. When the login
@@ -92,19 +92,19 @@ Then copy `infra/base/backend.hcl.example` to the ignored
 root with `-migrate-state -backend-config=backend.hcl`. Use `umask 077` before
 pulling the migrated remote state to another private backup, then compare its
 checksum, lineage, serial, and resource-address list using the same backend-free
-inspection commands. Lineage and every resource address must be unchanged; the
+inspection commands. Lineage and every resource address must be unchanged. The
 serial may advance during migration.
 
 The project uses only Terraform's default workspace. The state policy deliberately
-does not grant access to the `env:/` discovery prefix used by CLI workspaces; keep
+does not grant access to the `env:/` discovery prefix used by CLI workspaces. Keep
 the single `base` root instead of creating Terraform workspaces.
 
 Test native locking with two terminals under the deployment identity. In an
 isolated acceptance root, add a temporary output with a constant value and start
-`terraform apply -refresh=false -input=true`. Leave it at the confirmation prompt;
-do not approve the change. A `terraform plan -lock-timeout=0s` in the second
+`terraform apply -refresh=false -input=true`. Leave it at the confirmation prompt.
+Do not approve the change. A `terraform plan -lock-timeout=0s` in the second
 terminal must fail with lock metadata. Answer `no` in the first terminal, remove
-the temporary output, and repeat the plan; it must acquire and release the lock
+the temporary output, and repeat the plan. It must acquire and release the lock
 successfully with no changes. Terraform 1.16.0's console did not hold a persistent
 lock in the live acceptance check. Record only redacted evidence: state bucket names,
 role ARNs, account ids, endpoints, and lock metadata are sensitive operational
@@ -124,8 +124,8 @@ Final cleanup is intentionally ordered and separately approved:
    application artifact with `force_delete = true`.
 2. Pull and secure the final empty state. Copy the initialized base working
    directory and its Terraform data directory to a private temporary location,
-   change that copy's backend to `local`, and run `terraform init -migrate-state`;
-   verify lineage and the empty resource-address list again.
+   change that copy's backend to `local`, and run `terraform init -migrate-state`.
+   Verify lineage and the empty resource-address list again.
 3. Remove every version and delete marker for the remote state and lock objects
    under the approved cleanup procedure.
 4. Destroy the bootstrap root from its secured local state, then remove its local

@@ -3,7 +3,7 @@
 Phase 4 makes the project readable and its evidence inspectable. It starts from
 Phase 3 commit `2a550bd` and adds the reporting-lag distribution, latency curve,
 shorter README, explicit exclusions, and actual failure/recovery screenshots.
-The charts reuse recorded measurements; this phase makes no new model-quality,
+The charts reuse recorded measurements. This phase makes no new model-quality,
 production-latency, or cloud-scale claim.
 
 ## Charts and the two-minute introduction
@@ -59,7 +59,7 @@ marked successful or cleared to create the result.
 ![The same mapped task succeeds on attempt three](evidence/phase-4/airflow-recovered.png)
 
 These are unedited screenshots of the live Airflow UI. The browser displays
-America/Detroit time; JSON evidence records UTC. The separate red run visible
+America/Detroit time. JSON evidence records UTC. The separate red run visible
 in the left grid is an earlier demo-setup failure: Airflow's executor initially
 used its default port 8080 while this isolated API listened on 8084. Setting the
 execution API URL and restarting fixed that configuration. It is not counted
@@ -85,12 +85,12 @@ manifest loader and dbt build. Both runs succeeded on their first attempts.
 
 Hashes of all columns in the three modeled relations match before and after
 replay. The [first snapshot](evidence/phase-4/after-first-backfill.json) documents
-the exact hash algorithm and empty queue; the
+the exact hash algorithm and empty queue. The
 [recovery/replay record](evidence/phase-4/recovery-and-replay.json) contains run
 times, task attempts, counts and matching hashes. These hashes are evidence for
 this fixture, not a cross-version contract. The
 [task-log excerpts](evidence/phase-4/task-log-excerpts.json) preserve original
-outcome messages and original log-file hashes; host paths, stack frames and
+outcome messages and original log-file hashes. Host paths, stack frames and
 queue receipt handles are excluded.
 
 ## Reproduce the demonstration
@@ -135,7 +135,7 @@ export AIRFLOW__CORE__EXECUTION_API_SERVER_URL=http://127.0.0.1:8084/execution/
 ```
 
 Keep those environment settings in the shell running the commands below. The
-standard four loader retries and exponential backoff remain; only this local
+standard four loader retries and exponential backoff remain. Only this local
 instance's base delay is set to 30 seconds. The proof used Airflow's local
 Simple Auth Manager, and all service ports were bound to loopback.
 
@@ -168,14 +168,14 @@ Simple Auth Manager, and all service ports were bound to loopback.
 
 5. Compare counts and hashes, capture the actual UI, and remove only the
    disposable services created for the proof. Local queue notifications emulate
-   S3's event shape; actual AWS delivery was separately proved in Phase 1.
+   S3's event shape. Actual AWS delivery was separately proved in Phase 1.
 
 ## Verification fixes
 
 The first full run found an inherited Phase 3 offline-compilation failure:
 `dbt compile --no-introspect` sets `execute=true` but provides no connection for
 the new label-maturity guard's registry lookup. That lookup is now restricted
-to PostgreSQL `test` and `build`; actual validation and the nine-month policy are
+to PostgreSQL `test` and `build`. Actual validation and the nine-month policy are
 unchanged. A new regression failed before the fix and passes afterward.
 
 The portability test also still expected only the original three temporal
@@ -186,7 +186,7 @@ to nonempty SQL. No tests, assertions or quality thresholds were removed.
 The fresh full suite passed **437 tests** in 1,368.08 seconds, but its project
 coverage was **86.88436830835117%**, below the committed
 **88.09963099630997%** baseline. Phase 3's published coverage included a separate
-manual serving smoke run; the regular suite did not exercise the fixture CLI.
+manual serving smoke run. The regular suite did not exercise the fixture CLI.
 That gap is now covered by
 [a committed integration test](../tests/test_serving_cli_smoke.py).
 
@@ -195,14 +195,14 @@ checks all 512 persisted feature and inspection rows across replay, verifies
 the registered model and synthetic tags, serves a real fixture score, and
 confirms production mode rejects the same model. It restores MLflow's tracking
 URI and removes only its newly created fixture database. This is an execution
-and isolation test; it does not replace the recorded latency acceptance run.
+and isolation test. It does not replace the recorded latency acceptance run.
 
 The standalone smoke passed, followed by **95 passing serving/MLflow tests** in
 one process, including the new smoke and the neighboring tests. Final coverage
 combines the fresh full suite with these successful follow-up runs against
 unchanged production Python sources: **88.38329764453961%**, comprising
 2,669/2,950 statements and 633/786 branches. The failed first measurement and
-development logs remain separately identified; their coverage was excluded from
+development logs remain separately identified. Their coverage was excluded from
 the final combination. No threshold was lowered.
 
 The [quality record](evidence/phase-4/quality-checks.json) retains commands,
@@ -219,6 +219,6 @@ six dedicated loopback ports were closed. Earlier project containers remained
 present. The [cleanup record](evidence/phase-4/cleanup.json) captures this check
 and the hashes of the four unedited screenshots.
 
-Phase 4 created no cloud resources. Its cleanup record covers this local proof;
-the original AWS and Snowflake lifecycle evidence remains in the Phase 1/2
+Phase 4 created no cloud resources. Its cleanup record covers this local proof.
+The original AWS and Snowflake lifecycle evidence remains in the Phase 1/2
 reports.

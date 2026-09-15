@@ -24,14 +24,14 @@ experiment does not promote a model to the default API.
 The dates were selected from inspection coverage and non-overlapping outcome
 windows before fitting, rather than from model performance. Six intermediate
 monthly scoring dates are omitted. The estimator uses the original fixed
-100-tree gradient boosting parameters and seed; the seven-feature demo contract
+100-tree gradient boosting parameters and seed. The seven-feature demo contract
 names inspection counts explicitly as `_4m`. A classification threshold of
 0.239572 was selected by training F1 only, before evaluating test predictions.
 There was no tuning against the test period.
 
 The target means **at least one qualifying federal crash recorded in the retained
 September 3, 2026 snapshot during the following six months**. A negative means no
-such retained recorded crash; it does not guarantee no actual crash.
+such retained recorded crash. It does not guarantee no actual crash.
 
 ## Measured results
 
@@ -51,8 +51,29 @@ such retained recorded crash; it does not guarantee no actual crash.
 
 Accuracy alone would conceal the class imbalance. The model's useful result is
 its higher ranking precision than the prior-crash baseline and its detection of
-11,792 recorded positive carriers. This is a rough retrospective estimate; it
+11,792 recorded positive carriers. This is a rough retrospective estimate. It
 does not establish calibrated probabilities or prospective predictive quality.
+
+### Interpreting precision
+
+The model flagged 24,422 carriers positive. Of those, 11,792 had a qualifying
+recorded crash and 12,630 did not have one in the retained outcome data. This
+gives **48.28% precision** at the threshold selected on training data.
+Average precision is a separate ranking measure across thresholds. Its
+**49.00%** result is compared with the prior-crash baseline's **40.17%**.
+
+The project emphasizes the data pipeline and ML platform. A fixed 100-tree
+gradient boosting model exercises feature generation, reproducible training,
+registry publication and serving. There was no hyperparameter search.
+The training cohort contains 203,560 carriers, but historical coverage and
+feature depth are limited to two scoring cohorts and seven aggregate features.
+The threshold was selected for training F1, which balances precision and recall.
+It was not selected to meet a minimum precision target.
+
+The limitations below may affect predictive performance. This experiment does
+not isolate how much each one contributes to the observed precision. More
+history, richer features or tuning would need a new held-out evaluation before
+claiming an improvement.
 
 ## Limitations encountered
 
@@ -67,10 +88,10 @@ Source-add time plus one publication day is a reporting-availability proxy.
 Current retained values cannot reconstruct every past correction or deletion.
 The public inspection download excludes currently inactive carriers, so these
 historical cohorts are conditional on acquisition-time inclusion. There are
-114,486 repeated carriers across training and test; this measures a later period,
+114,486 repeated carriers across training and test. This measures a later period,
 not unseen carriers. Historical fleet exposure is unavailable.
 
-The model was fitted retrospectively using outcomes retained in 2026; training
+The model was fitted retrospectively using outcomes retained in 2026. Training
 labels were not necessarily mature before the September 2024 scoring date. This
 is not a simulation of a model deployed then. More historical snapshots and
 outcome records could expand training and validation coverage and may improve
@@ -97,10 +118,10 @@ python -m ml.demo_pipeline train
 The derived root contains `inspections/snapshot.parquet`,
 `crashes/snapshot.parquet` and their `lineage.json` files. Extraction verifies
 both SHA-256 fingerprints and source-value reconciliation. Selected source rows
-land only in `learning_demo.source_events`; canonical raw and modeled history
+land only in `learning_demo.source_events`. Canonical raw and modeled history
 are untouched. Conflicting inspection identities fail dbt validation. Features
 require event and proxy reporting dates strictly before scoring. Only historical
-cohorts receive labels; the September 2026 scoring snapshot remains unlabeled.
+cohorts receive labels. The September 2026 scoring snapshot remains unlabeled.
 
 Alternatively, trigger the manual-only `train_demo_model` Airflow DAG with the
 same environment available to its workers. It extracts, builds/tests features,
@@ -128,8 +149,8 @@ This short local API smoke is separate from the production synthetic latency
 acceptance sweep. A follow-up after the regression work completed scored all
 6,000 requests at an offered 200 requests/second, achieved 185.1 requests/second
 including queue drain, and measured p99 latency of 883.5 ms. It does **not** meet
-the production 200 ms p99 target. The earlier contended trial had three client
-errors and substantially higher latency; its cause was not isolated. Both
+the production 120 ms p99 target. The earlier contended trial had three client
+errors and substantially higher latency. Its cause was not isolated. Both
 [measured trials](evidence/learning-demo/README.md) are retained.
 At a lighter offered 30 requests/second, all 900 requests scored successfully,
 achieved throughput was 30.0 requests/second and p99 latency was 30.2 ms. This is

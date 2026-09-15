@@ -25,10 +25,10 @@ the same carrier.
 
 **Eligibility.** A crash contributes to carrier features and labels only when:
 
-- its USDOT number is present and parses to a positive identifier;
-- it is federally recordable;
-- every field required by the incident key is valid;
-- it was visible at the scoring date; and
+- its USDOT number is present and parses to a positive identifier.
+- it is federally recordable.
+- every field required by the incident key is valid.
+- it was visible at the scoring date.
 - its event version was not deleted at that time.
 
 Ineligible rows are retained in the raw and clean layers carrying
@@ -53,7 +53,7 @@ carrier_crash_key = (
 )
 ```
 
-The stored key is generated from this tuple with an unambiguous encoding; raw
+The stored key is generated from this tuple with an unambiguous encoding. Raw
 string concatenation is not used. Aggregations take `max(fatalities)`,
 `max(injuries)`, and `bool_or(tow_away)`. Labels use
 `count(distinct carrier_crash_key)`.

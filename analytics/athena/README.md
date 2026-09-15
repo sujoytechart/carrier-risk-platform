@@ -31,7 +31,7 @@ retry returns `created=False`, while incomplete or conflicting existing content
 raises `FileExistsError`. Conversion has no cloud calls and buffers the
 configured row batch in memory. The default is 10,000 rows. This bounds the
 number of resident records, while bytes still depend on field sizes up to
-Python's CSV parser limit; an oversized field fails closed rather than being
+Python's CSV parser limit. An oversized field fails closed rather than being
 truncated. Parquet also retains row-group/footer metadata, so total memory is not
 strictly bounded by the row batch alone.
 
@@ -46,7 +46,7 @@ records why this copy never replaces raw evidence.
 This directory contains the two queries used to reconcile and describe one
 complete immutable crash snapshot and one complete immutable inspection snapshot
 in place. The catalog publisher validates the original gzip objects and creates
-small indexes for Athena; it never rewrites, normalizes, or copies the raw CSV.
+small indexes for Athena. It never rewrites, normalizes, or copies the raw CSV.
 
 Read the [source schema notes](../../docs/source-schemas.md) for the verified
 column contracts and the [adapter differences](../../docs/adapter-differences.md)
@@ -65,7 +65,7 @@ raw/feed=<feed>/acquisition_date=<YYYY-MM-DD>/manifest.json
 
 The Python API uses the credentials and region already available through the
 standard AWS SDK configuration. Supply the deployed raw bucket through the
-environment; do not put bucket names, account identifiers, role identifiers, or
+environment. Do not put bucket names, account identifiers, role identifiers, or
 credentials in source files.
 
 ```python
@@ -105,7 +105,7 @@ when versioning metadata is present.
 Publication reads and decompresses the entire snapshot to verify compressed and
 uncompressed byte counts, both checksums, header order, row widths, and row
 count. This is a deliberate network and CPU preflight, including on an
-idempotent retry; inspect the selected manifest size and allow the full stream to
+idempotent retry. Inspect the selected manifest size and allow the full stream to
 finish. The operation holds one CSV record at a time rather than loading the
 snapshot into memory.
 
@@ -121,7 +121,7 @@ keeps the adjacent `manifest.json` out of the CSV table. Compact metadata keeps
 `batch_id`, `feed`, `observed_at`, `content_sha256`, `object_sha256`,
 `row_count`, and `schema_fingerprint`. Metadata is written first and the
 Athena-visible pointer last. Repeating the same publication returns an
-idempotent result; conflicting existing content fails. If a run stops after
+idempotent result. Conflicting existing content fails. If a run stops after
 metadata creation, rerun the same feed and date to validate the full object again
 and finish the pointer without replacing either object.
 
@@ -132,9 +132,9 @@ narrower dialect. Publication stops before writing catalog objects when a record
 contains any of these constructs:
 
 - a NUL character, because the catalog configures NUL as OpenCSV's escape marker
-  so ordinary backslashes remain literal;
-- CR, LF, or CRLF embedded inside a quoted field;
-- a quote inside unquoted text; or
+  so ordinary backslashes remain literal.
+- CR, LF, or CRLF embedded inside a quoted field.
+- a quote inside unquoted text.
 - characters after a closing quote before the next delimiter.
 
 A UTF-8 BOM, quoted commas, and doubled quotes remain valid. Treat a rejection as
@@ -163,8 +163,8 @@ Metadata partitions resolve the corresponding `catalog-metadata/` directories.
 
 Both SQL files contain `1970-01-01` sentinels in a `selected_snapshots` CTE.
 Replace both feed dates in both files with the same crash and inspection
-partitions published above. Select exactly one initial complete snapshot per feed;
-combining daily snapshots would count repeated appearances as independent source
+partitions published above. Select exactly one initial complete snapshot per feed.
+Combining daily snapshots would count repeated appearances as independent source
 rows.
 
 Execute the queries in the deployment's configured catalog database and enforced
@@ -196,7 +196,7 @@ and remaining live boundaries are tracked in the [main README](../../README.md#s
 
 `DerivedCatalogPublisher(S3DerivedStore(bucket, client), converter).publish(manifest,
 local_directory)` revalidates the local artifact before uploading it. S3 checks
-the file SHA-256; conditional creates reject conflicting publications. Lineage
+the file SHA-256. Conditional creates reject conflicting publications. Lineage
 and data are written before the flat metadata completion marker. An exact retry
 can finish an interrupted upload.
 

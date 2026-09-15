@@ -33,8 +33,8 @@ terraform -chdir=infra/base validate
 terraform -chdir=infra/base test
 ```
 
-`terraform test` uses the mock provider definitions under `infra/base/tests`;
-it must not be replaced with a credentialed test.
+`terraform test` uses the mock provider definitions under `infra/base/tests`.
+It must not be replaced with a credentialed test.
 
 ## Review and enable the private spine
 
@@ -50,15 +50,15 @@ terraform -chdir=infra/base apply phase-1-enable.tfplan
 
 The default plan creates these resources:
 
-- an encrypted SQS arrival queue and encrypted dead-letter queue;
-- manifest-only S3 notifications from the existing raw bucket;
-- a separate least-privilege loader role;
-- one VPC and two isolated subnets, with no NAT gateway or internet route; and
+- an encrypted SQS arrival queue and encrypted dead-letter queue.
+- manifest-only S3 notifications from the existing raw bucket.
+- a separate least-privilege loader role.
+- one VPC and two isolated subnets, with no NAT gateway or internet route.
 - one encrypted, single-AZ PostgreSQL 17 `db.t4g.micro` instance with 20 GiB of
   bounded gp3 storage and an RDS-managed master password.
 
 Private mode has no general database ingress. It is suitable when Airflow can
-reach the VPC through an approved private path; locally run Airflow cannot reach
+reach the VPC through an approved private path. Locally run Airflow cannot reach
 the RDS endpoint over the public internet in this mode.
 
 Queue and connection metadata can be read after apply:
@@ -86,7 +86,7 @@ shell history, repository files, or screenshots.
 ## Temporary public access for local Airflow
 
 Public connectivity is an explicit exception, not a convenience default. It
-requires one developer IPv4 `/32`; broader or IPv6 CIDRs are rejected. Determine
+requires one developer IPv4 `/32`. Broader or IPv6 CIDRs are rejected. Determine
 the reviewed address out of band, then plan both switches together:
 
 ```sh
@@ -101,7 +101,7 @@ terraform -chdir=infra/base apply phase-1-public-enable.tfplan
 
 Replace the documentation address with the approved developer host. This mode
 adds an internet gateway and opens only TCP 5432 from that `/32`. RDS supports
-TLS, so the Airflow connection must require TLS certificate validation; TLS
+TLS, so the Airflow connection must require TLS certificate validation. TLS
 protects traffic but does not make an internet-routable endpoint private. Disable
 the spine when the working session ends instead of leaving public access in
 place.

@@ -7,6 +7,7 @@ import hashlib
 import importlib
 import json
 import os
+from collections.abc import Mapping, Sequence
 from datetime import date
 from pathlib import Path
 from typing import Any
@@ -16,11 +17,12 @@ import mlflow.sklearn
 import numpy as np
 import psycopg
 from mlflow.tracking import MlflowClient
+from numpy.typing import NDArray
 from psycopg.rows import dict_row
 
+from ml.demo_features import DEMO_FEATURE_NAMES, demo_feature_values
 from ml.demo_source import extract_demo_sources
 from ml.demo_training import (
-    DEMO_FEATURE_NAMES,
     DEMO_MODEL_NAME,
     TEST_DATE,
     TRAIN_DATE,
@@ -55,6 +57,36 @@ def build_demo(database_url: str, output_dir: Path) -> None:
     )
 
 
+def _cohort_arrays(
+    rows: Sequence[Mapping[str, Any]], scoring_date: str
+) -> tuple[NDArray[np.float64], NDArray[np.int64]]:
+    """Select one snapshot and validate its features before model fitting."""
+    cohort = [row for row in rows if str(row["scoring_date"]) == scoring_date]
+    if {row["label"] for row in cohort} != {0, 1}:
+        raise ValueError("Each experiment cohort requires both classes")
+    values = np.asarray([demo_feature_values(row) for row in cohort], dtype=np.float64)
+    labels = np.asarray([row["label"] for row in cohort], dtype=np.int64)
+    return values, labels
+
+
+def _publish_demo_version(
+    client: MlflowClient, run_id: str, tags: dict[str, str]
+) -> str:
+    """Publish only the version registered by this run to the separate demo alias."""
+    versions = [
+        version
+        for version in client.search_model_versions(f"name='{DEMO_MODEL_NAME}'")
+        if version.run_id == run_id
+    ]
+    if len(versions) != 1:
+        raise ValueError("Expected exactly one registered demo version for this run")
+    version = versions[0]
+    for name, value in tags.items():
+        client.set_model_version_tag(DEMO_MODEL_NAME, version.version, name, value)
+    client.set_registered_model_alias(DEMO_MODEL_NAME, "demo", version.version)
+    return str(version.version)
+
+
 def train_demo(
     database_url: str, tracking_uri: str, output_dir: Path
 ) -> dict[str, Any]:
@@ -72,41 +104,22 @@ def train_demo(
             where scoring_date in (date '2024-02-01', date '2024-09-01')
             order by scoring_date, usdot_number
         """).fetchall()
-    partitions = [
-        [row for row in rows if str(row["scoring_date"]) == scoring_date]
-        for scoring_date in (TRAIN_DATE, TEST_DATE)
-    ]
-    for partition in partitions:
-        if {row["label"] for row in partition} != {0, 1}:
-            raise ValueError("Each experiment cohort requires both classes")
-    values = [
-        np.asarray(
-            [
-                [float(row[name] or 0) for name in DEMO_FEATURE_NAMES]
-                for row in partition
-            ],
-            dtype=np.float64,
-        )
-        for partition in partitions
-    ]
-    labels = [
-        np.asarray([row["label"] for row in part], dtype=np.int64)
-        for part in partitions
-    ]
+    train_values, train_labels = _cohort_arrays(rows, TRAIN_DATE)
+    test_values, test_labels = _cohort_arrays(rows, TEST_DATE)
     ensemble: Any = importlib.import_module("sklearn.ensemble")
     classifier = ensemble.GradientBoostingClassifier(**MODEL_PARAMETERS)
-    classifier.fit(values[0], labels[0])
+    classifier.fit(train_values, train_labels)
     threshold = select_threshold(
-        labels[0], positive_probabilities(classifier, values[0])
+        train_labels, positive_probabilities(classifier, train_values)
     )
     metrics = evaluate_demo(
-        labels[1],
-        positive_probabilities(classifier, values[1]),
-        values[1][:, DEMO_FEATURE_NAMES.index("crashes_24m")],
+        test_labels,
+        positive_probabilities(classifier, test_values),
+        test_values[:, DEMO_FEATURE_NAMES.index("crashes_24m")],
         threshold,
     )
-    metrics["training_rows"] = float(len(partitions[0]))
-    metrics["training_prevalence"] = float(labels[0].mean())
+    metrics["training_rows"] = float(len(train_labels))
+    metrics["training_prevalence"] = float(train_labels.mean())
     digest = hashlib.sha256()
     for row in rows:
         digest.update(json.dumps(row, sort_keys=True, default=str).encode() + b"\n")
@@ -140,27 +153,16 @@ def train_demo(
         mlflow.sklearn.log_model(
             classifier,
             name="model",
-            input_example=values[0][:2],
+            input_example=train_values[:2],
             registered_model_name=DEMO_MODEL_NAME,
         )
-        client = MlflowClient(tracking_uri=tracking_uri)
-        versions = [
-            v
-            for v in client.search_model_versions(f"name='{DEMO_MODEL_NAME}'")
-            if v.run_id == run.info.run_id
-        ]
-        if len(versions) != 1:
-            raise ValueError(
-                "Expected exactly one registered demo version for this run"
-            )
-        version = versions[0]
-        for name, value in tags.items():
-            client.set_model_version_tag(DEMO_MODEL_NAME, version.version, name, value)
-        client.set_registered_model_alias(DEMO_MODEL_NAME, "demo", version.version)
+        version = _publish_demo_version(
+            MlflowClient(tracking_uri=tracking_uri), run.info.run_id, tags
+        )
         evidence = {
             "run_id": run.info.run_id,
             "model_name": DEMO_MODEL_NAME,
-            "model_version": str(version.version),
+            "model_version": version,
             "alias": "demo",
             "metrics": metrics,
             "provenance": provenance,

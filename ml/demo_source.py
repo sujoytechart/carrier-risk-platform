@@ -13,14 +13,32 @@ import re
 from collections import Counter
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
-from typing import Any
+from typing import Any, NamedTuple
 
 import psycopg
 import pyarrow.parquet as parquet
 
-from ml.maturity_cli import COLUMNS, _report, _source_add, _source_date
+from ml.source_records import (
+    CRASH_COLUMNS,
+    parse_crash_report,
+    parse_source_date,
+    parse_source_timestamp,
+)
 
-Event = tuple[str, str, str, date, date, int, int, bool]
+
+class DemoEvent(NamedTuple):
+    """One source event in the column order used by PostgreSQL COPY."""
+
+    event_type: str
+    source_key: str
+    usdot_number: str
+    event_date: date
+    reported_date: date
+    violation_count: int
+    oos_violation_count: int
+    federal_recordable: bool
+
+
 INSPECTION_COLUMNS = [
     "INSPECTION_ID",
     "DOT_NUMBER",
@@ -38,18 +56,20 @@ def _integer(value: str) -> int:
     return int(value.strip().split(".")[0])
 
 
-def inspection_event(row: dict[str, str]) -> Event:
+def inspection_event(row: dict[str, str]) -> DemoEvent:
     """Validate one retained inspection; source-add plus one day is a proxy."""
     key, carrier = _integer(row["INSPECTION_ID"]), _integer(row["DOT_NUMBER"])
     if key <= 0 or carrier <= 0:
         raise ValueError("invalid_inspection_identity")
-    event = _source_date(row["INSP_DATE"].strip())
-    reported = (_source_add(row["MCMIS_ADD_DATE"].strip()) + timedelta(days=1)).date()
+    event = parse_source_date(row["INSP_DATE"].strip())
+    reported = (
+        parse_source_timestamp(row["MCMIS_ADD_DATE"].strip()) + timedelta(days=1)
+    ).date()
     if reported < event:
         raise ValueError("impossible_event_chronology")
     if row["CHANGE_DATE"].strip():
-        _source_add(row["CHANGE_DATE"].strip())
-    return (
+        parse_source_timestamp(row["CHANGE_DATE"].strip())
+    return DemoEvent(
         "inspection",
         str(key),
         str(carrier),
@@ -61,9 +81,9 @@ def inspection_event(row: dict[str, str]) -> Event:
     )
 
 
-def crash_event(row: dict[str, str]) -> Event:
+def crash_event(row: dict[str, str]) -> DemoEvent:
     """Use the same stable carrier/incident identity as the maturity screen."""
-    report = _report(row)
+    report = parse_crash_report(row)
     if report.usdot_number is None:
         raise ValueError("invalid_usdot_number")
     key = json.dumps(
@@ -75,7 +95,7 @@ def crash_event(row: dict[str, str]) -> Event:
         ],
         separators=(",", ":"),
     )
-    return (
+    return DemoEvent(
         "crash",
         key,
         report.usdot_number,
@@ -136,7 +156,7 @@ def extract_demo_sources(
         ) as copy:
             for feed, columns, parser in (
                 ("inspections", INSPECTION_COLUMNS, inspection_event),
-                ("crashes", COLUMNS, crash_event),
+                ("crashes", CRASH_COLUMNS, crash_event),
             ):
                 source = parquet.ParquetFile(derived_root / feed / "snapshot.parquet")
                 for batch in source.iter_batches(batch_size=32768, columns=columns):
@@ -161,7 +181,7 @@ def extract_demo_sources(
                         except ValueError as error:
                             exclusions[f"{feed}:{error}"] += 1
                             continue
-                        if event[4] >= data_as_of:
+                        if event.reported_date >= data_as_of:
                             counts[f"{feed}_not_visible_at_acquisition"] += 1
                             continue
                         copy.write_row(event)

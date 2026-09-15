@@ -37,11 +37,11 @@ not to be shortened below six months to make the arithmetic fit.
 - At least 15 monthly scoring dates when grace is within the nine-month limit,
   compared with one under the original design. A shorter measured grace may
   provide more dates.
-- The actual number of carrier-month rows is measured after applying eligibility;
-  it is not estimated from the total carrier registry.
+- The actual number of carrier-month rows is measured after applying eligibility.
+  It is not estimated from the total carrier registry.
 - The final three scoring dates form the held-out test. The preceding six dates
   are discarded so training and test label windows cannot overlap. The model
-  specification is frozen before this test; there is no random split.
+  specification is frozen before this test. There is no random split.
 - A six-month inspection lookback may carry less signal per row than two years.
   The shorter window provides enough independent dates for a defensible test.
 

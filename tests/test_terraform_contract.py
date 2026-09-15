@@ -205,8 +205,8 @@ def test_loader_trust_does_not_reuse_ingest_principals() -> None:
 def test_analytics_trust_uses_only_its_dedicated_principals() -> None:
     """Keep catalog publication and queries separate from other runtime roles."""
     iam_configuration = (TERRAFORM_ROOTS[0] / "iam.tf").read_text()
-    analytics_configuration = iam_configuration.split(
-        "locals {\n  analytics_principal_arns", maxsplit=1
+    analytics_configuration = re.split(
+        r"locals\s*\{\s*analytics_principal_arns\b", iam_configuration, maxsplit=1
     )[1]
     assert "var.additional_analytics_principals" in analytics_configuration
     assert "var.additional_ingest_principals" not in analytics_configuration

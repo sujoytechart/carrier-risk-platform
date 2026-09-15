@@ -12,5 +12,5 @@ files:
 - `aws-rds-teardown.jpg`
 - `aws-sqs-teardown.jpg`
 
-Screenshots demonstrate the operator-visible state; they do not replace the
+Screenshots demonstrate the operator-visible state. They do not replace the
 automated checks.

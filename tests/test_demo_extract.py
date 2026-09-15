@@ -10,7 +10,8 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 import pytest
 
-from ml.demo_source import COLUMNS, INSPECTION_COLUMNS, extract_demo_sources
+from ml.demo_source import INSPECTION_COLUMNS, extract_demo_sources
+from ml.source_records import CRASH_COLUMNS
 
 
 def write_source(root: Path, feed: str, rows: list[dict[str, str]]) -> None:
@@ -44,7 +45,7 @@ def test_streaming_extraction_excludes_invalid_and_not_yet_visible_records(
         "VIOL_TOTAL": "2",
         "OOS_TOTAL": "1",
     }
-    crash = dict.fromkeys(COLUMNS, "") | {
+    crash = dict.fromkeys(CRASH_COLUMNS, "") | {
         "DOT_NUMBER": "123",
         "CRASH_ID": "11",
         "REPORT_DATE": "20240401",

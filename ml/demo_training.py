@@ -9,15 +9,6 @@ import numpy as np
 from numpy.typing import NDArray
 
 DEMO_MODEL_NAME = "carrier-risk-learning-demo"
-DEMO_FEATURE_NAMES = (
-    "inspections_4m",
-    "violations_4m",
-    "oos_violations_4m",
-    "crashes_24m",
-    "violations_per_inspection",
-    "oos_violation_rate",
-    "days_since_last_inspection",
-)
 TRAIN_DATE = "2024-02-01"
 TEST_DATE = "2024-09-01"
 

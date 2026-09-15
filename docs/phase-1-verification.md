@@ -28,7 +28,7 @@ The full Phase 0 snapshots remain in S3: 4,986,413 crash rows and 8,281,794
 inspection rows. Loading all 13.3 million rows into a temporary 20 GiB micro
 database would have added time and cost without testing another interface, so
 the live Phase 1 run used contract-valid synthetic acceptance snapshots instead.
-Those fixtures exercised the real AWS and application path; they are not
+Those fixtures exercised the real AWS and application path. They are not
 presented as production data or scale evidence.
 
 ## Retry, commit, and replay behavior
@@ -41,8 +41,8 @@ without weakening the task's retry policy.
 
 The acceptance data consisted of:
 
-- two vehicle rows belonging to one synthetic crash incident;
-- a complete two-row inspection snapshot; and
+- two vehicle rows belonging to one synthetic crash incident.
+- a complete two-row inspection snapshot.
 - a later complete inspection snapshot that changed one inspection from three
   violations and one out-of-service violation to seven and two.
 
@@ -101,7 +101,7 @@ business columns matched before, after the first replay, and after the second:
 | `modeled.event_versions` | `2e75bafbdc2f7a3217a75da4f0420e041700d0b2ff9bc2e7e7c45d731121bf41` |
 | `modeled.current_events` | `30f99c2f884e469d3c045a43762a7375182a2dcd0e7d8d917a9cd0206112fb23` |
 
-The hashes are acceptance evidence, not public contracts; schema evolution can
+The hashes are acceptance evidence, not public contracts. Schema evolution can
 legitimately change them.
 
 ## Test evidence
@@ -110,8 +110,8 @@ The final live dbt artifact contained 12 successful models, 91 passing tests,
 one successful startup operation, and zero failures. It included the three
 blocking temporal singular tests:
 
-- no impossible event chronology;
-- no overlapping event-version knowledge intervals; and
+- no impossible event chronology.
+- no overlapping event-version knowledge intervals.
 - training features equal an independently recomputed point-in-time result.
 
 The repository's complete local suite passed all 133 tests in one run, reporting
@@ -128,9 +128,9 @@ The reviewed disable plan was exactly `0 add, 0 change, 19 destroy`. Applying it
 removed the RDS instance, both SQS queues, the loader role, the database network,
 and the S3 notification. Independent checks then showed:
 
-- no matching RDS database instances;
-- no matching SQS queues;
-- no `module.spine` resources in Terraform state; and
+- no matching RDS database instances.
+- no matching SQS queues.
+- no `module.spine` resources in Terraform state.
 - the Phase 0 raw bucket and ten immutable snapshot/manifest objects still
   present.
 
@@ -143,11 +143,11 @@ the warehouse is disposable between learning sessions.
 Sanitized screenshots under `docs/evidence/phase-1/` show:
 
 1. successful Airflow `load_events` and `build_tables` runs plus both named
-   backfills; and
+   backfills.
 2. the post-teardown AWS inventories with `Databases (0)` and `Queues (0)`.
 
 The AWS account banner and assumed-role session were cropped before the images
 were committed. The live RDS and SQS configuration is recorded by the reviewed
-Terraform plan and machine-readable acceptance results above; the stack was not
+Terraform plan and machine-readable acceptance results above. The stack was not
 recreated merely to produce additional screenshots. Screenshots support those
 checks rather than replacing them.

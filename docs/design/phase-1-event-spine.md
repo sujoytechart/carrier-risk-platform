@@ -26,7 +26,7 @@ later phases require.
   acquisition time for versions first seen by this platform.
 - Version transitions are transactional: a predecessor is closed only when its
   successor is inserted successfully.
-- Airflow orchestrates boundaries; it does not contain parsing, loading, or
+- Airflow orchestrates boundaries. It does not contain parsing, loading, or
   temporal business logic.
 - RDS exists only during working sessions and must be destroyable without
   affecting the immutable S3 evidence base.
@@ -60,7 +60,7 @@ immutable S3 snapshot + manifest
 
 Local development uses the same Python and DAG code with MinIO, an
 SQS-compatible local endpoint, and container Postgres. Environment-backed
-adapters select local or AWS endpoints; domain code does not branch by profile.
+adapters select local or AWS endpoints. Domain code does not branch by profile.
 
 ## Batch identity and completeness
 
@@ -76,11 +76,11 @@ so their identity is stable without rewriting immutable objects.
 
 Before a batch is eligible for loading, the loader verifies:
 
-- the manifest feed and dataset match a configured feed;
-- the manifest object key belongs to the same feed and acquisition date;
-- the S3 object's size and checksum metadata match the manifest;
-- the manifest columns exactly match the versioned feed contract;
-- the copied row count matches the manifest row count; and
+- the manifest feed and dataset match a configured feed.
+- the manifest object key belongs to the same feed and acquisition date.
+- the S3 object's size and checksum metadata match the manifest.
+- the manifest columns exactly match the versioned feed contract.
+- the copied row count matches the manifest row count.
 - the batch reached `loaded` status in one database transaction.
 
 Only a loaded, complete snapshot may drive disappearance detection. A failed or
@@ -132,7 +132,7 @@ The first loaded snapshot contains historical records that predate this
 platform. Their `reported_date` and `knowledge_valid_from` use the feed-specific
 source add timestamp plus one publication day:
 
-- crashes: `add_date + 1 day`;
+- crashes: `add_date + 1 day`.
 - inspections: `mcmis_add_date + 1 day`.
 
 Those rows carry `availability_quality = 'source_proxy'`. A new source key or a
@@ -146,7 +146,7 @@ quarantined. The pipeline does not clamp or silently repair the dates.
 
 `modeled.event_versions` is an incremental table with a bigint surrogate key.
 The merge runs through a dbt materialization backed by adapter-dispatched SQL.
-Phase 1 implements Postgres; Phase 2 adds Snowflake dispatch without changing the
+Phase 1 implements Postgres. Phase 2 adds Snowflake dispatch without changing the
 model interface.
 
 For each complete batch, the transaction applies these transitions:
@@ -160,7 +160,7 @@ For each complete batch, the transaction applies these transitions:
    classified as retention expiry and does not create a tombstone.
 
 The transaction is serialized per feed. Batches normally apply in ascending
-`observed_at` order. Replaying an already applied batch is a no-op; introducing a
+`observed_at` order. Replaying an already applied batch is a no-op. Introducing a
 previously unseen older batch requires the controlled rebuild path rather than
 mutating history out of order.
 
@@ -208,12 +208,12 @@ load and build functions as normal arrival processing.
 ## Failure behavior
 
 - Unknown schemas fail the batch before any raw rows become visible.
-- Malformed rows are preserved in quarantine; batch counts must still reconcile.
+- Malformed rows are preserved in quarantine. Batch counts must still reconcile.
 - Database writes roll back together on copy or reconciliation failure.
 - A dbt contract or temporal test failure stops downstream publication.
 - SQS messages remain available after failed loads and eventually reach the DLQ.
 - Out-of-order new history fails with an actionable rebuild instruction.
-- A failed Terraform apply is safe to retry; Phase 1 resources remain tagged and
+- A failed Terraform apply is safe to retry. Phase 1 resources remain tagged and
   individually discoverable for teardown verification.
 
 ## Testing and evidence
@@ -225,8 +225,8 @@ retention expiry, and transaction rollback.
 
 The three dbt tests tagged `temporal` are blocking:
 
-1. no version is reported before its event date;
-2. versions of one source event never overlap in knowledge time; and
+1. no version is reported before its event date.
+2. versions of one source event never overlap in knowledge time.
 3. stored features equal an independent two-clock recomputation.
 
 The fixture for the third test contains an event where

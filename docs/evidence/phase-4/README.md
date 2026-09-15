@@ -17,7 +17,7 @@ scope, reproduction instructions and limitations.
 
 The local four-row fixture establishes behavior, not federal-data model quality
 or production scale. The previous cloud proof remains in the Phase 1/2 reports.
-Screenshots display local time (UTC−04:00); machine records use UTC. Receipt
+Screenshots display local time (UTC−04:00). Machine records use UTC. Receipt
 handles, credentials, host paths, full trace frames and raw federal records are
 absent from the published task excerpts. File hashes identify the original
-logs; those full local logs are not published.
+logs. Those full local logs are not published.
