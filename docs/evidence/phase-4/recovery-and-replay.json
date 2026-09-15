@@ -1,0 +1,107 @@
+{
+  "captured_at": "2026-09-11T22:15:19.038647+00:00",
+  "scope": "Local synthetic real DAG execution; MinIO, ElasticMQ, PostgreSQL; no AWS resource use",
+  "runs": [
+    {
+      "dag_id": "load_events",
+      "run_id": "phase4_missing_object_retry",
+      "state": "success",
+      "start_date": "2026-09-11 22:09:07.584773",
+      "end_date": "2026-09-11 22:12:30.928200"
+    },
+    {
+      "dag_id": "backfill",
+      "run_id": "phase4_backfill_first",
+      "state": "success",
+      "start_date": "2026-09-11 22:12:16.544886",
+      "end_date": "2026-09-11 22:12:47.899669"
+    },
+    {
+      "dag_id": "backfill",
+      "run_id": "phase4_backfill_replay",
+      "state": "success",
+      "start_date": "2026-09-11 22:13:48.016892",
+      "end_date": "2026-09-11 22:14:09.151156"
+    }
+  ],
+  "task_states": [
+    {
+      "run_id": "phase4_backfill_first",
+      "task_id": "build_backfill_tables",
+      "map_index": -1,
+      "state": "success",
+      "try_number": 1
+    },
+    {
+      "run_id": "phase4_backfill_first",
+      "task_id": "discover_manifests",
+      "map_index": -1,
+      "state": "success",
+      "try_number": 1
+    },
+    {
+      "run_id": "phase4_backfill_first",
+      "task_id": "load_backfill_manifest",
+      "map_index": 0,
+      "state": "success",
+      "try_number": 1
+    },
+    {
+      "run_id": "phase4_backfill_replay",
+      "task_id": "build_backfill_tables",
+      "map_index": -1,
+      "state": "success",
+      "try_number": 1
+    },
+    {
+      "run_id": "phase4_backfill_replay",
+      "task_id": "discover_manifests",
+      "map_index": -1,
+      "state": "success",
+      "try_number": 1
+    },
+    {
+      "run_id": "phase4_backfill_replay",
+      "task_id": "load_backfill_manifest",
+      "map_index": 0,
+      "state": "success",
+      "try_number": 1
+    },
+    {
+      "run_id": "phase4_missing_object_retry",
+      "task_id": "extract_messages",
+      "map_index": -1,
+      "state": "success",
+      "try_number": 1
+    },
+    {
+      "run_id": "phase4_missing_object_retry",
+      "task_id": "load_snapshot",
+      "map_index": 0,
+      "state": "success",
+      "try_number": 3
+    },
+    {
+      "run_id": "phase4_missing_object_retry",
+      "task_id": "wait_for_manifests",
+      "map_index": -1,
+      "state": "success",
+      "try_number": 1
+    }
+  ],
+  "counts": {
+    "raw.snapshot_batches": 2,
+    "raw.crash_rows": 2,
+    "raw.inspection_rows": 2,
+    "modeled.event_versions": 4,
+    "modeled.current_events": 3,
+    "modeled.training_features": 1
+  },
+  "relation_hashes": {
+    "modeled.event_versions": "26cd1df4e37889cc3b1b8d506da73ebc3d9bec1d2f6ddc4943ebef0adbc74667",
+    "modeled.current_events": "0629c9356ce7c0095c72b7e04ff159a31f6fc49bb89ddb9a297342c3a7c7e538",
+    "modeled.training_features": "ff9890035d5c5dfc82d9545717be86ce08d88f3e4639a0e255b77b947888840c"
+  },
+  "replay_counts_identical": true,
+  "replay_hashes_identical": true
+}

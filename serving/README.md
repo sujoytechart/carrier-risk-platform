@@ -55,6 +55,14 @@ handles subsequent warehouse failures. `/metrics` exposes bounded outcome
 counters, a scoring-handler duration histogram, and model availability. USDOTs
 are never metric labels. Client latency is measured separately by the load test.
 
+## Run the retrospective experiment
+
+The experiment runs in a separate app, `serving.demo_app`, with a
+`/demo/score/{identifier}` endpoint. It loads `carrier-risk-learning-demo` using
+the `demo` alias and marks responses as experimental. The default app rejects
+experimental models. Follow the [experiment guide](../docs/learning-demo.md)
+to prepare its data and start that app explicitly.
+
 ## Reproduce synthetic validation
 
 Scheduled training can remain blocked by its data eligibility or promotion

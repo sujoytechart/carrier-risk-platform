@@ -1,0 +1,157 @@
+{
+  "scope": "Selected original events from JSON task logs; excludes host paths, trace frames and receipt handles",
+  "source_log_hashes": [
+    {
+      "file": "dag_id=backfill/run_id=phase4_backfill_first/task_id=build_backfill_tables/attempt=1.log",
+      "sha256": "e79dbb715cbef58dd52af88189e5aaab61a0094295b44910ee5092fd1f0685c8"
+    },
+    {
+      "file": "dag_id=backfill/run_id=phase4_backfill_first/task_id=discover_manifests/attempt=1.log",
+      "sha256": "44ff722f22489df0236cb92f19e048110ad6741926254fa06f06130c455e9ad6"
+    },
+    {
+      "file": "dag_id=backfill/run_id=phase4_backfill_first/task_id=load_backfill_manifest/map_index=0/attempt=1.log",
+      "sha256": "2911c1ca8789076d78bce2511eeb37d81dff1af542143340f3d6d6f7d55b7d06"
+    },
+    {
+      "file": "dag_id=backfill/run_id=phase4_backfill_replay/task_id=build_backfill_tables/attempt=1.log",
+      "sha256": "9a696ef5c6e54ab19892ba314a14023087aa022f6ec711696b16c3c58909e31b"
+    },
+    {
+      "file": "dag_id=backfill/run_id=phase4_backfill_replay/task_id=discover_manifests/attempt=1.log",
+      "sha256": "dc1f052e17fd7ca2708001a65343f0d68586df2c4a1774e17a70b042d2e77497"
+    },
+    {
+      "file": "dag_id=backfill/run_id=phase4_backfill_replay/task_id=load_backfill_manifest/map_index=0/attempt=1.log",
+      "sha256": "5ee242ca7d6655772929d733cf5014ffccb339e99e837e031e5d961788dc0ef2"
+    },
+    {
+      "file": "dag_id=load_events/run_id=phase4_missing_object_retry/task_id=extract_messages/attempt=1.log",
+      "sha256": "95692f58199f21c06be01668f8c2b4193f391082814e3c282ef49a35f18ef51f"
+    },
+    {
+      "file": "dag_id=load_events/run_id=phase4_missing_object_retry/task_id=load_snapshot/map_index=0/attempt=1.log",
+      "sha256": "f53f8b21462113c0a290418e9f0bc2a0429c86b042a2918b927ce6e11068d6b5"
+    },
+    {
+      "file": "dag_id=load_events/run_id=phase4_missing_object_retry/task_id=load_snapshot/map_index=0/attempt=2.log",
+      "sha256": "ec3cd2b36b3f914511bd8e710f3739ba5df94a0cc3a27222af474e5ced3e8479"
+    },
+    {
+      "file": "dag_id=load_events/run_id=phase4_missing_object_retry/task_id=load_snapshot/map_index=0/attempt=3.log",
+      "sha256": "43b420e9a5dced446f070a86756f44c6d2a547089d61aa1fdcc1748ce2dfb751"
+    },
+    {
+      "file": "dag_id=load_events/run_id=phase4_missing_object_retry/task_id=wait_for_manifests/attempt=1.log",
+      "sha256": "31769506694b45e5fe0c3d69286105fe58fef7d44c16a41763ef75e43544c8d7"
+    },
+    {
+      "file": "dag_id=load_events/run_id=phase4_missing_object_retry/task_id=wait_for_manifests/attempt=1.log.trigger.5.log",
+      "sha256": "4974f100f443b331479629a85d4fd0d370aef73c03ab9c702a4de8823c489025"
+    }
+  ],
+  "events": [
+    {
+      "timestamp": "2026-09-11T22:12:47.024601Z",
+      "level": "info",
+      "event": "Done. Returned value was: None",
+      "dag_id": "backfill",
+      "task_id": "build_backfill_tables",
+      "map_index": -1,
+      "try_number": 1,
+      "run_id": "phase4_backfill_first"
+    },
+    {
+      "timestamp": "2026-09-11T22:12:20.093387Z",
+      "level": "info",
+      "event": "Done. Returned value was: [{'bucket': 'carrier-risk-phase4-raw', 'key': 'raw/feed=inspections/acquisition_date=2026-09-04/manifest.json', 'version_id': None}]",
+      "dag_id": "backfill",
+      "task_id": "discover_manifests",
+      "map_index": -1,
+      "try_number": 1,
+      "run_id": "phase4_backfill_first"
+    },
+    {
+      "timestamp": "2026-09-11T22:12:24.253692Z",
+      "level": "info",
+      "event": "Done. Returned value was: dd779ae9b0e9b95ddb599f0aaa88565e4484c6203b071505e1a558ceffb009f0",
+      "dag_id": "backfill",
+      "task_id": "load_backfill_manifest",
+      "map_index": 0,
+      "try_number": 1,
+      "run_id": "phase4_backfill_first"
+    },
+    {
+      "timestamp": "2026-09-11T22:14:08.971297Z",
+      "level": "info",
+      "event": "Done. Returned value was: None",
+      "dag_id": "backfill",
+      "task_id": "build_backfill_tables",
+      "map_index": -1,
+      "try_number": 1,
+      "run_id": "phase4_backfill_replay"
+    },
+    {
+      "timestamp": "2026-09-11T22:13:51.686970Z",
+      "level": "info",
+      "event": "Done. Returned value was: [{'bucket': 'carrier-risk-phase4-raw', 'key': 'raw/feed=inspections/acquisition_date=2026-09-04/manifest.json', 'version_id': None}]",
+      "dag_id": "backfill",
+      "task_id": "discover_manifests",
+      "map_index": -1,
+      "try_number": 1,
+      "run_id": "phase4_backfill_replay"
+    },
+    {
+      "timestamp": "2026-09-11T22:13:55.857123Z",
+      "level": "info",
+      "event": "Done. Returned value was: dd779ae9b0e9b95ddb599f0aaa88565e4484c6203b071505e1a558ceffb009f0",
+      "dag_id": "backfill",
+      "task_id": "load_backfill_manifest",
+      "map_index": 0,
+      "try_number": 1,
+      "run_id": "phase4_backfill_replay"
+    },
+    {
+      "timestamp": "2026-09-11T22:09:37.847360Z",
+      "level": "error",
+      "event": "Task failed with exception",
+      "dag_id": "load_events",
+      "task_id": "load_snapshot",
+      "map_index": 0,
+      "try_number": 1,
+      "run_id": "phase4_missing_object_retry",
+      "errors": [
+        {
+          "exc_type": "NoSuchKey",
+          "exc_value": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist."
+        }
+      ]
+    },
+    {
+      "timestamp": "2026-09-11T22:10:26.334841Z",
+      "level": "error",
+      "event": "Task failed with exception",
+      "dag_id": "load_events",
+      "task_id": "load_snapshot",
+      "map_index": 0,
+      "try_number": 2,
+      "run_id": "phase4_missing_object_retry",
+      "errors": [
+        {
+          "exc_type": "NoSuchKey",
+          "exc_value": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist."
+        }
+      ]
+    },
+    {
+      "timestamp": "2026-09-11T22:12:29.824734Z",
+      "level": "info",
+      "event": "Done. Returned value was: [{'batch_id': '22dd762c1bb746c8a5ac1048c6fcdad528d786fe1922c66189f5584e1c8d8b5e', 'inserted_rows': 2, 'already_loaded': False}]",
+      "dag_id": "load_events",
+      "task_id": "load_snapshot",
+      "map_index": 0,
+      "try_number": 3,
+      "run_id": "phase4_missing_object_retry"
+    }
+  ]
+}

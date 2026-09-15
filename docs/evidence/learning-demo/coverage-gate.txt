@@ -1,0 +1,8 @@
+Comparing event base d5eb044decb1fd3a5389c5b8f594480cabc96f5f with HEAD
+'ml/demo_pipeline.py': 83/90 changed lines
+'ml/demo_source.py': 80/84 changed lines
+'ml/demo_training.py': 23/24 changed lines
+'serving/demo_app.py': 122/123 changed lines
+'serving/model.py': 2/2 changed lines
+Project branch coverage: 88.96934588462467% (minimum 88.09963099630997%)
+Changed executable lines: 310/323 = 95.975% (minimum 80%)

@@ -24,18 +24,6 @@ it contains account and credit identifiers. It showed $119.96 estimated remainin
 and both credit expiry dates of September 2, 2027. It does not establish
 organization-wide sharing or a finalized project bill.
 
-## Snowflake setup, September 11, 2026
-
-![Snowflake warehouses suspended](snowflake-warehouse-suspended.jpg)
-
-The dedicated X-Small generation-1 test warehouse is suspended with zero running
-or queued queries, alongside the three pre-existing starter warehouses. This is
-setup and suspension evidence, not a successful dbt build. The project warehouse
-has auto-resume disabled, 60-second idle/query limits, and a resource monitor with
-a 25% immediate-suspension trigger on a one-credit, non-resetting quota. Its end
-timestamp is September 13, 2026 at 15:00 UTC. Monitor configuration was verified
-separately in the live SQL results; it is not visible in this screenshot.
-
 ## After the dbt guard checks, September 11, 2026
 
 ![Project warehouse suspended after guard checks](snowflake-after-guard-tests.jpg)

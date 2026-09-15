@@ -1,0 +1,27 @@
+{
+  "captured_at": "2026-09-11T22:10:39.789535+00:00",
+  "scope": "Local synthetic Airflow/SQS-emulator/MinIO demonstration",
+  "run_id": "phase4_missing_object_retry",
+  "task_states": [
+    [
+      "wait_for_manifests",
+      "success",
+      1
+    ],
+    [
+      "extract_messages",
+      "success",
+      1
+    ],
+    [
+      "load_snapshot",
+      "up_for_retry",
+      2
+    ]
+  ],
+  "queue_attributes": {
+    "ApproximateNumberOfMessages": "0",
+    "ApproximateNumberOfMessagesNotVisible": "1",
+    "ApproximateNumberOfMessagesDelayed": "0"
+  }
+}

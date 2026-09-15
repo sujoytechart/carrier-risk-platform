@@ -1,0 +1,175 @@
+{
+  "purpose": "Phase 4 charts from preserved aggregate evidence; no new measurements",
+  "inputs_sha256": {
+    "docs/evidence/phase-2/athena-results.json": "2a17669634165fc88caf5c1db62bd5d049714eeb1885b47c0ad846b58dd54396",
+    "docs/evidence/phase-2/parquet-reconciliation.json": "5bbabc64c063d8cfc41e8822cab4832dbad52f9eca4f93d8e9cd33573c75a641",
+    "analytics/athena/report_lag_derived.sql": "dfbb2a2a3d07f913d81cec791e695e2ba123503e7258c56fd9f3b59aae0a8ccf",
+    "docs/evidence/phase-3/latency-session-32/summary.json": "33e402c6f3e6aaa4ea7edb1b8401631230ed41a2e2c414adf34e8bdfd683c0cb",
+    "docs/evidence/phase-3/latency-session-32/manifest.json": "a4382d372aea24a0b308f34fd60cbd4f54b0ce229ef017e06457e2c00816f86e"
+  },
+  "renderer_sha256": "d3172af0e1ccf3213f9379279bdb17c5b5de27305926f80b5b5e8ea2ce058b90",
+  "outputs_sha256": {
+    "docs/report_lag.png": "777494833aeef9c7a24fc95fedaf85338802159f173a3758f734099b6098fd2f",
+    "docs/latency.png": "1c809f5fa1a84ae743b3814d4cb6a9518490901c532feb6feb045a0935b8580c"
+  },
+  "runtime": {
+    "python": "3.12.14",
+    "matplotlib": "3.11.2",
+    "numpy": "2.5.3",
+    "pillow": "12.3.0",
+    "backend": "Agg",
+    "font": "DejaVu Sans",
+    "dpi": 180
+  },
+  "report_lag": {
+    "availability_quality": "source_proxy",
+    "acquisition_date": "2026-09-03",
+    "buckets": [
+      "00 same day",
+      "01 1-2 days",
+      "02 3-7 days",
+      "03 8-14 days",
+      "04 15-30 days",
+      "05 31-60 days",
+      "06 61-90 days",
+      "07 91-180 days",
+      "08 181-270 days",
+      "09 271+ days"
+    ],
+    "percentiles": "Recorded Athena approx_percentile, not recalculated from bins",
+    "distributions": [
+      {
+        "feed": "crashes",
+        "sample_size": 4986413,
+        "bucket_counts": [
+          0,
+          31998,
+          359687,
+          628493,
+          1121673,
+          965523,
+          462629,
+          482054,
+          243023,
+          691333
+        ],
+        "p50_days": 39,
+        "p95_days": 897,
+        "p99_days": 1891,
+        "minimum_days": 1,
+        "maximum_days": 13609
+      },
+      {
+        "feed": "inspections",
+        "sample_size": 8281794,
+        "bucket_counts": [
+          0,
+          3550121,
+          3650780,
+          799591,
+          137817,
+          58217,
+          23971,
+          27548,
+          11122,
+          22627
+        ],
+        "p50_days": 3,
+        "p95_days": 11,
+        "p99_days": 61,
+        "minimum_days": 1,
+        "maximum_days": 1089
+      }
+    ],
+    "scope": "Current source snapshot rows; not distinct crash incidents or label maturity",
+    "validation": "Counts, fractions, source lineage and conversion values reconcile; zero exclusions and negative lags"
+  },
+  "latency": {
+    "validation_fixture": true,
+    "completed_at": "2026-09-11T21:49:41.575433+00:00",
+    "stages": [
+      {
+        "target_rps": 50,
+        "scheduled_requests": 1500,
+        "completed_requests": 1500,
+        "failures": 0,
+        "elapsed_seconds_including_drain": 30.002992881985847,
+        "achieved_rps": 49.99501236093742,
+        "p50_ms": 7.0,
+        "p95_ms": 10.0,
+        "p99_ms": 12.0,
+        "max_ms": 18.638049019500613,
+        "maximum_scheduler_lag_ms": 63.081094005610794,
+        "scheduled_arrival_to_response_p99_ms": 14.957113075070083,
+        "model_versions": [
+          "1"
+        ],
+        "failure_details": [],
+        "all_scheduled_requests_completed": true,
+        "latency_target_met": true
+      },
+      {
+        "target_rps": 100,
+        "scheduled_requests": 3000,
+        "completed_requests": 3000,
+        "failures": 0,
+        "elapsed_seconds_including_drain": 30.000689056003466,
+        "achieved_rps": 99.99770319940926,
+        "p50_ms": 6.0,
+        "p95_ms": 8.0,
+        "p99_ms": 10.0,
+        "max_ms": 21.504673990420997,
+        "maximum_scheduler_lag_ms": 1.8486669869162142,
+        "scheduled_arrival_to_response_p99_ms": 10.76065399684012,
+        "model_versions": [
+          "1"
+        ],
+        "failure_details": [],
+        "all_scheduled_requests_completed": true,
+        "latency_target_met": true
+      },
+      {
+        "target_rps": 200,
+        "scheduled_requests": 6000,
+        "completed_requests": 6000,
+        "failures": 0,
+        "elapsed_seconds_including_drain": 30.00023525499273,
+        "achieved_rps": 199.99843164568057,
+        "p50_ms": 5.0,
+        "p95_ms": 8.0,
+        "p99_ms": 14.0,
+        "max_ms": 119.30561898043379,
+        "maximum_scheduler_lag_ms": 78.85066902963445,
+        "scheduled_arrival_to_response_p99_ms": 14.297453977633268,
+        "model_versions": [
+          "1"
+        ],
+        "failure_details": [],
+        "all_scheduled_requests_completed": true,
+        "latency_target_met": true
+      },
+      {
+        "target_rps": 300,
+        "scheduled_requests": 9000,
+        "completed_requests": 9000,
+        "failures": 0,
+        "elapsed_seconds_including_drain": 30.002280239015818,
+        "achieved_rps": 299.9771993428734,
+        "p50_ms": 6.0,
+        "p95_ms": 24.0,
+        "p99_ms": 86.0,
+        "max_ms": 169.7952119866386,
+        "maximum_scheduler_lag_ms": 92.49525767518207,
+        "scheduled_arrival_to_response_p99_ms": 118.23447828646749,
+        "model_versions": [
+          "1"
+        ],
+        "failure_details": [],
+        "all_scheduled_requests_completed": true,
+        "latency_target_met": true
+      }
+    ],
+    "committed_target": "HTTP p99 <= 120 ms at 200 requested rps",
+    "scope": "Local synthetic fixture; not real-data model quality or production/cloud latency"
+  }
+}

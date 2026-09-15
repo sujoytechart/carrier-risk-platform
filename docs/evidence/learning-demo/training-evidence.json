@@ -1,0 +1,54 @@
+{
+  "run_id": "507954c89ec0407088e56e252b9898d2",
+  "model_name": "carrier-risk-learning-demo",
+  "model_version": "2",
+  "alias": "demo",
+  "metrics": {
+    "heldout_rows": 233291.0,
+    "heldout_prevalence": 0.11043717931681891,
+    "threshold": 0.2395723363459707,
+    "accuracy": 0.8859707404057593,
+    "always_negative_accuracy": 0.889562820683181,
+    "positive_recall": 0.45769290482844277,
+    "precision": 0.4828433379739579,
+    "f1": 0.4699318535049615,
+    "candidate_average_precision": 0.48996104094370085,
+    "baseline_average_precision": 0.4017060475745513,
+    "true_negative": 194897.0,
+    "false_positive": 12630.0,
+    "false_negative": 13972.0,
+    "true_positive": 11792.0,
+    "training_rows": 203560.0,
+    "training_prevalence": 0.11217822754961682
+  },
+  "provenance": {
+    "data_as_of": "2026-09-03",
+    "parquet_sha256": {
+      "inspections": "716422923d690fc5268eb7f603a6c55b6d0f2fdc02ccfd59a7cc2c0b5aec387b",
+      "crashes": "5ec1f3fce95f5000a12d46def52594f1294308bcbe64994d3342fc430bdcbd36"
+    },
+    "selected_rows": {
+      "inspections": 2732601,
+      "crashes": 657614
+    },
+    "parse_exclusions": {
+      "crashes:invalid_usdot_number": 170114,
+      "crashes:invalid_incident_key": 127
+    },
+    "availability_quality": "source_proxy",
+    "label_ascertainment": "retained_snapshot_not_eventual_completeness"
+  },
+  "tags": {
+    "experimental": "true",
+    "validation_fixture": "false",
+    "feature_names": "inspections_4m,violations_4m,oos_violations_4m,crashes_24m,violations_per_inspection,oos_violation_rate,days_since_last_inspection",
+    "label_ascertainment": "retained_snapshot_not_eventual_completeness",
+    "availability_quality": "source_proxy",
+    "data_as_of": "2026-09-03",
+    "evaluation": "retrospective_later_period_holdout",
+    "dataset_sha256": "a9f38fb38210923a6871df4dab7b3848060814bd751e5bd4a7f093765ecd419b",
+    "threshold": "0.2395723363459707"
+  },
+  "baseline_beaten": true,
+  "training_complete_before_test_scoring": false
+}

@@ -1,0 +1,28 @@
+version: 2
+
+sources:
+  - name: learning_demo
+    schema: learning_demo
+    tables:
+      - name: source_events
+
+models:
+  - name: demo_training_features
+    config:
+      contract:
+        enforced: true
+    columns:
+      - {name: usdot_number, data_type: text, data_tests: [not_null]}
+      - {name: scoring_date, data_type: date, data_tests: [not_null]}
+      - {name: inspections_4m, data_type: bigint, data_tests: [not_null]}
+      - {name: violations_4m, data_type: bigint, data_tests: [not_null]}
+      - {name: oos_violations_4m, data_type: bigint, data_tests: [not_null]}
+      - {name: crashes_24m, data_type: bigint, data_tests: [not_null]}
+      - {name: violations_per_inspection, data_type: "decimal(38,6)", data_tests: [not_null]}
+      - {name: oos_violation_rate, data_type: "decimal(38,6)"}
+      - {name: days_since_last_inspection, data_type: integer, data_tests: [not_null]}
+      - name: label
+        data_type: integer
+        data_tests:
+          - accepted_values:
+              arguments: {values: [0, 1], quote: false}

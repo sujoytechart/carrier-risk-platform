@@ -1,238 +1,187 @@
 # carrier-risk-platform
 
-Risk scoring for US motor carriers, built so that every prediction uses only the
-records that were actually available on the date the decision would have been made.
+A data platform built on federal trucking inspection and crash records:
+immutable snapshots, correction-aware history, portable analytics, orchestrated
+training, a model registry and a scoring API.
 
-Personal project. The current empirical label-maturity grace is **495 days**,
-which exceeds the committed nine-month limit. Scheduled training is
-therefore skipped before a model is fitted. The API's successful scoring path is
-validated with an explicitly synthetic model. There is no trained federal-data
-risk model.
+**The real-data experiment trained successfully.** On 233,291 carriers in a later
+historical period, average precision was **49.0% versus 40.2%** for the prior-crash
+baseline. It detected **45.8% of recorded crash-positive carriers**, and **48.3%
+of positive predictions were correct**. The model is registered and served under
+an explicitly experimental identity. This demonstrates the end-to-end platform;
+the [retrospective limitations](docs/learning-demo.md) remain visible.
 
-## Background
+## Training paths
 
-Freight brokers can face negligent hiring liability when a carrier they dispatch
-is involved in a crash. The Federal Motor Carrier Safety Administration (FMCSA)
-publishes carrier inspection and crash histories. Inspection rows already include
-violation and out-of-service totals. This project turns that public data into a
-carrier risk score, helping brokers assess safety risk before dispatching a load.
+| Path | Purpose | How it runs |
+|---|---|---|
+| **Scheduled training** | Train candidates only when data meets the eligibility rules, then evaluate them for promotion | Monthly Airflow workflow, `train_model` |
+| **Retrospective experiment** | Exercise the full platform and measure a model on retained historical data | Manually triggered Airflow workflow, `train_demo_model` |
 
-## The problem it solves
+Scheduled training is currently skipped before fitting. Its measured **495-day**
+label-maturity grace exceeds the nine-month limit. The experiment uses four
+months of inspection features and labels from a retained snapshot, so its results
+do not establish prospective performance.
 
-Federal safety scores are recalculated each month using the previous two years of
-inspections and crashes. That creates a leakage problem when those scores are used
-to train a model.
+Both paths share ingestion, orchestration utilities, MLflow and the same fixed
+gradient-boosting parameters. Dataset preparation, model registry names and
+serving apps are separate because the data assumptions differ. The default API
+serves scheduled training models. The experiment requires its own app and returns
+an explicit experimental flag. See the [serving guide](serving/README.md) for
+both entry points.
 
-Say you're trying to predict whether a carrier would crash last March.
-If you train on the carrier's current safety score, that score already includes
-the March crash. The model learns that carriers with bad scores tend to crash,
-tests well, and isn't much help with the question that matters: which carriers
-are risky before they crash?
+## Why two clocks matter
 
-Fixing this requires two date filters. Every event has a date when it happened,
-and a date when it showed up in federal data. Those dates can be weeks apart:
+A March 3 crash first reported on March 20 cannot inform a March 10 decision.
+Checking only when it happened would let future information into training:
 
 ```sql
-where event_date    < scoring_date   -- it had happened
-  and reported_date < scoring_date   -- it was visible
+where event_date    < scoring_date
+  and reported_date < scoring_date
 ```
 
-Checking only the event date still leaks information.
-An inspection or crash may have already happened but not yet been reported.
-At the scoring date, the model couldn't have known about it.
+Corrections add another requirement: select the event version knowable at that
+scoring date. Immutable snapshots and versioned knowledge intervals preserve the
+earlier answer when a later file changes or deletes a record. Three blocking dbt
+tests detect impossible chronology, overlapping versions, and incorrect historical
+features. Snowflake Time Travel follows warehouse ingestion history; it cannot
+replace these source-availability checks.
 
-So each historical score has to be built from only the information that was
-actually available on that date. Most implementations get the first filter
-right and miss the second.
-
-## Approach
-
-* Ingest daily inspection and crash feeds as immutable snapshots
-* Preserve corrected event versions so historical scoring uses the version that
-  was knowable at the time
-* Exclude present-day carrier attributes from historical features because no
-  confirmed public archive provides their past versions
-* Generate features for each carrier and scoring date using both the occurrence and
-  reporting-date filters above
-* Build labels from a forward-looking window, and only admit a row into training once
-  that window has fully elapsed
-* Enforce temporal correctness with tests that fail the build if future information
-  leaks into a historical row
-* Make every load idempotent, since carriers can dispute records and federal history
-  can change after publication
-
-## Architecture
-
-![Carrier Risk Platform architecture](docs/architecture.svg)
-
-Phase 1 implements the event spine shown across the center of the diagram:
+## How it works
 
 ```text
-immutable S3 manifest -> SQS -> Airflow -> raw PostgreSQL -> dbt history/features
+FMCSA snapshots → S3 manifests → SQS → Airflow → PostgreSQL/dbt history
+                                                        ↓
+                                              features → MLflow → FastAPI
 ```
 
-The manifest is published last, after the compressed snapshot and its checksums
-have been validated. SQS therefore carries a small reference to committed data,
-not the data itself. Airflow coordinates the load and build boundaries; Python
-owns transactional I/O, while dbt owns conformance, correction-aware history,
-crash-incident deduplication, and point-in-time features.
+The manifest commits a validated snapshot; repeated loads and backfills preserve
+the same event versions. Python handles transactional I/O, dbt resolves history
+and deduplicates crash incidents, and Airflow coordinates arrivals and monthly
+training. Terraform provisions the AWS resources. Local development uses
+PostgreSQL, MinIO and a queue emulator. The [design decisions](docs/adr/README.md)
+explain the boundaries and trade-offs.
 
-Every source event has two distinct timelines:
+![Pastel architecture showing Airflow control, the event spine, analytics, isolated real-data training, MLflow and FastAPI](docs/architecture.png)
 
-- the event and reported dates describe when the event happened and became
-  available from the source;
-- the half-open knowledge interval `[knowledge_valid_from,
-  knowledge_valid_to)` describes which corrected version the warehouse knew at
-  a particular instant.
+[Editable draw.io architecture](docs/architecture.drawio).
 
-This separation lets a correction change today's answer without rewriting the
-answer that was knowable yesterday.
+### Real-data model results
 
-## Data
+Four months of inspections provide usable February 2024 training and September
+2024 test cohorts, seven months apart, with non-overlapping six-month outcomes.
+Dates and model parameters were fixed before fitting; the classification threshold
+was chosen from training predictions only.
 
-The pipeline uses FMCSA's Vehicle Inspection File and Crash File from the DOT
-open data portal. Violation and out-of-service features come from totals on each
-inspection row, so a separate violation feed is not ingested. US government work, public
-domain. Raw data is not committed; tests use generated fixtures instead.
+![Real-data holdout results, baseline comparison and confusion counts](docs/evidence/learning-demo/model-results.png)
 
-## Landing a snapshot
+Overall accuracy was **88.6%**; an always-negative classifier would reach
+**89.0%** because only 11.0% of the test carriers have a qualifying recorded crash.
+The useful signal is the ranking improvement and detection of **11,792** recorded
+positive carriers. A negative label means no qualifying crash in the retained
+snapshot, rather than guaranteed absence of an actual crash.
 
-Authenticate to AWS and verify the existing account-level budget and credit
-eligibility before provisioning resources. Follow the
-[state bootstrap and migration guide](infra/state-bootstrap/README.md) to create
-the backend bucket and prepare the ignored `infra/base/backend.hcl`. Then:
+More historical snapshots and outcome records could expand training and validation
+coverage and may improve the model. We cannot reconstruct every historical
+correction, establish eventual label completeness or claim prospective accuracy
+from these retained files. [Experiment, reproduction and limitations](docs/learning-demo.md).
 
-```bash
-python3.12 -m venv .venv
-.venv/bin/pip install -e '.[dev]'
-terraform -chdir=infra/base init -backend-config=backend.hcl
-terraform -chdir=infra/base apply
-export CARRIER_RISK_RAW_BUCKET="$(terraform -chdir=infra/base output -raw raw_bucket_name)"
-export CARRIER_RISK_INGEST_ROLE_ARN="$(terraform -chdir=infra/base output -raw ingest_role_arn)"
-.venv/bin/python -m ingest.landing --feed inspections
-.venv/bin/python -m ingest.landing --feed crashes
-```
+<table>
+  <tr>
+    <td width="50%"><img src="docs/evidence/learning-demo/airflow-run.png" alt="Actual successful real-data Airflow extraction, dbt and training tasks" width="100%"><br><strong>Orchestrated real-data training.</strong> The manual DAG verifies sources, builds contracted features and registers the estimator.</td>
+    <td width="50%"><img src="docs/evidence/learning-demo/mlflow-metrics.png" alt="Actual MLflow run with measured model metrics and experimental provenance" width="100%"><br><strong>Measured holdout evidence.</strong> MLflow retains metrics, fixed parameters, dataset fingerprints and the original baseline comparison.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/evidence/learning-demo/mlflow-registry.png" alt="Real model in its separate MLflow registry with demo alias" width="100%"><br><strong>Isolated model registration.</strong> The experimental model has an immutable version and a separate demo alias.</td>
+    <td width="50%"><img src="docs/evidence/learning-demo/api-response.png" alt="Actual experimental FastAPI response from a real carrier with identifier withheld" width="100%"><br><strong>Real model scoring.</strong> The API exposes its feature date, model version and experimental status; the example withholds the carrier identifier.</td>
+  </tr>
+</table>
 
-Each feed is written to a deterministic UTC-day partition. The data object is
-checksummed and validated before its manifest is published as the commit marker;
-rerunning a completed partition is a no-op. Manifests include a deterministic
-batch identifier used by warehouse loads and backfills.
+[Execution records and screenshot provenance](docs/evidence/learning-demo/README.md).
+The real demo scored **6,000/6,000** requests at an offered 200 requests/second;
+achieved throughput was **185 requests/second**, with **884 ms p99** latency.
+It has not met the production latency target.
 
-## Running Phase 1 locally
+### System evidence
 
-The default workflow uses only local containers. It exercises the same message,
-loader, and dbt boundaries as AWS without creating cloud resources:
+The screenshots below come from the recorded acceptance runs. They connect the
+flow above to the systems that actually executed it; the linked phase reports
+retain commands, hashes, limitations, and cleanup evidence.
 
-```bash
-cp .env.example .env
-docker compose up -d postgres minio elasticmq
-.venv/bin/python -m tests.local_airflow_fixture
-.venv/bin/pytest
-```
+<table>
+  <tr>
+    <td width="50%">
+      <img src="docs/evidence/phase-1/airflow-successful-runs.jpg" alt="Successful Airflow ingestion and backfill runs" width="100%"><br>
+      <strong>AWS ingestion and orchestration.</strong> S3 notifications reached
+      SQS, Airflow loaded PostgreSQL, and replayed backfills produced the same
+      event history.
+    </td>
+    <td width="50%">
+      <img src="docs/evidence/phase-2/snowflake-after-guard-tests.jpg" alt="Isolated Snowflake warehouse suspended after temporal guard verification" width="100%"><br>
+      <strong>Warehouse portability.</strong> The same history models and temporal
+      guards ran against Snowflake after PostgreSQL acceptance; the isolated
+      trial warehouse was suspended when verification finished.
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <img src="docs/evidence/phase-4/airflow-recovered.png" alt="Airflow task recovery on its third attempt" width="100%"><br>
+      <strong>Failure recovery.</strong> A missing object failed twice, remained
+      retryable, then loaded successfully after the object and manifest arrived.
+    </td>
+    <td width="50%">
+      <img src="docs/evidence/phase-4/airflow-backfills.png" alt="Two successful parameterized Airflow backfill runs" width="100%"><br>
+      <strong>Replay safety.</strong> Two bounded backfills completed through the
+      normal DAG with identical raw counts and modeled-table hashes.
+    </td>
+  </tr>
+</table>
 
-See [the Phase 1 operator guide](docs/phase-1-infrastructure.md) before enabling
-AWS. The event spine is disabled by default and its RDS/SQS resources must be
-destroyed at the end of every approved working session.
+## What the data showed
+
+The Federal Motor Carrier Safety Administration (FMCSA) publishes the inspection
+and crash feeds. The September 3, 2026 snapshots contain 4,986,413 crash rows and
+8,281,794 inspection rows. Athena queried validated Parquet derivatives while preserving
+the original CSV snapshots. Crash reporting lags were substantially longer:
+median **39 days**, versus **3 days** for inspections.
+
+![Source-proxy reporting-lag distributions for crash and inspection rows](docs/report_lag.png)
+
+These are **source-row, `source_proxy` distributions**: source-add time plus one
+publication day estimates historical availability. A current snapshot cannot
+recover earlier corrections or deleted rows. The [bucket counts and lineage](docs/evidence/phase-2/athena-results.json)
+are retained.
+
+The separate training watermark uses earliest retained source-proxy lags for
+deduplicated eligible crash incidents across twelve mature monthly cohorts;
+historical first versions remain unavailable. Its bootstrapped p99.5
+upper bound produced the 495-day grace. The [recorded MLflow run](docs/evidence/phase-3/training-gate.json)
+skipped before building a dataset for scheduled training or fitting. Candidates
+from scheduled training must beat both the recent-crash-count baseline and
+incumbent on a purged time holdout. No prospective predictive improvement is
+claimed. The separate retrospective
+experiment above beats the recorded baseline. [Original policy and measurement details](docs/phase-3-verification.md).
 
 ## Verified behavior
 
-The short-lived AWS acceptance run proved the complete manifest-to-feature path,
-including a retryable missing-object failure, duplicate-message idempotency, a
-later correction, two identical backfills, TLS-verified RDS access, and all three
-blocking temporal invariants. The RDS instance, queues, and temporary VPC were
-then destroyed; the immutable Phase 0 S3 evidence remains.
+These are recorded September 11, 2026 results, not a continuously deployed service.
 
-Exact commands, sanitized counts, temporal results, test totals, teardown checks,
-and screenshot guidance are recorded in
-[the Phase 1 verification report](docs/phase-1-verification.md).
+| Evidence | Result |
+|---|---|
+| [AWS event pipeline](docs/phase-1-verification.md) | Missing-object retry, duplicate-message idempotency, corrections, two identical backfills, temporal tests |
+| [Infrastructure and portability](docs/phase-2-verification.md) | Remote state locking, Athena reconciliation, ECR operations, PostgreSQL/Snowflake fixture parity and rollback |
+| [Failure demonstrations](docs/phase-4-verification.md) | Deliberate failures, recovery evidence, and screenshot scope |
 
-### Acceptance evidence
+Disposable AWS resources were destroyed; original raw snapshots remain. Snowflake
+was a trial-account portability exercise, and its compute was suspended after
+verification. The reports retain security findings and cleanup qualifications.
 
-![Successful Airflow load, build, and backfill runs](docs/evidence/phase-1/airflow-successful-runs.jpg)
+## Measured API latency
 
-![RDS inventory after the required teardown](docs/evidence/phase-1/aws-rds-teardown.jpg)
-
-![SQS inventory after the required teardown](docs/evidence/phase-1/aws-sqs-teardown.jpg)
-
-## Stack
-
-Airflow, dbt-core, Postgres, MLflow, FastAPI, Terraform, AWS (S3, SQS, RDS, Glue,
-Athena).
-
-## Status
-
-Phases 0 and 1 are complete. The project can land immutable FMCSA snapshots,
-load them transactionally from SQS notifications, preserve correction-aware
-event history, build two-clock features, and replay bounded date ranges without
-changing the result. Phase 1 was verified in AWS and its continuously billable
-resources were removed after the proof.
-
-Phase 2 is complete: remote state and lock contention, ECR artifact operations,
-full-snapshot Athena reconciliation through lossless Parquet derivatives, and
-Snowflake build/replay/temporal/rollback parity were verified. Temporary AWS
-resources were removed and Snowflake compute is suspended. See the
-[verification record](docs/phase-2-verification.md) for results, cost controls,
-security findings and the limits of the acceptance scope.
-
-## Scheduled training and evaluation
-
-The `train_model` Airflow workflow is scheduled monthly. It checks data
-eligibility before building a dataset or fitting a model. Its model registry
-name is `carrier-risk-v0`, and the default scoring API uses its `champion` alias.
-
-The September 3, 2026 full crash snapshot contains 4,986,413 source rows.
-After carrier-level incident deduplication, the latest twelve mature event-month
-cohorts (December 2024–November 2025) contain 140,706 eligible incidents.
-The largest bootstrapped 95% upper bound of the empirical p99.5 first-report lag
-is 494.87 days; rounding up gives **495 days**. This exceeds nine calendar months,
-so the recorded MLflow run skipped before dataset generation or fitting, and
-registered no model. See the [measurement](docs/evidence/phase-3/maturity-september-3-source-proxy.json)
-and [actual training-gate result](docs/evidence/phase-3/training-gate.json).
-
-This calculation uses source-add timestamps plus one publication day for the
-bootstrap snapshot. It is explicitly `source_proxy`, not observed historical
-public availability. One current-version snapshot cannot recover earlier
-corrections or deleted rows. The calculation excludes 1,371,090 rows without
-USDOT identifiers, representing 1,344,754 distinct source incident keys whose
-carrier identity is unknown. These counts travel with the watermark.
-
-When evidence permits training, the implemented pipeline uses monthly scoring
-dates, six-month inspection features, 24-month crash features, and a six-month
-forward label. It reserves the final three dates for evaluation and discards the
-preceding six dates. The fixed gradient-boosted classifier must strictly beat
-both the recent-crash-count baseline and the incumbent on those same held-out
-rows, measured with average precision. No real-data quality improvement is
-claimed while training is blocked. Watermark decreases require review;
-increases apply automatically.
-
-## Serving locally
-
-```bash
-.venv/bin/pip install -e '.[dev,airflow]'
-docker compose up -d postgres minio-init mlflow api
-curl http://localhost:8000/score/123
-curl http://localhost:8000/metrics
-```
-
-Set the development passwords in `.env` first. A scored response contains
-`risk_score`, `model_version`, `features_as_of`, `computed_at`, and
-`validation_fixture`. Startup resolves the MLflow `champion` alias to one fixed
-model version. Without a promoted model, eligible carriers receive a typed
-`model_unavailable` response; carriers without a valid identifier or a visible
-inspection in the preceding six months receive `insufficient_history`.
-Features must belong to the current UTC month. `/health/live`, `/health/ready`
-and `/metrics` distinguish liveness, startup readiness and request outcomes.
-
-The validation profile requires both the separate `carrier-risk-fixture`
-registry name and a synthetic-model tag. Every fixture score says
-`validation_fixture: true`; the default production profile rejects that model.
-
-The final September 11 local Locust run used 512 fictional carriers, PostgreSQL,
-and the frozen 100-tree classifier loaded through MLflow. Each stage had five
-seconds of warmup and thirty measured seconds, with independent scheduled
-arrivals and all completions drained. The client used 32 persistent loopback
-sessions, which keeps connections warm without flooding the API with hundreds of
-idle sockets. No other repository test suite ran concurrently.
+The local Locust run exercised PostgreSQL lookups and an MLflow-loaded,
+100-tree classifier over 512 fictional carriers. Each stage used five seconds
+of warmup, thirty measured seconds, independent scheduled arrivals, and 32
+persistent loopback sessions. Every scheduled request completed.
 
 | Target rps | Achieved rps | p50 ms | p95 ms | p99 ms | Failed / completed |
 |---:|---:|---:|---:|---:|---:|
@@ -241,32 +190,44 @@ idle sockets. No other repository test suite ran concurrently.
 | 200 | 200.00 | 5 | 8 | 14 | 0 / 6,000 |
 | 300 | 299.98 | 6 | 24 | 86 | 0 / 9,000 |
 
-**The committed p99 ≤ 120 ms at 200 rps target was met.** The 200-rps stage had
-14.30 ms scheduled-arrival p99 and 78.85 ms maximum scheduler lag, both within
-the same 120 ms limit. Percentiles include failures.
-This is a local synthetic serving measurement, with no production latency or
-real-data model-quality claim. The [final curve and hashes](docs/evidence/phase-3/latency-session-32/manifest.json)
-and [Phase 3 verification report](docs/phase-3-verification.md) record the evidence.
+![Local synthetic API latency across the measured throughput curve](docs/latency.png)
 
-Earlier 256-session and two-worker trials failed and remain preserved in the
-[latency investigation](docs/evidence/phase-3/latency-investigation.md). They
-identified excessive idle loopback connections as benchmark-induced pressure;
-the final 32-session run is the accepted configuration.
+**The p99 ≤120 ms at 200 rps target passed.** Scheduled-arrival p99 was 14.30 ms;
+maximum scheduler lag was 78.85 ms. Percentiles include failures. This measures
+the local synthetic serving path; production latency remains unproven. The
+separate real-data demo has its own [smoke-test evidence](docs/learning-demo.md).
+[Timings and hashes](docs/evidence/phase-3/latency-session-32/manifest.json)
+and [earlier failed trials](docs/evidence/phase-3/latency-investigation.md) are retained.
+
+## Run and inspect
+
+Use Python 3.12. The [serving guide](serving/README.md) covers installation,
+connections, synthetic validation and load testing. `GET /score/{usdot_number}`
+returns `features_as_of` and `validation_fixture` with a score. Without a promoted
+model, eligible carriers receive `model_unavailable`; insufficient inspection
+history returns `insufficient_history`. Health endpoints and Prometheus metrics
+make availability visible.
+
+For other entry points, see [warehouse builds](dbt/README.md),
+[monthly training](docs/phase-3-verification.md#local-operation),
+[AWS operation](docs/phase-1-infrastructure.md),
+[state bootstrap](infra/state-bootstrap/README.md), and
+[source contracts](docs/source-schemas.md). Tests use synthetic fixtures; raw
+federal data is not committed. [.env.example](.env.example) and
+[Compose services](docker-compose.yml) document local configuration; the
+[CI workflow](.github/workflows/checks.yml) lists check dependencies and commands;
+[check details](.github/checks.md) explain the quality gates.
 
 ## Deliberate exclusions
 
-Historical carrier attributes are excluded because their historical vintages
-are unavailable. Kafka and Kinesis do not suit periodic file snapshots.
-Spark, EMR and Databricks are unnecessary for these data volumes; Kubernetes
-is unnecessary for one stateless API. Managed Airflow was excluded for cost.
-The model uses underlying event records and does not reproduce federal safety
-scores. Snowflake was a trial-account dbt portability exercise, not a scale claim.
+| Excluded | Reason |
+|---|---|
+| Historical carrier attributes | No confirmed public archive of past vintages; current attributes would leak future information |
+| Separate violation feed | Inspection rows already contain every violation and out-of-service total used by the models |
+| Kafka, Kinesis and streaming | Inputs arrive as periodic file snapshots |
+| Kubernetes | One stateless API does not need a cluster orchestrator |
+| Spark, EMR and Databricks | These data volumes fit on a laptop |
+| Managed Airflow (MWAA) | Its ongoing managed-service cost exceeds this project's needs; Airflow runs locally |
+| Federal safety-score replication | The model uses underlying event records to predict a future crash outcome |
 
-Snowflake Time Travel restores a past warehouse table state, bounded by its
-retention period. That state depends on ingestion time. The event and reported
-clocks answer which source facts were knowable at the historical scoring date;
-Time Travel cannot substitute for them.
-
-## License
-
-MIT
+License: [MIT](LICENSE).

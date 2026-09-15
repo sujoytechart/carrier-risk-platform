@@ -19,6 +19,7 @@ FEATURE = FeatureRow("1", date(2026, 9, 1), 2, 3, 1, 0, 1.5, 1 / 3, 2)
 @dataclass
 class RegistryFixture:
     fixture_tag: str = "false"
+    experimental_tag: str = "false"
     feature_names: str = ",".join(FEATURE_NAMES)
     unavailable: bool = False
 
@@ -29,6 +30,7 @@ class RegistryFixture:
             version="19",
             tags={
                 "validation_fixture": self.fixture_tag,
+                "experimental": self.experimental_tag,
                 "feature_names": self.feature_names,
             },
         )
@@ -68,6 +70,14 @@ def test_promoted_alias_resolves_to_immutable_version_and_predicts(
     assert model.version == "19"
     assert model.validation_fixture is False
     assert 0 < model.probability(FEATURE) < 1
+
+
+def test_production_loader_rejects_experimental_version(
+    registry: RegistryFixture,
+) -> None:
+    registry.experimental_tag = "true"
+    with pytest.raises(ModelUnavailable):
+        load_promoted_model(tracking_uri="unused", model_name="carrier-risk-v0")
 
 
 @pytest.mark.parametrize(

@@ -1,0 +1,18 @@
+{
+  "scope": "short_local_real_data_experimental_api_smoke",
+  "offered_rps": 200,
+  "offered_duration_seconds": 30,
+  "elapsed_seconds": 32.420357973955106,
+  "achieved_rps": 185.0689003748848,
+  "requests": 6000,
+  "outcomes": {
+    "scored": 6000
+  },
+  "p50_ms": 97.70290902815759,
+  "p95_ms": 451.00034410133964,
+  "p99_ms": 883.5494980611838,
+  "metrics_after": "# HELP carrier_risk_demo_requests_total Experimental scores\n# TYPE carrier_risk_demo_requests_total counter\ncarrier_risk_demo_requests_total{outcome=\"scored\"} 6001.0\n# HELP carrier_risk_demo_requests_created Experimental scores\n# TYPE carrier_risk_demo_requests_created gauge\ncarrier_risk_demo_requests_created{outcome=\"scored\"} 1.789184055221668e+09\n# HELP carrier_risk_demo_duration_seconds Experimental scoring time\n# TYPE carrier_risk_demo_duration_seconds histogram\ncarrier_risk_demo_duration_seconds_bucket{le=\"0.005\"} 5686.0\ncarrier_risk_demo_duration_seconds_bucket{le=\"0.01\"} 5877.0\ncarrier_risk_demo_duration_seconds_bucket{le=\"0.025\"} 5936.0\ncarrier_risk_demo_duration_seconds_bucket{le=\"0.05\"} 5988.0\ncarrier_risk_demo_duration_seconds_bucket{le=\"0.075\"} 5989.0\ncarrier_risk_demo_duration_seconds_bucket{le=\"0.1\"} 5992.0\ncarrier_risk_demo_duration_seconds_bucket{le=\"0.25\"} 5997.0\ncarrier_risk_demo_duration_seconds_bucket{le=\"0.5\"} 6001.0\ncarrier_risk_demo_duration_seconds_bucket{le=\"0.75\"} 6001.0\ncarrier_risk_demo_duration_seconds_bucket{le=\"1.0\"} 6001.0\ncarrier_risk_demo_duration_seconds_bucket{le=\"2.5\"} 6001.0\ncarrier_risk_demo_duration_seconds_bucket{le=\"5.0\"} 6001.0\ncarrier_risk_demo_duration_seconds_bucket{le=\"7.5\"} 6001.0\ncarrier_risk_demo_duration_seconds_bucket{le=\"10.0\"} 6001.0\ncarrier_risk_demo_duration_seconds_bucket{le=\"+Inf\"} 6001.0\ncarrier_risk_demo_duration_seconds_count 6001.0\ncarrier_risk_demo_duration_seconds_sum 22.29475895280484\n# HELP carrier_risk_demo_duration_seconds_created Experimental scoring time\n# TYPE carrier_risk_demo_duration_seconds_created gauge\ncarrier_risk_demo_duration_seconds_created 1.789184035185282e+09\n",
+  "model_version": "2",
+  "environment_note": "Full regression and serving coverage work completed before this follow-up. Background local services remained running.",
+  "production_latency_target_met": false
+}

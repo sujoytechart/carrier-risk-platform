@@ -1,182 +1,277 @@
-<?xml version="1.0"?>
-<mxfile host="drawio-plugin" modified="2026-09-02T18:06:15.209Z" etag="yyeHY2htJVEhzLA57SNO" version="20.5.3" type="embed">
-  <diagram id="carrier-risk-architecture" name="Architecture">
-    <mxGraphModel dx="1321" dy="904" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="950" math="0" shadow="0">
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="draw.io" type="device" version="26.0.0">
+  <diagram id="carrier-risk-platform" name="Platform architecture">
+    <mxGraphModel dx="2200" dy="1400" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2200" pageHeight="1740" background="#FFFFFF" math="0" shadow="0">
       <root>
-        <mxCell id="0"/>
-        <mxCell id="1" parent="0"/>
-        <mxCell id="title" value="Carrier Risk Platform &#x2014; Architecture" style="text;html=1;align=left;verticalAlign=middle;fontSize=26;fontStyle=1;fontColor=#172B4D;" parent="1" vertex="1">
-          <mxGeometry x="40" y="20" width="700" height="40" as="geometry"/>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="canvas" value="" style="fillColor=#FFFFFF;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="0" y="0" width="2200" height="1740" as="geometry" />
         </mxCell>
-        <mxCell id="subtitle" value="Point-in-time correct risk features from mutable FMCSA event data" style="text;html=1;align=left;verticalAlign=middle;fontSize=14;fontColor=#5E6C84;" parent="1" vertex="1">
-          <mxGeometry x="40" y="58" width="700" height="28" as="geometry"/>
+        <mxCell id="title" value="CARRIER RISK PLATFORM" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontFamily=Helvetica;fontSize=42;fontColor=#243244;fontStyle=1;spacing=0;" vertex="1" parent="1">
+          <mxGeometry x="80" y="35" width="1600" height="55" as="geometry" />
         </mxCell>
-        <mxCell id="localBoundary" value="Local container runtime" style="swimlane;html=1;rounded=1;startSize=34;horizontal=1;fillColor=#F4F8FF;strokeColor=#4C78A8;fontColor=#234361;fontStyle=1;fontSize=14;dashed=1;" parent="1" vertex="1">
-          <mxGeometry x="210" y="105" width="610" height="750" as="geometry"/>
+        <mxCell id="subtitle" value="Immutable federal snapshots → correction-aware history → governed risk scoring" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontFamily=Helvetica;fontSize=24;fontColor=#4C5C70;fontStyle=0;spacing=0;" vertex="1" parent="1">
+          <mxGeometry x="80" y="100" width="1900" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="dbt" value="dbt transformations + tests&#10;&#10;raw &#x2192; clean &#x2192; event_versions&#10;as-of features + mature labels" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D9EAD3;strokeColor=#5B8C5A;fontColor=#17351F;fontStyle=1;fontSize=13;spacing=8;" parent="localBoundary" vertex="1">
-          <mxGeometry x="350" y="250" width="210" height="115" as="geometry"/>
+        <mxCell id="status" value="REFERENCE ARCHITECTURE · VERIFIED SEPTEMBER 2026" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontFamily=Helvetica;fontSize=16;fontColor=#708197;fontStyle=1;spacing=0;" vertex="1" parent="1">
+          <mxGeometry x="1510" y="40" width="610" height="45" as="geometry" />
         </mxCell>
-        <mxCell id="training" value="Monthly training job&#10;&#10;Purged time split&#10;Label-maturity watermark&#10;Baseline comparison" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EAE6FF;strokeColor=#7766A6;fontColor=#352C52;fontStyle=1;fontSize=13;spacing=8;" parent="localBoundary" vertex="1">
-          <mxGeometry x="40" y="570" width="200" height="120" as="geometry"/>
+        <mxCell id="landing" value="" style="rounded=1;arcSize=3;html=1;fillColor=#F5F8FC;strokeColor=#DAE2EB;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="410" width="590" height="1010" as="geometry" />
         </mxCell>
-        <mxCell id="temporal" value="Temporal gate&#10;&#10;Version valid at scoring date&#10;event_date &lt; scoring_date&#10;reported_date &lt; scoring_date" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6A700;fontColor=#5C4600;fontStyle=1;fontSize=13;spacing=8;" parent="localBoundary" vertex="1">
-          <mxGeometry x="40" y="285" width="200" height="120" as="geometry"/>
+        <mxCell id="landing-title" value="01  LANDING &amp; ANALYTICS" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontFamily=Helvetica;fontSize=20;fontColor=#5279A6;fontStyle=1;spacing=0;" vertex="1" parent="1">
+          <mxGeometry x="110" y="425" width="530" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="e7" value="apply" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#D6A700;fontSize=11;" parent="localBoundary" source="temporal" target="dbt" edge="1">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="spine" value="" style="rounded=1;arcSize=3;html=1;fillColor=#F3F8F5;strokeColor=#DAE2EB;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="740" y="410" width="650" height="1010" as="geometry" />
         </mxCell>
-        <mxCell id="awsBoundary" value="AWS &#xB7; us-east-1 &#xB7; provisioned by Terraform" style="swimlane;html=1;rounded=1;startSize=34;horizontal=1;fillColor=#FFF8EE;strokeColor=#E58B2A;fontColor=#7A4700;fontStyle=1;fontSize=14;dashed=1;" parent="1" vertex="1">
-          <mxGeometry x="850" y="105" width="480" height="750" as="geometry"/>
+        <mxCell id="spine-title" value="02  CORRECTION-AWARE EVENT SPINE" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontFamily=Helvetica;fontSize=20;fontColor=#42857C;fontStyle=1;spacing=0;" vertex="1" parent="1">
+          <mxGeometry x="770" y="425" width="590" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="sqs" value="SQS&#10;&#10;File-arrival queue&#10;Dead-letter queue" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE3C2;strokeColor=#E58B2A;fontColor=#5C3700;fontStyle=1;fontSize=13;spacing=8;" parent="awsBoundary" vertex="1">
-          <mxGeometry x="300" y="70" width="155" height="95" as="geometry"/>
+        <mxCell id="model" value="" style="rounded=1;arcSize=3;html=1;fillColor=#FAF6FC;strokeColor=#DAE2EB;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="1460" y="410" width="660" height="1010" as="geometry" />
         </mxCell>
-        <mxCell id="fmcsa" value="FMCSA Open Data&#10;&#10;Inspection File&#10;Crash File" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F4F5F7;strokeColor=#6B778C;fontColor=#172B4D;fontStyle=1;fontSize=14;spacing=8;" parent="1" vertex="1">
-          <mxGeometry x="30" y="270" width="145" height="105" as="geometry"/>
+        <mxCell id="model-title" value="03  MODEL GOVERNANCE &amp; SERVING" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontFamily=Helvetica;fontSize=20;fontColor=#8871A5;fontStyle=1;spacing=0;" vertex="1" parent="1">
+          <mxGeometry x="1490" y="425" width="600" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="ingest" value="Daily ingestion&#10;&#10;Validate complete file&#10;Checksum + schema fingerprint" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DEEBFF;strokeColor=#4C78A8;fontColor=#172B4D;fontStyle=1;fontSize=13;spacing=8;" parent="1" vertex="1">
-          <mxGeometry x="250" y="270" width="200" height="105" as="geometry"/>
+        <mxCell id="source" value="&lt;div style=&quot;text-align:left&quot;&gt;&lt;b style=&quot;font-size:25px;color:#243244&quot;&gt;FMCSA Open Data&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size:19px;color:#4C5C70&quot;&gt;Crash + inspection CSV files · periodic snapshots&lt;/span&gt;&lt;/div&gt;" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#E9EEF4;strokeColor=#78899E;strokeWidth=2;align=left;verticalAlign=top;spacingLeft=24;spacingRight=18;spacingTop=16;spacingBottom=12;fontFamily=Helvetica;fontSize=19;" vertex="1" parent="1">
+          <mxGeometry x="120" y="490" width="510" height="100" as="geometry" />
         </mxCell>
-        <mxCell id="airflow" value="Apache Airflow &#x2014; orchestration / control plane&#10;Schedules ingestion &#xB7; coordinates loads and dbt &#xB7; runs tests and training&#10;Dashed arrows = control &#xB7; solid arrows = data" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DEEBFF;strokeColor=#4C78A8;strokeWidth=2;fontColor=#172B4D;fontStyle=1;fontSize=14;spacing=10;" parent="1" vertex="1">
-          <mxGeometry x="235" y="150" width="560" height="90" as="geometry"/>
+        <mxCell id="s3" value="&lt;div style=&quot;text-align:left&quot;&gt;&lt;b style=&quot;font-size:25px;color:#243244&quot;&gt;Amazon S3&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size:19px;color:#4C5C70&quot;&gt;Immutable objects + manifest&lt;br&gt;SHA-256 · batch lineage&lt;/span&gt;&lt;/div&gt;" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#DDEBFA;strokeColor=#5279A6;strokeWidth=2;align=left;verticalAlign=top;spacingLeft=24;spacingRight=18;spacingTop=16;spacingBottom=12;fontFamily=Helvetica;fontSize=19;" vertex="1" parent="1">
+          <mxGeometry x="120" y="630" width="510" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="mlflow" value="MLflow&#10;&#10;Run tracking&#10;Training fingerprint&#10;Promotion gate" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EAE6FF;strokeColor=#7766A6;fontColor=#352C52;fontStyle=1;fontSize=13;spacing=8;" parent="1" vertex="1">
-          <mxGeometry x="570" y="560" width="190" height="115" as="geometry"/>
+        <mxCell id="sqs" value="&lt;div style=&quot;text-align:left&quot;&gt;&lt;b style=&quot;font-size:25px;color:#243244&quot;&gt;Amazon SQS&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size:19px;color:#4C5C70&quot;&gt;Manifest-arrival queue + DLQ&lt;br&gt;Local equivalent: ElasticMQ&lt;/span&gt;&lt;/div&gt;" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#E2E7FA;strokeColor=#5279A6;strokeWidth=2;align=left;verticalAlign=top;spacingLeft=24;spacingRight=18;spacingTop=16;spacingBottom=12;fontFamily=Helvetica;fontSize=19;" vertex="1" parent="1">
+          <mxGeometry x="120" y="800" width="510" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="api" value="FastAPI&#10;&#10;Promoted model&#10;Online feature lookup&#10;Prometheus metrics" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3FCEF;strokeColor=#36B37E;fontColor=#164B35;fontStyle=1;fontSize=13;spacing=8;" parent="1" vertex="1">
-          <mxGeometry x="570" y="725" width="190" height="105" as="geometry"/>
+        <mxCell id="parquet" value="&lt;div style=&quot;text-align:left&quot;&gt;&lt;b style=&quot;font-size:25px;color:#243244&quot;&gt;Validated Parquet derivatives&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size:19px;color:#4C5C70&quot;&gt;Original CSV evidence remains immutable&lt;br&gt;Schema checks + row-count reconciliation&lt;/span&gt;&lt;/div&gt;" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#DDF2EF;strokeColor=#5279A6;strokeWidth=2;align=left;verticalAlign=top;spacingLeft=24;spacingRight=18;spacingTop=16;spacingBottom=12;fontFamily=Helvetica;fontSize=19;" vertex="1" parent="1">
+          <mxGeometry x="120" y="970" width="510" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="s3" value="S3 raw snapshots&#10;&#10;Immutable daily objects&#10;Partitioned by feed + load date" style="shape=cylinder;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;fillColor=#FFE3C2;strokeColor=#E58B2A;fontColor=#5C3700;fontStyle=1;fontSize=13;spacing=8;" parent="1" vertex="1">
-          <mxGeometry x="885" y="165" width="180" height="115" as="geometry"/>
+        <mxCell id="athena" value="&lt;div style=&quot;text-align:left&quot;&gt;&lt;b style=&quot;font-size:25px;color:#243244&quot;&gt;AWS Glue + Athena&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size:19px;color:#4C5C70&quot;&gt;Catalog + bounded SQL queries&lt;br&gt;Reporting-lag distributions and reconciliation&lt;/span&gt;&lt;/div&gt;" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#E3EFF5;strokeColor=#5279A6;strokeWidth=2;align=left;verticalAlign=top;spacingLeft=24;spacingRight=18;spacingTop=16;spacingBottom=12;fontFamily=Helvetica;fontSize=19;" vertex="1" parent="1">
+          <mxGeometry x="120" y="1140" width="510" height="110" as="geometry" />
         </mxCell>
-        <mxCell id="rds" value="RDS Postgres&#10;&#10;Event-version history&#10;As-of training features&#10;Online feature table" style="shape=cylinder;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;fillColor=#D9EAD3;strokeColor=#5B8C5A;fontColor=#17351F;fontStyle=1;fontSize=13;spacing=8;" parent="1" vertex="1">
-          <mxGeometry x="1000" y="350" width="190" height="125" as="geometry"/>
+        <mxCell id="snowflake" value="&lt;div style=&quot;text-align:left&quot;&gt;&lt;b style=&quot;font-size:25px;color:#243244&quot;&gt;Snowflake portability verification&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size:19px;color:#4C5C70&quot;&gt;Same dbt contracts + history semantics&lt;br&gt;Isolated trial warehouse; compute suspended&lt;/span&gt;&lt;/div&gt;" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#ECE7F6;strokeColor=#78899E;strokeWidth=2;align=left;verticalAlign=top;spacingLeft=24;spacingRight=18;spacingTop=16;spacingBottom=12;fontFamily=Helvetica;fontSize=19;" vertex="1" parent="1">
+          <mxGeometry x="120" y="1290" width="510" height="105" as="geometry" />
         </mxCell>
-        <mxCell id="athena" value="Glue Catalog + Athena&#10;&#10;Query raw snapshots&#10;Report-lag profiling" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE3C2;strokeColor=#E58B2A;fontColor=#5C3700;fontStyle=1;fontSize=13;spacing=8;" parent="1" vertex="1">
-          <mxGeometry x="885" y="555" width="180" height="105" as="geometry"/>
+        <mxCell id="airflow" value="" style="rounded=1;arcSize=8;fillColor=#F0F3FA;strokeColor=#A2ADC0;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="80" y="180" width="2040" height="200" as="geometry" />
         </mxCell>
-        <mxCell id="ecr" value="ECR&#10;&#10;Versioned API image" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE3C2;strokeColor=#E58B2A;fontColor=#5C3700;fontStyle=1;fontSize=13;spacing=8;" parent="1" vertex="1">
-          <mxGeometry x="1130" y="565" width="155" height="85" as="geometry"/>
+        <mxCell id="airflow-title" value="APACHE AIRFLOW  /  WORKFLOW ORCHESTRATION" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontFamily=Helvetica;fontSize=25;fontColor=#243244;fontStyle=1;spacing=0;" vertex="1" parent="1">
+          <mxGeometry x="110" y="195" width="1400" height="35" as="geometry" />
         </mxCell>
-        <mxCell id="awsControl" value="IAM + remote Terraform state&#10;&#10;Least privilege &#xB7; S3 lockfile&#10;AWS Budget &#xB7; lifecycle policies" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#E58B2A;fontColor=#5C3700;fontSize=12;spacing=8;dashed=1;" parent="1" vertex="1">
-          <mxGeometry x="955" y="715" width="230" height="105" as="geometry"/>
+        <mxCell id="airflow-runtime" value="Local runtime · bounded concurrency · retries with backoff · replay safety" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontFamily=Helvetica;fontSize=18;fontColor=#4C5C70;fontStyle=0;spacing=0;" vertex="1" parent="1">
+          <mxGeometry x="110" y="240" width="1900" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="snowflake" value="Snowflake trial&#10;&#10;Secondary dbt target&#10;Portability validation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EAE6FF;strokeColor=#7766A6;fontColor=#352C52;fontStyle=1;fontSize=13;spacing=8;" parent="1" vertex="1">
-          <mxGeometry x="1380" y="350" width="175" height="110" as="geometry"/>
+        <mxCell id="airflow-dag-0" value="load_events" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontFamily=Helvetica;fontSize=20;fontColor=#42857C;fontStyle=1;spacing=0;" vertex="1" parent="1">
+          <mxGeometry x="110" y="285" width="315" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="broker" value="Broker client&#10;&#10;GET /score/{usdot}" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F4F5F7;strokeColor=#6B778C;fontColor=#172B4D;fontStyle=1;fontSize=13;spacing=8;" parent="1" vertex="1">
-          <mxGeometry x="1380" y="735" width="175" height="85" as="geometry"/>
+        <mxCell id="airflow-body-0" value="SQS polling → byte verification&lt;br&gt;Transactional raw loads" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontFamily=Helvetica;fontSize=17;fontColor=#4C5C70;fontStyle=0;spacing=0;" vertex="1" parent="1">
+          <mxGeometry x="110" y="325" width="315" height="48" as="geometry" />
         </mxCell>
-        <mxCell id="e1" value="HTTPS" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#4C78A8;fontSize=11;" parent="1" source="fmcsa" target="ingest" edge="1">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="airflow-dag-1" value="backfill" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontFamily=Helvetica;fontSize=20;fontColor=#42857C;fontStyle=1;spacing=0;" vertex="1" parent="1">
+          <mxGeometry x="445" y="285" width="315" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="e2" value="complete snapshot" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#E58B2A;fontSize=11;" parent="1" source="ingest" target="s3" edge="1">
-          <mxGeometry x="0.0853" relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="455" y="322"/>
-              <mxPoint x="860" y="322"/>
-              <mxPoint x="860" y="222"/>
-            </Array>
-            <mxPoint as="offset"/>
-          </mxGeometry>
+        <mxCell id="airflow-body-1" value="Discover bounded manifests&lt;br&gt;Load snapshots → rebuild dbt" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontFamily=Helvetica;fontSize=17;fontColor=#4C5C70;fontStyle=0;spacing=0;" vertex="1" parent="1">
+          <mxGeometry x="445" y="325" width="315" height="48" as="geometry" />
         </mxCell>
-        <mxCell id="e3" value="object event" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#E58B2A;fontSize=11;" parent="1" source="s3" target="sqs" edge="1">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="airflow-dag-2" value="build_tables" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontFamily=Helvetica;fontSize=20;fontColor=#42857C;fontStyle=1;spacing=0;" vertex="1" parent="1">
+          <mxGeometry x="780" y="285" width="315" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="e4" value="event trigger" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#4C78A8;fontSize=11;dashed=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" parent="1" source="sqs" target="airflow" edge="1">
+        <mxCell id="airflow-body-2" value="Raw-snapshot asset trigger&lt;br&gt;dbt contracts + temporal tests" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontFamily=Helvetica;fontSize=17;fontColor=#4C5C70;fontStyle=0;spacing=0;" vertex="1" parent="1">
+          <mxGeometry x="780" y="325" width="315" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="airflow-dag-3" value="build_training_set" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontFamily=Helvetica;fontSize=20;fontColor=#42857C;fontStyle=1;spacing=0;" vertex="1" parent="1">
+          <mxGeometry x="1115" y="285" width="315" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="airflow-body-3" value="Monthly maturity check&lt;br&gt;Immutable eligible datasets" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontFamily=Helvetica;fontSize=17;fontColor=#4C5C70;fontStyle=0;spacing=0;" vertex="1" parent="1">
+          <mxGeometry x="1115" y="325" width="315" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="airflow-dag-4" value="train_model" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontFamily=Helvetica;fontSize=20;fontColor=#42857C;fontStyle=1;spacing=0;" vertex="1" parent="1">
+          <mxGeometry x="1450" y="285" width="315" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="airflow-body-4" value="Monthly maturity → branch&lt;br&gt;Evaluate or record MLflow skip" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontFamily=Helvetica;fontSize=17;fontColor=#4C5C70;fontStyle=0;spacing=0;" vertex="1" parent="1">
+          <mxGeometry x="1450" y="325" width="315" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="airflow-dag-5" value="train_demo_model" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontFamily=Helvetica;fontSize=20;fontColor=#42857C;fontStyle=1;spacing=0;" vertex="1" parent="1">
+          <mxGeometry x="1785" y="285" width="315" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="airflow-body-5" value="Manual real-data experiment&lt;br&gt;Extract → dbt → train/register" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontFamily=Helvetica;fontSize=17;fontColor=#4C5C70;fontStyle=0;spacing=0;" vertex="1" parent="1">
+          <mxGeometry x="1785" y="325" width="315" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="clocks" value="&lt;div style=&quot;text-align:left&quot;&gt;&lt;b style=&quot;font-size:25px;color:#243244&quot;&gt;Temporal eligibility contract&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size:19px;color:#4C5C70&quot;&gt;event_date: when the event occurred&lt;br&gt;reported_date: when the platform could know it&lt;/span&gt;&lt;/div&gt;" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#F8E9D5;strokeColor=#78899E;strokeWidth=2;align=left;verticalAlign=top;spacingLeft=24;spacingRight=18;spacingTop=16;spacingBottom=12;fontFamily=Helvetica;fontSize=19;" vertex="1" parent="1">
+          <mxGeometry x="790" y="490" width="540" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="raw" value="&lt;div style=&quot;text-align:left&quot;&gt;&lt;b style=&quot;font-size:25px;color:#243244&quot;&gt;PostgreSQL raw landing&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size:19px;color:#4C5C70&quot;&gt;Python verifies manifest + object bytes&lt;br&gt;Transactional batch inserts; duplicate-load protection&lt;/span&gt;&lt;/div&gt;" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#DDF1E6;strokeColor=#42857C;strokeWidth=2;align=left;verticalAlign=top;spacingLeft=24;spacingRight=18;spacingTop=16;spacingBottom=12;fontFamily=Helvetica;fontSize=19;" vertex="1" parent="1">
+          <mxGeometry x="790" y="670" width="540" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="dbt" value="&lt;div style=&quot;text-align:left&quot;&gt;&lt;b style=&quot;font-size:25px;color:#243244&quot;&gt;dbt clean + modeled layers&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size:19px;color:#4C5C70&quot;&gt;Typed records · quarantine · crash deduplication&lt;br&gt;Contract checks and blocking temporal guards&lt;/span&gt;&lt;/div&gt;" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#E8F0D9;strokeColor=#42857C;strokeWidth=2;align=left;verticalAlign=top;spacingLeft=24;spacingRight=18;spacingTop=16;spacingBottom=12;fontFamily=Helvetica;fontSize=19;" vertex="1" parent="1">
+          <mxGeometry x="790" y="850" width="540" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="history" value="&lt;div style=&quot;text-align:left&quot;&gt;&lt;b style=&quot;font-size:25px;color:#243244&quot;&gt;Durable event-version history&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size:19px;color:#4C5C70&quot;&gt;Corrections and deletions preserve earlier answers&lt;br&gt;Knowledge-valid intervals; two-clock eligibility&lt;/span&gt;&lt;/div&gt;" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#DDEEEA;strokeColor=#42857C;strokeWidth=2;align=left;verticalAlign=top;spacingLeft=24;spacingRight=18;spacingTop=16;spacingBottom=12;fontFamily=Helvetica;fontSize=19;" vertex="1" parent="1">
+          <mxGeometry x="790" y="1030" width="540" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="features" value="&lt;div style=&quot;text-align:left&quot;&gt;&lt;b style=&quot;font-size:25px;color:#243244&quot;&gt;Point-in-time features&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size:19px;color:#4C5C70&quot;&gt;v0: 6m inspections · 24m prior crashes&lt;br&gt;Demo: separate 4m inspection feature contract&lt;/span&gt;&lt;/div&gt;" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#E0EDF7;strokeColor=#42857C;strokeWidth=2;align=left;verticalAlign=top;spacingLeft=24;spacingRight=18;spacingTop=16;spacingBottom=12;fontFamily=Helvetica;fontSize=19;" vertex="1" parent="1">
+          <mxGeometry x="790" y="1210" width="540" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="gate" value="&lt;div style=&quot;text-align:left&quot;&gt;&lt;b style=&quot;font-size:25px;color:#243244&quot;&gt;Original v0 maturity gate&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size:19px;color:#4C5C70&quot;&gt;Measured grace: 495 days &gt; nine-month limit&lt;br&gt;v0 stays blocked; demo uses snapshot labels&lt;/span&gt;&lt;/div&gt;" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FFF0CC;strokeColor=#B58A45;strokeWidth=2;align=left;verticalAlign=top;spacingLeft=24;spacingRight=18;spacingTop=16;spacingBottom=12;fontFamily=Helvetica;fontSize=19;" vertex="1" parent="1">
+          <mxGeometry x="1510" y="490" width="560" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="train" value="&lt;div style=&quot;text-align:left&quot;&gt;&lt;b style=&quot;font-size:25px;color:#243244&quot;&gt;Retrospective real-data experiment&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size:19px;color:#4C5C70&quot;&gt;4m inspections · 24m crashes · 6m recorded outcomes&lt;br&gt;Feb 2024 train → Sep 2024 test · AP 49.0% vs 40.2%&lt;/span&gt;&lt;/div&gt;" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#F5E1E5;strokeColor=#8871A5;strokeWidth=2;align=left;verticalAlign=top;spacingLeft=24;spacingRight=18;spacingTop=16;spacingBottom=12;fontFamily=Helvetica;fontSize=19;" vertex="1" parent="1">
+          <mxGeometry x="1510" y="670" width="560" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="registry" value="&lt;div style=&quot;text-align:left&quot;&gt;&lt;b style=&quot;font-size:25px;color:#243244&quot;&gt;MLflow tracking + model registry&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size:19px;color:#4C5C70&quot;&gt;Isolated experimental demo alias + immutable version&lt;br&gt;Original v0 champion remains maturity-gated&lt;/span&gt;&lt;/div&gt;" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#EADFF4;strokeColor=#8871A5;strokeWidth=2;align=left;verticalAlign=top;spacingLeft=24;spacingRight=18;spacingTop=16;spacingBottom=12;fontFamily=Helvetica;fontSize=19;" vertex="1" parent="1">
+          <mxGeometry x="1510" y="850" width="560" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="api" value="&lt;div style=&quot;text-align:left&quot;&gt;&lt;b style=&quot;font-size:25px;color:#243244&quot;&gt;FastAPI production + demo services&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size:19px;color:#4C5C70&quot;&gt;v0 /score · isolated /demo/score · health + /metrics&lt;br&gt;Demo: real model + separate 4m feature store&lt;/span&gt;&lt;/div&gt;" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#E1E6FA;strokeColor=#8871A5;strokeWidth=2;align=left;verticalAlign=top;spacingLeft=24;spacingRight=18;spacingTop=16;spacingBottom=12;fontFamily=Helvetica;fontSize=19;" vertex="1" parent="1">
+          <mxGeometry x="1510" y="1030" width="560" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="locust" value="&lt;div style=&quot;text-align:left&quot;&gt;&lt;b style=&quot;font-size:25px;color:#243244&quot;&gt;Load tests + Prometheus evidence&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size:19px;color:#4C5C70&quot;&gt;v0: synthetic Locust p99 14.30 ms at 200 rps&lt;br&gt;Demo: separate real-data API smoke measurements&lt;/span&gt;&lt;/div&gt;" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#F9E7D9;strokeColor=#8871A5;strokeWidth=2;align=left;verticalAlign=top;spacingLeft=24;spacingRight=18;spacingTop=16;spacingBottom=12;fontFamily=Helvetica;fontSize=19;" vertex="1" parent="1">
+          <mxGeometry x="1510" y="1210" width="560" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="e-source" value="download + commit manifest" edge="1" parent="1" source="source" target="s3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#5279A6;strokeWidth=2.5;fontFamily=Helvetica;fontSize=17;fontColor=#5279A6;labelBackgroundColor=#FFFFFF;dashed=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-notify" value="object notification" edge="1" parent="1" source="s3" target="sqs" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#5279A6;strokeWidth=2.5;fontFamily=Helvetica;fontSize=17;fontColor=#5279A6;labelBackgroundColor=#FFFFFF;dashed=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-poll" value="poll arrival messages" edge="1" parent="1" source="sqs" target="airflow" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#5279A6;strokeWidth=2.5;fontFamily=Helvetica;fontSize=17;fontColor=#5279A6;labelBackgroundColor=#FFFFFF;dashed=1;exitX=1;exitY=0.5;entryX=0.306;entryY=1;">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="1228" y="150"/>
-              <mxPoint x="815" y="150"/>
-              <mxPoint x="815" y="195"/>
+              <mxPoint x="705" y="860" />
+              <mxPoint x="705" y="380" />
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="e5" value="load raw" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#5B8C5A;fontSize=11;" parent="1" source="s3" target="rds" edge="1">
+        <mxCell id="e-load" value="" edge="1" parent="1" source="airflow" target="raw" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#78899E;strokeWidth=2.5;fontFamily=Helvetica;fontSize=17;fontColor=#78899E;labelBackgroundColor=#FFFFFF;dashed=1;exitX=0.331;exitY=1;entryX=0;entryY=0.5;">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="975" y="315"/>
-              <mxPoint x="1095" y="315"/>
+              <mxPoint x="755" y="395" />
+              <mxPoint x="755" y="735" />
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="e6" value="run dbt + tests" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#4C78A8;fontSize=11;dashed=1;exitX=0.767;exitY=1.003;exitDx=0;exitDy=0;exitPerimeter=0;" parent="1" source="airflow" target="dbt" edge="1">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="e8" value="build + test" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#5B8C5A;fontSize=11;" parent="1" source="dbt" target="rds" edge="1">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="e9" value="same project" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#7766A6;fontSize=11;dashed=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" parent="1" source="dbt" target="snowflake" edge="1">
-          <mxGeometry x="0.3706" relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="665" y="490"/>
-              <mxPoint x="1345" y="490"/>
-              <mxPoint x="1345" y="405"/>
-            </Array>
-            <mxPoint as="offset"/>
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="e10" value="raw SQL" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#E58B2A;fontSize=11;" parent="1" source="s3" target="athena" edge="1">
-          <mxGeometry x="-0.3455" relative="1" as="geometry">
-            <mxPoint as="offset"/>
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="e11" value="mature training set" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#5B8C5A;fontSize=11;" parent="1" source="rds" target="training" edge="1">
+        <mxCell id="e-control-dbt" value="" edge="1" parent="1" source="airflow" target="dbt" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#78899E;strokeWidth=2.5;fontFamily=Helvetica;fontSize=17;fontColor=#78899E;labelBackgroundColor=#FFFFFF;dashed=1;exitX=0.331;exitY=1;entryX=0;entryY=0.5;">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="1095" y="510"/>
-              <mxPoint x="470" y="510"/>
-              <mxPoint x="470" y="620"/>
-              <mxPoint x="350" y="620"/>
+              <mxPoint x="755" y="395" />
+              <mxPoint x="755" y="915" />
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="e12" value="runs + candidate" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#7766A6;fontSize=11;" parent="1" source="training" target="mlflow" edge="1">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="e13" value="promoted model" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#7766A6;fontSize=11;" parent="1" source="mlflow" target="api" edge="1">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="e14" value="features" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#36B37E;fontSize=11;" parent="1" source="rds" target="api" edge="1">
+        <mxCell id="e-control-monthly" value="" edge="1" parent="1" source="airflow" target="gate" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#78899E;strokeWidth=2.5;fontFamily=Helvetica;fontSize=17;fontColor=#78899E;labelBackgroundColor=#FFFFFF;dashed=1;exitX=0.99;exitY=1;entryX=1;entryY=0.4;">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="1095" y="690"/>
-              <mxPoint x="760" y="690"/>
+              <mxPoint x="2100" y="395" />
+              <mxPoint x="2100" y="540" />
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="e15" value="image" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#E58B2A;fontSize=11;dashed=1;" parent="1" source="ecr" target="api" edge="1">
-          <mxGeometry x="0.3845" relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="870" y="608"/>
-              <mxPoint x="870" y="790"/>
-            </Array>
-            <mxPoint as="offset"/>
-          </mxGeometry>
+        <mxCell id="e-build" value="build models" edge="1" parent="1" source="raw" target="dbt" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#42857C;strokeWidth=2.5;fontFamily=Helvetica;fontSize=17;fontColor=#42857C;labelBackgroundColor=#FFFFFF;dashed=0;">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e16" value="risk score" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#36B37E;fontSize=11;" parent="1" source="api" target="broker" edge="1">
+        <mxCell id="e-history" value="apply correction-aware versions" edge="1" parent="1" source="dbt" target="history" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#42857C;strokeWidth=2.5;fontFamily=Helvetica;fontSize=17;fontColor=#42857C;labelBackgroundColor=#FFFFFF;dashed=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-features" value="historical as-of lookup" edge="1" parent="1" source="history" target="features" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#42857C;strokeWidth=2.5;fontFamily=Helvetica;fontSize=17;fontColor=#42857C;labelBackgroundColor=#FFFFFF;dashed=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-derive" value="" edge="1" parent="1" source="s3" target="parquet" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#5279A6;strokeWidth=2.5;fontFamily=Helvetica;fontSize=17;fontColor=#5279A6;labelBackgroundColor=#FFFFFF;dashed=0;exitX=0;exitY=0.5;entryX=0;entryY=0.5;">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="800" y="778"/>
-              <mxPoint x="800" y="840"/>
-              <mxPoint x="1360" y="840"/>
-              <mxPoint x="1360" y="778"/>
+              <mxPoint x="100" y="690" />
+              <mxPoint x="100" y="1030" />
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="e17" value="schedule" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#4C78A8;fontSize=11;dashed=1;exitX=0.2;exitY=1;exitDx=0;exitDy=0;" parent="1" source="airflow" target="ingest" edge="1">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="e-query" value="catalog + query" edge="1" parent="1" source="parquet" target="athena" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#5279A6;strokeWidth=2.5;fontFamily=Helvetica;fontSize=17;fontColor=#5279A6;labelBackgroundColor=#FFFFFF;dashed=0;">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e18" value="run training" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#4C78A8;fontSize=11;dashed=1;exitX=0.08;exitY=1;exitDx=0;exitDy=0;" parent="1" source="airflow" target="training" edge="1">
-          <mxGeometry x="0.5679" relative="1" as="geometry">
+        <mxCell id="e-parity" value="adapter parity" edge="1" parent="1" source="dbt" target="snowflake" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#78899E;strokeWidth=2.5;fontFamily=Helvetica;fontSize=17;fontColor=#78899E;labelBackgroundColor=#FFFFFF;dashed=1;exitX=0;exitY=0.5;entryX=1;entryY=0.5;">
+          <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="280" y="255"/>
-              <mxPoint x="220" y="255"/>
-              <mxPoint x="220" y="620"/>
+              <mxPoint x="705" y="915" />
+              <mxPoint x="705" y="1342" />
             </Array>
-            <mxPoint as="offset"/>
           </mxGeometry>
+        </mxCell>
+        <mxCell id="e-gate" value="mature cohorts" edge="1" parent="1" source="features" target="gate" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#B58A45;strokeWidth=2.5;fontFamily=Helvetica;fontSize=17;fontColor=#B58A45;labelBackgroundColor=#FFFFFF;dashed=0;exitX=1;exitY=0.25;entryX=0;entryY=0.5;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1420" y="1238" />
+              <mxPoint x="1420" y="555" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-demo" value="verified snapshots → isolated demo" edge="1" parent="1" source="parquet" target="train" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#5279A6;strokeWidth=2.5;fontFamily=Helvetica;fontSize=17;fontColor=#5279A6;labelBackgroundColor=#FFFFFF;dashed=0;exitX=1;exitY=0.5;entryX=0;entryY=0.5;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="705" y="1030" />
+              <mxPoint x="705" y="395" />
+              <mxPoint x="1420" y="395" />
+              <mxPoint x="1420" y="735" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-control-demo" value="" edge="1" parent="1" source="airflow" target="train" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#78899E;strokeWidth=2.5;fontFamily=Helvetica;fontSize=17;fontColor=#78899E;labelBackgroundColor=#FFFFFF;dashed=1;exitX=0.99;exitY=1;entryX=1;entryY=0.5;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2100" y="395" />
+              <mxPoint x="2100" y="735" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-register" value="experimental run + estimator" edge="1" parent="1" source="train" target="registry" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#8871A5;strokeWidth=2.5;fontFamily=Helvetica;fontSize=17;fontColor=#8871A5;labelBackgroundColor=#FFFFFF;dashed=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-champion" value="load immutable model artifact" edge="1" parent="1" source="registry" target="api" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#8871A5;strokeWidth=2.5;fontFamily=Helvetica;fontSize=17;fontColor=#8871A5;labelBackgroundColor=#FFFFFF;dashed=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-read" value="v0 feature lookup" edge="1" parent="1" source="features" target="api" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#42857C;strokeWidth=2.5;fontFamily=Helvetica;fontSize=17;fontColor=#42857C;labelBackgroundColor=#FFFFFF;dashed=0;exitX=1;exitY=0.75;entryX=0;entryY=0.5;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1445" y="1289" />
+              <mxPoint x="1445" y="1095" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-loadtest" value="HTTP requests + measured outcomes" edge="1" parent="1" source="locust" target="api" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#8871A5;strokeWidth=2.5;fontFamily=Helvetica;fontSize=17;fontColor=#8871A5;labelBackgroundColor=#FFFFFF;dashed=1;exitX=0.5;exitY=0;entryX=0.5;entryY=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ops" value="" style="rounded=1;arcSize=10;fillColor=#F0F3FA;strokeColor=#DAE2EB;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="1470" width="2040" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="ops-title" value="FOUNDATION &amp; OPERATIONAL CONTROLS" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontFamily=Helvetica;fontSize=18;fontColor=#708197;fontStyle=1;spacing=0;" vertex="1" parent="1">
+          <mxGeometry x="110" y="1485" width="1900" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="terraform" value="Terraform + remote state" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontFamily=Helvetica;fontSize=22;fontColor=#243244;fontStyle=1;spacing=0;" vertex="1" parent="1">
+          <mxGeometry x="110" y="1530" width="485" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="terraform-body" value="AWS resources · S3 backend locking · IAM boundaries" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontFamily=Helvetica;fontSize=17;fontColor=#4C5C70;fontStyle=0;spacing=0;" vertex="1" parent="1">
+          <mxGeometry x="110" y="1565" width="485" height="42" as="geometry" />
+        </mxCell>
+        <mxCell id="containers" value="Docker Compose + Amazon ECR" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontFamily=Helvetica;fontSize=22;fontColor=#243244;fontStyle=1;spacing=0;" vertex="1" parent="1">
+          <mxGeometry x="620" y="1530" width="485" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="containers-body" value="Local service runtime · versioned container artifacts" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontFamily=Helvetica;fontSize=17;fontColor=#4C5C70;fontStyle=0;spacing=0;" vertex="1" parent="1">
+          <mxGeometry x="620" y="1565" width="485" height="42" as="geometry" />
+        </mxCell>
+        <mxCell id="ci" value="GitHub Actions quality gates" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontFamily=Helvetica;fontSize=22;fontColor=#243244;fontStyle=1;spacing=0;" vertex="1" parent="1">
+          <mxGeometry x="1130" y="1530" width="485" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ci-body" value="Secrets · lint · types · PostgreSQL/dbt · Terraform · coverage" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontFamily=Helvetica;fontSize=17;fontColor=#4C5C70;fontStyle=0;spacing=0;" vertex="1" parent="1">
+          <mxGeometry x="1130" y="1565" width="485" height="42" as="geometry" />
+        </mxCell>
+        <mxCell id="obs" value="Operational evidence" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontFamily=Helvetica;fontSize=22;fontColor=#243244;fontStyle=1;spacing=0;" vertex="1" parent="1">
+          <mxGeometry x="1640" y="1530" width="450" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="obs-body" value="Airflow logs · Prometheus metrics · retries · replay hashes" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontFamily=Helvetica;fontSize=17;fontColor=#4C5C70;fontStyle=0;spacing=0;" vertex="1" parent="1">
+          <mxGeometry x="1640" y="1565" width="450" height="42" as="geometry" />
+        </mxCell>
+        <mxCell id="legend" value="Solid connectors: data/artifact flow     Dashed connectors: orchestration, validation or portability" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontFamily=Helvetica;fontSize=17;fontColor=#708197;fontStyle=0;spacing=0;" vertex="1" parent="1">
+          <mxGeometry x="80" y="1660" width="1450" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="scope" value="Recorded acceptance, not a continuously deployed production service." style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontFamily=Helvetica;fontSize=17;fontColor=#708197;fontStyle=0;spacing=0;" vertex="1" parent="1">
+          <mxGeometry x="1460" y="1660" width="660" height="35" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
