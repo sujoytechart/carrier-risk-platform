@@ -1,7 +1,8 @@
 # Automated checks
 
-`Checks` runs on pull requests, pushes to `main`, and manual dispatches using a
-GitHub-hosted Ubuntu runner with a 60-minute timeout. It requires no repository
+`Checks` runs on pull requests, manual dispatches, and pushes to `main`,
+`phase-*`, and `demo-maintainability`. It uses a GitHub-hosted Ubuntu runner
+with a 60-minute timeout. It requires no repository
 secrets. PostgreSQL 17 listens only on localhost; its password is generated and
 masked during each job, and its container and volume are removed afterward.
 
