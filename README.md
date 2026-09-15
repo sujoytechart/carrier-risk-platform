@@ -4,9 +4,10 @@ Risk scoring for US motor carriers, built so that every prediction uses only the
 records that were actually available on the date the decision would have been made.
 
 Personal project. The current empirical label-maturity grace is **495 days**,
-which exceeds the committed nine-month limit. Retrospective model training is
-therefore skipped. The API's successful scoring path is validated with an
-explicitly synthetic model; there is no trained federal-data risk model.
+which exceeds the committed nine-month limit. Scheduled training is
+therefore skipped before a model is fitted. The API's successful scoring path is
+validated with an explicitly synthetic model. There is no trained federal-data
+risk model.
 
 ## Background
 
@@ -89,9 +90,9 @@ answer that was knowable yesterday.
 
 ## Data
 
-V0 uses FMCSA's Vehicle Inspection File and Crash File from the DOT open data
-portal. Violation and out-of-service features come from totals on each inspection
-row, so a separate violation feed is not ingested. US government work, public
+The pipeline uses FMCSA's Vehicle Inspection File and Crash File from the DOT
+open data portal. Violation and out-of-service features come from totals on each
+inspection row, so a separate violation feed is not ingested. US government work, public
 domain. Raw data is not committed; tests use generated fixtures instead.
 
 ## Landing a snapshot
@@ -173,7 +174,11 @@ resources were removed and Snowflake compute is suspended. See the
 [verification record](docs/phase-2-verification.md) for results, cost controls,
 security findings and the limits of the acceptance scope.
 
-## Model maturity and evaluation
+## Scheduled training and evaluation
+
+The `train_model` Airflow workflow is scheduled monthly. It checks data
+eligibility before building a dataset or fitting a model. Its model registry
+name is `carrier-risk-v0`, and the default scoring API uses its `champion` alias.
 
 The September 3, 2026 full crash snapshot contains 4,986,413 source rows.
 After carrier-level incident deduplication, the latest twelve mature event-month
