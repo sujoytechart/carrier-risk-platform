@@ -34,7 +34,10 @@ def test_source_identity_json_scalar_matches_postgres_encoding(value: str) -> No
     module = environment.from_string(MACRO_PATH.read_text()).make_module()
     expression = module.snowflake__portable_json_string("source_value")
     with sqlite3.connect(":memory:") as connection:
-        connection.create_function("chr", 1, chr)
+        connection.create_function("to_variant", 1, lambda value: value)
+        connection.create_function(
+            "to_json", 1, lambda value: json.dumps(value, ensure_ascii=False)
+        )
         result = connection.execute(
             f"select {expression} from (select ? as source_value)", (value,)
         ).fetchone()
@@ -160,7 +163,10 @@ def test_complete_fallback_identity_matches_existing_json_bytes(
         "state", "report_number", "event_date", "report_time", "sequence"
     )
     with sqlite3.connect(":memory:") as connection:
-        connection.create_function("chr", 1, chr)
+        connection.create_function("to_variant", 1, lambda value: value)
+        connection.create_function(
+            "to_json", 1, lambda value: json.dumps(value, ensure_ascii=False)
+        )
         connection.create_function("to_char", 2, lambda value, _: value)
         connection.create_function("hex_encode", 1, lambda value: value.encode().hex())
         result = connection.execute(
