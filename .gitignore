@@ -4,9 +4,11 @@ data/
 *.csv
 *.parquet
 !ingest/sample/**
+!dbt/seeds/*.csv
 
 # Secrets
 .env
+profiles.yml
 *.tfvars
 !*.tfvars.example
 
@@ -19,6 +21,7 @@ data/
 .idea/
 .vscode/
 *.iml
+.worktrees/
 
 # macOS
 .DS_Store

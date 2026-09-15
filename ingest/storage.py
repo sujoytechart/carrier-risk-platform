@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Protocol
+from typing import TYPE_CHECKING, Protocol
 
 from botocore.exceptions import ClientError
-from types_boto3_s3 import S3Client
 
 from ingest.models import SnapshotLocation, SnapshotManifest
+
+if TYPE_CHECKING:
+    from types_boto3_s3 import S3Client
 
 
 class SnapshotStore(Protocol):

@@ -29,6 +29,15 @@ variable "additional_ingest_principals" {
   default     = []
 }
 
+variable "additional_loader_principals" {
+  description = <<-EOT
+    Extra stable IAM user or role ARNs allowed to assume the event loader role.
+    Loader access is separate from the principals allowed to write snapshots.
+  EOT
+  type        = list(string)
+  default     = []
+}
+
 variable "bucket_prefix" {
   description = <<-EOT
     Prefix for the raw data bucket. The account id is appended, because S3 bucket
@@ -45,4 +54,42 @@ variable "raw_retention_days" {
   EOT
   type        = number
   default     = 365
+}
+
+variable "enable_spine" {
+  description = <<-EOT
+    Creates the disposable Phase 1 queue, network, IAM loader role, and RDS
+    warehouse. False retains the Phase 0 raw bucket while removing those costs.
+  EOT
+  type        = bool
+  default     = false
+}
+
+variable "warehouse_publicly_accessible" {
+  description = <<-EOT
+    Gives the warehouse a public endpoint for temporary locally run Airflow
+    access. Keep false unless a reviewed plan also supplies one developer /32.
+  EOT
+  type        = bool
+  default     = false
+}
+
+variable "developer_ipv4_cidr" {
+  description = <<-EOT
+    The only IPv4 host allowed to reach a public warehouse. Must be null in
+    private mode and one valid /32 CIDR when public access is enabled.
+  EOT
+  type        = string
+  default     = null
+  nullable    = true
+
+  validation {
+    condition = var.warehouse_publicly_accessible ? (
+      var.developer_ipv4_cidr != null &&
+      can(cidrnetmask(var.developer_ipv4_cidr)) &&
+      length(split(".", split("/", var.developer_ipv4_cidr)[0])) == 4 &&
+      endswith(var.developer_ipv4_cidr, "/32")
+    ) : var.developer_ipv4_cidr == null
+    error_message = "developer_ipv4_cidr must be null in private mode or one valid IPv4 /32 CIDR in public mode."
+  }
 }

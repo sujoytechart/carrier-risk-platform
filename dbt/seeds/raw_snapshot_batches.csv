@@ -1,0 +1,5 @@
+batch_id,feed_name,dataset_id,observed_at,status,row_count
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,inspections,fx4q-ay7w,2026-04-01 12:00:00+00,loaded,5
+bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb,crashes,aayw-vxb3,2026-04-01 12:05:00+00,loaded,5
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc,inspections,fx4q-ay7w,2026-05-01 12:00:00+00,loaded,2
+dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd,crashes,aayw-vxb3,2026-05-05 12:00:00+00,loaded,3

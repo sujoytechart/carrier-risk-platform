@@ -9,9 +9,9 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import boto3
-from types_boto3_s3 import S3Client
 
 from ingest.models import (
     FEEDS,
@@ -22,6 +22,9 @@ from ingest.models import (
 )
 from ingest.source import download_feed
 from ingest.storage import S3SnapshotStore, SnapshotStore
+
+if TYPE_CHECKING:
+    from types_boto3_s3 import S3Client
 
 FeedDownloader = Callable[[FeedDefinition, Path], DownloadedSnapshot]
 

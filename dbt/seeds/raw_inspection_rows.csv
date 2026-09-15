@@ -1,0 +1,8 @@
+batch_id,source_row_number,inspection_id,dot_number,report_state,report_number,insp_date,mcmis_add_date,change_date,viol_total,oos_total
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,1,1001,123,MI,I-1001,20251201,20251205 1200,20251205 1200,2,1
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,2,1002,12.5,OH,I-1002,20251202,20251206 1300,20251206 1300,0,0
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,3,1004,123,MI,I-1004,20260115,20260116 0900,20260116 0900,1,0
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,4,1005,123,MI,I-1005,20251101,20251102 0900,20251102 0900,1,0
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,5,1006,123,MI,I-1006,20260110,20260101 0900,20260101 0900,1,0
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc,1,1001,123,MI,I-1001,20251201,20251205 1200,20260430 1000,3,1
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc,2,1003,789,IL,I-1003,20260415,20260416 0800,20260416 0800,0,0

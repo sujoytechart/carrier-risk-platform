@@ -1,7 +1,18 @@
 region                       = "us-east-1"
 environment                  = "dev"
 terraform_operator_role_name = "AccountFullAccessRole"
+enable_spine                  = false
+warehouse_publicly_accessible = false
 
 # Whoever runs the ingestion locally. Find yours with:
 #   aws sts get-caller-identity --query Arn --output text
 # additional_ingest_principals = ["arn:aws:iam::<account-id>:user/<your-user>"]
+
+# Any extra stable principal allowed to consume arrival messages and read raw
+# snapshots. This is deliberately independent of additional_ingest_principals.
+# additional_loader_principals = ["arn:aws:iam::<account-id>:role/<loader-role>"]
+
+# Temporary local-Airflow connectivity requires both settings and explicit
+# approval before a plan/apply. Never use 0.0.0.0/0 or a shared network range.
+# warehouse_publicly_accessible = true
+# developer_ipv4_cidr           = "203.0.113.7/32"
