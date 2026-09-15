@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+import logging
 import os
 from collections.abc import AsyncIterator, Callable
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
 from time import perf_counter
-from typing import Protocol, cast
+from typing import Protocol
 
 import mlflow
 import mlflow.sklearn
@@ -26,9 +27,12 @@ from prometheus_client import (
 from psycopg.rows import dict_row
 from psycopg_pool import ConnectionPool
 
-from ml.demo_training import DEMO_FEATURE_NAMES, DEMO_MODEL_NAME, TEST_DATE, TRAIN_DATE
+from ml.demo_features import DEMO_FEATURE_NAMES, demo_feature_values
+from ml.demo_training import DEMO_MODEL_NAME, TEST_DATE, TRAIN_DATE
 from ml.train import ProbabilityModel, positive_probabilities
 from serving.service import normalize_usdot
+
+LOGGER = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -93,7 +97,7 @@ class PostgresDemoRepository:
             ).fetchone()
         if row is None:
             return None
-        return tuple(float(cast(float, row[name] or 0)) for name in DEMO_FEATURE_NAMES)
+        return demo_feature_values(row)
 
 
 def load_demo_model() -> DemoModel:
@@ -150,14 +154,19 @@ def create_demo_app(
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
         nonlocal store, model, ready
+        stage = "warehouse_open"
         try:
             if store is None:
                 store = PostgresDemoRepository(os.environ["CARRIER_RISK_DATABASE_URL"])
             store.open()
+            stage = "model_load"
             model = model_loader()
             ready = True
-        except Exception:
+        except Exception as error:
             ready = False
+            LOGGER.error(
+                "Demo startup failed: stage=%s error=%s", stage, type(error).__name__
+            )
         try:
             yield
         finally:
@@ -188,11 +197,13 @@ def create_demo_app(
             usdot = normalize_usdot(identifier)
             if usdot is None:
                 raise HTTPException(422, "Invalid USDOT identifier")
+            stage = "feature_lookup"
             try:
                 values = store.lookup(usdot, scoring_date)
                 if values is None:
                     outcome = "insufficient_history"
                     raise HTTPException(404, "No eligible four-month demo snapshot")
+                stage = "feature_validation"
                 vector = np.asarray([values], dtype=np.float64)
                 if (
                     vector.shape != (1, 7)
@@ -202,10 +213,16 @@ def create_demo_app(
                     raise ValueError("Invalid warehouse feature vector")
                 if vector[0, 0] < 1 or vector[0, 6] < 1:
                     raise ValueError("Features require a preceding inspection")
+                stage = "prediction"
                 probability = float(positive_probabilities(model.classifier, vector)[0])
             except HTTPException:
                 raise
             except Exception as error:
+                LOGGER.error(
+                    "Demo scoring failed: stage=%s error=%s",
+                    stage,
+                    type(error).__name__,
+                )
                 raise HTTPException(503, "Demo scoring unavailable") from error
             outcome = "scored"
             return {

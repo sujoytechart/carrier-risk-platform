@@ -18,9 +18,9 @@ import psycopg
 from mlflow.tracking import MlflowClient
 from psycopg.rows import dict_row
 
+from ml.demo_features import DEMO_FEATURE_NAMES, demo_feature_values
 from ml.demo_source import extract_demo_sources
 from ml.demo_training import (
-    DEMO_FEATURE_NAMES,
     DEMO_MODEL_NAME,
     TEST_DATE,
     TRAIN_DATE,
@@ -81,10 +81,7 @@ def train_demo(
             raise ValueError("Each experiment cohort requires both classes")
     values = [
         np.asarray(
-            [
-                [float(row[name] or 0) for name in DEMO_FEATURE_NAMES]
-                for row in partition
-            ],
+            [demo_feature_values(row) for row in partition],
             dtype=np.float64,
         )
         for partition in partitions

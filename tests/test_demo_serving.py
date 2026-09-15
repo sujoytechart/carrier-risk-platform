@@ -1,12 +1,14 @@
 """Demo probabilities are explicitly experimental and use four-month features."""
 
 from datetime import date
+from unittest.mock import MagicMock
 
 import numpy as np
 import pytest
 from fastapi.testclient import TestClient
 
-from serving.demo_app import DemoModel, create_demo_app
+from ml.demo_features import DEMO_FEATURE_NAMES
+from serving.demo_app import DemoModel, PostgresDemoRepository, create_demo_app
 
 
 class Classifier:
@@ -79,7 +81,9 @@ def test_invalid_identifier_is_rejected(identifier: str) -> None:
         assert client.get(f"/demo/score/{identifier}").status_code == 422
 
 
-def test_failed_model_startup_returns_unavailable() -> None:
+def test_failed_model_startup_returns_unavailable(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     def unavailable() -> DemoModel:
         raise RuntimeError("private registry configuration")
 
@@ -89,6 +93,33 @@ def test_failed_model_startup_returns_unavailable() -> None:
         assert client.get("/readyz").status_code == 503
         assert client.get("/demo/score/123").status_code == 503
         assert "private" not in client.get("/demo/score/123").text
+    assert "model_load" in caplog.text
+    assert "RuntimeError" in caplog.text
+    assert "private registry configuration" not in caplog.text
+
+
+@pytest.mark.parametrize("missing_feature", ["violations_4m", "crashes_24m"])
+def test_missing_required_warehouse_value_emits_no_probability(
+    missing_feature: str,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    row = dict(zip(DEMO_FEATURE_NAMES, (2, 0, 0, 0, 0.0, None, 4), strict=True))
+    row[missing_feature] = None
+    pool = MagicMock()
+    connection = pool.connection.return_value.__enter__.return_value
+    connection.execute.return_value.fetchone.return_value = row
+    monkeypatch.setattr("serving.demo_app.ConnectionPool", lambda *a, **k: pool)
+    with TestClient(
+        create_demo_app(
+            repository=PostgresDemoRepository("unused"),
+            model_loader=lambda: DemoModel(Classifier(), "1", 0.2),
+        )
+    ) as client:
+        response = client.get("/demo/score/123")
+        assert response.status_code == 503
+        assert "risk_score" not in response.json()
+    assert "feature_lookup" in caplog.text
 
 
 @pytest.mark.parametrize(

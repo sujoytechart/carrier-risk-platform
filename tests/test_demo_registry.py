@@ -6,7 +6,7 @@ from unittest.mock import MagicMock
 import numpy as np
 import pytest
 
-from ml.demo_training import DEMO_FEATURE_NAMES
+from ml.demo_features import DEMO_FEATURE_NAMES
 from serving.demo_app import PostgresDemoRepository, load_demo_model
 
 
