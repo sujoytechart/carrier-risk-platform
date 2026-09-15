@@ -22,7 +22,7 @@ configuration shown in [.env.example](../.env.example).
 Private keys and backend configuration belong outside version control. The
 Snowflake profile uses key-pair authentication, UTC sessions, a 60-second
 statement timeout, and no session keep-alive. Its single worker thread controls
-parallelism; it does not establish a warehouse-wide writer lock.
+parallelism. It does not establish a warehouse-wide writer lock.
 
 ## Shared business rules
 
@@ -36,7 +36,7 @@ checks. Blanks remain distinguishable from null source values, invalid values
 remain quarantined, and parse-reason precedence is stable. Quarantine arrays use
 adapter helpers because array indexing and null handling differ.
 
-Feature ratios have the explicit contract `decimal(38,6)`; Snowflake's default
+Feature ratios have the explicit contract `decimal(38,6)`. Snowflake's default
 numeric scale is not suitable for fractional features. The scalar regression
 suite includes fractional and rounding-boundary cases.
 
@@ -52,7 +52,7 @@ suite includes fractional and rounding-boundary cases.
 
 PostgreSQL's payload encoding stays unchanged so an upgrade does not manufacture
 corrections for existing histories. Payload hashes are intentionally
-adapter-specific change detectors; they are never source identities. Cross-target
+adapter-specific change detectors. They are never source identities. Cross-target
 comparisons must normalize business values and compare them independently of
 surrogate version IDs and payload hashes. Within-target replay must still preserve
 the complete version rows, links, retention lineage, and applied-batch markers.
@@ -60,7 +60,7 @@ the complete version rows, links, retention lineage, and applied-batch markers.
 The Snowflake source encoder handles quotes, backslashes, Unicode, and ASCII
 control characters. NUL is outside the shared text domain because PostgreSQL text
 does not support it. Local encoding tests execute basic string operations against
-an independent JSON reference; they do not substitute for Snowflake execution.
+an independent JSON reference. They do not substitute for Snowflake execution.
 
 ## Transaction boundary
 
@@ -71,14 +71,14 @@ materialization remains in place.
 Snowflake DDL commits an active transaction. Its materializations precreate
 persistent and staging relations outside business transactions, then publish the
 candidate/registry pair and apply history using separate DML-only transactions.
-All pending history batches share one transaction; closing versions, inserting
+All pending history batches share one transaction. Closing versions, inserting
 successors, linking versions, recording retention, and marking application either
 commit together or explicitly roll back in the exception handler. Standard-table
 uniqueness, chronology, and lineage are checked before and after history mutation. See the [Snowflake transaction reference](https://docs.snowflake.com/en/sql-reference/transactions).
 
 The Snowflake launcher combines a committed run claim with a separate write
-transaction. Failure retains the claim even when the transaction lock disappears;
-explicit recovery must stop and reconcile old work before clearing it. Its
+transaction. Failure retains the claim even when the transaction lock disappears.
+Explicit recovery must stop and reconcile old work before clearing it. Its
 [operating procedure](../analytics/snowflake/README.md) and bounded live checks
 cover competing processes, worker connection churn, normal failure, and
 lost-parent recovery. These guard checks do not establish business-transaction
@@ -92,9 +92,9 @@ checks rendered model contracts and temporal tests without warehouse access.
 `tests/test_snowflake_history_sql.py` additionally compiles intermediate models,
 renders both materializations and production transaction macros, executes shared
 validation predicates locally, and checks persisted type matching. Integer aliases
-require NUMBER(38,0); timestamp_tz requires precision 9. Text widening is accepted
-but narrowing below the explicit 16,777,216-character contract is rejected.
-Compilation checks Jinja and dependency resolution; it does not validate warehouse
+require NUMBER(38,0). The timestamp_tz type requires precision 9. Text widening
+is accepted but narrowing below the explicit 16,777,216-character contract is rejected.
+Compilation checks Jinja and dependency resolution. It does not validate warehouse
 grammar, execution, transaction safety, or persisted types.
 
 `dbt/tests/portable_scalar_regressions.sql` is executable warehouse SQL. It and the
@@ -110,7 +110,7 @@ PostgreSQL. Its immutable metadata and current-version pointer are outside dbt's
 event-model graph, so rebuilding features does not erase measurement history.
 The additive `label_maturity_policy` temporal test validates that registry on
 PostgreSQL. It returns no rows when the registry is absent and during Snowflake
-execution; absence does not authorize training. Python independently requires a
+execution. Absence does not authorize training. Python independently requires a
 complete, valid persisted policy before constructing training rows.
 
 PostgreSQL-only dbt index configuration accelerates carrier/date lookups in

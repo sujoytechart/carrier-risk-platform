@@ -2,7 +2,7 @@
 
 PostgreSQL is the default execution target. Phase 2 also verified Snowflake
 history publication, replay, temporal guards, and rollback against a trial
-account. Snowflake demonstrates dbt portability; it is not a scale claim.
+account. Snowflake demonstrates dbt portability. It is not a scale claim.
 The [adapter guide](../docs/adapter-differences.md) records the semantic
 differences, and the [Phase 2 verification record](../docs/phase-2-verification.md)
 distinguishes offline compilation from the live acceptance results.
@@ -26,8 +26,8 @@ transaction lock. Uncertain outcomes require explicit recovery.
 conformed. Candidate publication reconciles every pinned batch's row count,
 including excluded and quarantined rows. Its transactional post-hook publishes
 `intermediate.event_candidate_batches` with the candidate table. Empty complete
-batches have metadata and zero candidates. History only consumes that publication;
-raw arrivals after it are eligible for the next complete build.
+batches have metadata and zero candidates. History only consumes that publication.
+Raw arrivals after it are eligible for the next complete build.
 
 Fixture seeds are disabled by default. Only disposable test databases should use
 `--vars '{load_test_fixtures: true}'` when seeding. Production builds never load
@@ -35,9 +35,9 @@ those fixtures over raw federal tables.
 
 Source history retains eligibility-changing corrections with
 `is_model_eligible = false` and `exclusion_reason`. Carrier projections select
-eligible versions; finite predecessor ends still delimit the old incident.
-`events_union` preserves each crash vehicle version for strict as-of queries;
-apply both clocks before counting distinct `carrier_crash_key` values or aggregating
+eligible versions. Finite predecessor ends still delimit the old incident.
+`events_union` preserves each crash vehicle version for strict as-of queries.
+Apply both clocks before counting distinct `carrier_crash_key` values or aggregating
 severity. `crash_incidents` is an interval summary for browsing, and `current_events`
 uses it to show one current row per incident. The summary is not the exact-instant
 as-of input: a boundary on one vehicle must not hide another unchanged vehicle.
@@ -46,7 +46,7 @@ their presence for eligible versions. Invalid source values remain in clean
 quarantine with stable parse reasons. Retention expiry records acquisition
 lineage in `modeled.inspection_retention_expiries` and creates no deletion version.
 When an excluded correction supplies a future event date, that rejected date stays
-in raw/clean quarantine; the exclusion version records a null modeled event date
+in raw/clean quarantine. The exclusion version records a null modeled event date
 and closes its predecessor. Blank non-null values receive parse reasons as well.
 
 Explicit `scoring_dates` must be a nonempty list of ISO `YYYY-MM-01` strings.
@@ -58,7 +58,7 @@ Every scoring date means midnight UTC regardless of the PostgreSQL session
 timezone.
 
 Changing the event-history schema or canonical hash requires a controlled rebuild
-from immutable snapshots; existing histories are not silently migrated. The custom
+from immutable snapshots. Existing histories are not silently migrated. The custom
 materialization checks the actual persisted columns and types against the dbt
 contract before applying any batches.
 

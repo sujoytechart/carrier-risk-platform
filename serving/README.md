@@ -2,7 +2,7 @@
 
 `GET /score/{usdot_number}` returns a probability for the positive six-month crash
 label, the resolved MLflow model version, `features_as_of`, and a UTC
-`computed_at`. The service loads the `champion` alias once at startup; restarting
+`computed_at`. The service loads the `champion` alias once at startup. Restarting
 adopts a later promoted version. It never substitutes a fixture for a missing
 production model.
 
@@ -47,7 +47,7 @@ is [the API Dockerfile](../docker/api.Dockerfile).
 | `CARRIER_RISK_VALIDATION_PROFILE` | `production` |
 
 `/health/live` reports process liveness. `/health/ready` reports whether startup
-loaded a warehouse connection and promoted classifier; each score lookup still
+loaded a warehouse connection and promoted classifier. Each score lookup still
 handles subsequent warehouse failures. `/metrics` exposes bounded outcome
 counters, a scoring-handler duration histogram, and model availability. USDOTs
 are never metric labels. Client latency is measured separately by the load test.
@@ -75,7 +75,7 @@ uvicorn serving.app:app --host 127.0.0.1 --port 8000 --no-access-log
 
 The fixture registry uses only `carrier-risk-fixture`, and each version carries
 `validation_fixture=true` plus the frozen feature-order tag. The production
-profile rejects this name and tag; the synthetic profile requires both. Models
+profile rejects this name and tag. The synthetic profile requires both. Models
 are fully fitted, registered, resolved, and loaded through MLflow before the
 PostgreSQL/HTTP path is tested.
 
@@ -91,7 +91,7 @@ histograms. It schedules independent arrivals at 50, 100, 200, and 300 rps rathe
 than waiting for a response before scheduling another request. Each stage warms
 up separately, resets statistics, and drains every scheduled request. Responses
 must contain a valid synthetic score for the requested carrier, model version,
-and current feature month; error responses are failures.
+and current feature month. Error responses are failures.
 
 `summary.json` reports the achieved rate including drain time, completed and
 failed counts, Locust p50/p95/p99, scheduler delay, and p99 from the scheduled
@@ -104,5 +104,5 @@ The project acceptance target applies to the 200-rps stage.
 
 For a separate coverage smoke test, `--rates 1 --seconds 10 --warmup 1` exercises
 the same real path with ten measured requests. This smoke result is not the
-published throughput benchmark. Keep all diagnostic and final runs separately;
-label concurrent host workloads and fixture size when reporting a result.
+published throughput benchmark. Keep all diagnostic and final runs separately.
+Label concurrent host workloads and fixture size when reporting a result.

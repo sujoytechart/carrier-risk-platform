@@ -30,7 +30,7 @@ No path to a local environment enters the generated provenance. The renderer
 uses the noninteractive Agg backend, bundled DejaVu Sans font, 180 dpi, and
 fixed PNG metadata. Two independent renders in the recorded environment
 produced byte-identical images and provenance. Different rendering-library or
-font environments may change pixels; numerical provenance remains reviewable.
+font environments may change pixels. Numerical provenance remains reviewable.
 
 ## Report lag
 
@@ -38,10 +38,10 @@ font environments may change pixels; numerical provenance remains reviewable.
 in [Athena results](../phase-2/athena-results.json), joined by feed to
 `validate_derived`. The [query](../../../analytics/athena/report_lag_derived.sql)
 defines every bin and the lag formula. Its sentinel acquisition dates were
-substituted with the recorded `2026-09-03` partition during Phase 2 execution;
-the chart does not execute or modify that SQL. The
+substituted with the recorded `2026-09-03` partition during Phase 2 execution.
+The chart does not execute or modify that SQL. The
 [Parquet reconciliation](../phase-2/parquet-reconciliation.json) verifies source
-row counts, conversion value hashes, and acquisition lineage; it is not itself
+row counts, conversion value hashes, and acquisition lineage. It is not itself
 the histogram source.
 
 | Source snapshot | Rows | Approximate p50 | Approximate p95 | Approximate p99 |
@@ -59,12 +59,12 @@ fields are preserved in the validated Parquet derivatives.
 Each feed's ten bucket counts sum exactly to its lag sample size and to the
 Athena, manifest, source-CSV, and Parquet row counts. Recorded fractions agree
 with count divided by sample size. Both feeds have zero excluded or negative-lag
-rows. The SQL emits only populated groups; the renderer inserts the defined
+rows. The SQL emits only populated groups. The renderer inserts the defined
 same-day bucket with count zero, consistent with both recorded minimum lags of
 one day. All ten bins are visible. Both axes are linear, and the bars show the
 fraction in each categorical interval, not probability density: the intervals
 have unequal widths and the final interval is open-ended. Percentiles come
-directly from Athena's recorded `approx_percentile` output; they are not inferred
+directly from Athena's recorded `approx_percentile` output. They are not inferred
 from the histogram. The maxima are 13,609 days for crashes and 1,089 for
 inspections, both contained in the final `271+` bucket.
 
@@ -84,9 +84,9 @@ trials remain in Phase 3 evidence.
 
 The left panel plots HTTP p50, p95, and p99 from Locust's rounded response-time
 histogram, including failures. The right panel plots achieved throughput
-against requested arrival rate; the reference line is the requested rate.
+against requested arrival rate. The reference line is the requested rate.
 Achieved throughput includes drain time and equals completed requests divided
-by elapsed seconds. The table displays three decimal places; provenance retains
+by elapsed seconds. The table displays three decimal places. Provenance retains
 the complete recorded values. Every stage completed all scheduled requests with
 zero failures.
 

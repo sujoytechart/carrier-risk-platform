@@ -23,8 +23,8 @@ project.
 
 Exclude carrier attributes from `v0` features entirely. Model inspections and
 crashes only, each carrying its own occurrence date and knowledge time.
-Violation and out-of-service totals are attributes of the inspection row; v0
-does not ingest a separate violation feed.
+Violation and out-of-service totals are attributes of the inspection row.
+The v0 model does not ingest a separate violation feed.
 
 Begin daily immutable snapshots of both event feeds in Phase 0. This does
 not recover missing history, but it starts building trustworthy observed history
@@ -40,7 +40,7 @@ from day one.
 - The central point-in-time claim holds for every row in the training set, which
   would not be true under the wider design.
 - Each event records its evidence quality. Historical rows use a conservative
-  proxy derived from the source add date; newly acquired rows use the observed
+  proxy derived from the source add date. Newly acquired rows use the observed
   snapshot time.
 
 ## Revisit if

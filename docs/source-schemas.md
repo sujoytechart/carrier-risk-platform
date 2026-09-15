@@ -1,7 +1,7 @@
 # Source schema notes
 
 Verified against the live FMCSA endpoints on 2026-09-02. Government portals
-change; re-run these queries before trusting anything below.
+change. Re-run these queries before trusting anything below.
 
 | Feed | Socrata id | Rows | Columns |
 |---|---|---:|---:|
@@ -40,7 +40,7 @@ the ingestion layer's job and the expectations belong in the feed schema files.
 | Concern | Detail |
 |---|---|
 | Event dates | `insp_date` and `report_date` are `text` in `YYYYMMDD` form, for example `20230901` |
-| Audit timestamps | `add_date`, `mcmis_add_date`, and `change_date` are `text` with values such as `20230929 2140`; ingestion must parse these separately from event dates |
+| Audit timestamps | `add_date`, `mcmis_add_date`, and `change_date` are `text` with values such as `20230929 2140`. Ingestion must parse these separately from event dates |
 | `dot_number` | **`text` on crashes, `number` on inspections.** Conform to one representation before any join, and do not invent leading-zero semantics |
 | Counts | `fatalities`, `injuries`, `vehicles_in_accident` are `text` |
 | Flags | `tow_away`, `federal_recordable`, `state_recordable` are `text`, not boolean |

@@ -7,8 +7,8 @@ register and serve a real-data model. This does not replace the v0 maturity poli
    four months of inspections, 24 months of prior crashes and six months of
    subsequent recorded federal crashes. Exclude reporting dates at/after scoring
    from features. Keep snapshot ascertainment explicit for labels.
-2. Extract reconciled local Parquet into an isolated PostgreSQL demo schema;
-   retain fingerprints and aggregate exclusion counts. Build contracted dbt
+2. Extract reconciled local Parquet into an isolated PostgreSQL demo schema.
+   Retain fingerprints and aggregate exclusion counts. Build contracted dbt
    features for those dates and the acquisition month's scoring date.
 3. Fit the fixed estimator once. Choose a classification threshold using training
    rows only. Report accuracy, positive recall, precision, confusion counts,
@@ -21,4 +21,4 @@ register and serve a real-data model. This does not replace the v0 maturity poli
 
 The retained snapshot cannot establish eventual label completeness, historical
 public availability or prospective deployment performance. Repeated carriers
-across periods are allowed; the holdout measures a later period, not new carriers.
+across periods are allowed. The holdout measures a later period, not new carriers.

@@ -11,7 +11,7 @@ The fixture uses 512 fictional carriers in a dedicated local PostgreSQL database
 and an explicitly tagged MLflow model, `carrier-risk-fixture` version 2. The
 classifier uses the frozen v0 configuration: 100 boosting trees, depth 3,
 learning rate 0.1, seed 20260911. It validates the HTTP, warehouse, and registered
-model inference path; it does not establish real-data predictive quality or
+model inference path. It does not establish real-data predictive quality or
 production latency. Repository verification had stopped before this complete
 curve, but ordinary desktop applications remained active and uncontrolled.
 
@@ -26,7 +26,7 @@ curve, but ordinary desktop applications remained active and uncontrolled.
 The full-curve harness overwrote Locust's underlying transport exception with a
 generic `HTTP 0` failure. This reporting defect was corrected and covered by
 regression tests. The corrected harness also records request start timestamps.
-The original failure causes cannot be reconstructed from the old CSV; its
+The original failure causes cannot be reconstructed from the old CSV. Its
 durations, failure flags, summary, and original harness hash remain unchanged.
 The [exact original harness source](benchmark-before-diagnostics.py.txt) was
 retained in the clean-export validation copy and its SHA-256 was verified against
@@ -43,11 +43,11 @@ client/transport time. This observation does not isolate a causal bottleneck.
 
 An independent observer recorded host/API/client resources once per second during
 that diagnostic: system CPU peaked at 80.1%, API CPU at 58.1% of one core, and
-client CPU at 86.5% of one core; minimum available memory was 1.77 GB. System-wide
+client CPU at 86.5% of one core. Minimum available memory was 1.77 GB. System-wide
 swap-in increased by 29.2 MB and swap-out by 3.76 MB. These are concurrent host
 measurements, not proof that memory pressure caused the observed latency. No
 desktop applications were stopped. Post-run API logs contained no exception
-tracebacks; the warehouse pool had twelve idle connections and no observed
+tracebacks. The warehouse pool had twelve idle connections and no observed
 blocked application query. These snapshots do not rule out transient stalls.
 
 The open-arrival client catches up after scheduling delays and uses 256 persistent
@@ -62,7 +62,7 @@ A temporary wrapper then measured ASGI entry, response start and final body send
 correlating synthetic request IDs with client timestamps from the unchanged
 open-arrival harness. Each attempt used 200 rps for ten measured seconds after
 five seconds of warmup, with the same synthetic model version 2 and default
-single-worker Uvicorn. Repository checks paused during the load; ordinary desktop
+single-worker Uvicorn. Repository checks paused during the load. Ordinary desktop
 activity remained uncontrolled. The added timing headers and buffered timestamps
 make these instrumented diagnostics, not replacement acceptance measurements.
 
@@ -79,16 +79,16 @@ measured requests without transport failures, with native histogram p99 of
 400 ms and exact client p99 of 385.04 ms. All 3,000 warmup and measured request
 IDs matched server records, and client timing headers matched the server trace.
 [Correlated aggregate measurements](asgi-probe/correlation-summary.json) show
-ASGI entry-to-response-start p99 of 258.55 ms and maximum of 338.92 ms; combined
+ASGI entry-to-response-start p99 of 258.55 ms and maximum of 338.92 ms. Combined
 time before ASGI entry and after response start had p99 of 144.53 ms. These
 component percentiles describe different request distributions and are not
 additive. ASGI time dominated 136 of the 208 measured responses exceeding
-120 ms; outside-ASGI time dominated the other 72. The slowest response took
+120 ms. Outside-ASGI time dominated the other 72. The slowest response took
 483.17 ms: 56.42 ms before ASGI entry, 328.86 ms inside ASGI before response
 start, and 97.88 ms afterward. Final body send took at most 0.801 ms.
 
 This bounds the observed tail to include substantial delay inside the
-API/framework interval and outside ASGI; final body write time alone does not
+API/framework interval and outside ASGI. Final body write time alone does not
 explain it. The ASGI interval includes framework scheduling, the synchronous
 endpoint thread queue, handler execution, validation and response construction.
 This probe does not separate those stages. Its handler histogram includes slow
@@ -124,10 +124,10 @@ remained active. All 19,500 request outcomes are retained in the
 The required 200-rps stage still failed: its scheduled-arrival p99 was 462.784 ms
 and maximum scheduler lag was 435.830 ms. The faster 300-rps stage does not
 replace that failed result. This configuration was rejected as an acceptance
-fix; no worker or performance setting was adopted and no thresholds changed.
+fix. No worker or performance setting was adopted and no thresholds changed.
 
 The independent resource observer collected 142 samples. Aggregate API process
-CPU peaked at 112.2% of one core; system CPU peaked at 82.6%, and minimum available
+CPU peaked at 112.2% of one core. System CPU peaked at 82.6%, and minimum available
 memory was 1.45 GB. System-wide swap-in increased by 362.2 MB and swap-out by
 22.7 MB. These observations do not establish the cause of the latency variation.
 The existing Prometheus registry is per process, so this temporary trial did not
@@ -143,7 +143,7 @@ were superseded for acceptance by the final full curve recorded in the
 same frozen 100-tree fixture, PostgreSQL lookup, Uvicorn service, stage lengths,
 and acceptance thresholds, but limited the open loopback connection pool to 32
 persistent sessions. The earlier 256-session run had introduced hundreds of idle
-server sockets into a 200-rps test; the final pool still permits overlapping
+server sockets into a 200-rps test. The final pool still permits overlapping
 requests while avoiding that benchmark-induced pressure.
 
 The accepted 200-rps stage completed 6,000 requests with zero failures, 14 ms

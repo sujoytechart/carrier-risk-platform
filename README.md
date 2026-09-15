@@ -4,12 +4,17 @@ A data platform built on federal trucking inspection and crash records:
 immutable snapshots, correction-aware history, portable analytics, orchestrated
 training, a model registry and a scoring API.
 
+**The main focus is data engineering and the ML platform:** reliable ingestion,
+historically correct features, reproducible training, model registration and
+serving. A fixed model exercises that workflow, with its predictive quality
+measured against a prior-crash baseline.
+
 **The real-data experiment trained successfully.** On 233,291 carriers in a later
 historical period, average precision was **49.0% versus 40.2%** for the prior-crash
 baseline. It detected **45.8% of recorded crash-positive carriers**, and **48.3%
 of positive predictions were correct**. The model is registered and served under
-an explicitly experimental identity. This demonstrates the end-to-end platform;
-the [retrospective limitations](docs/learning-demo.md) remain visible.
+an explicitly experimental identity. This demonstrates the end-to-end platform.
+The [retrospective limitations](docs/learning-demo.md) remain visible.
 
 The original v0 maturity gate still blocks promotion: its measured **495-day**
 grace exceeds the nine-month limit. The learning experiment uses a separate
@@ -29,7 +34,7 @@ Corrections add another requirement: select the event version knowable at that
 scoring date. Immutable snapshots and versioned knowledge intervals preserve the
 earlier answer when a later file changes or deletes a record. Three blocking dbt
 tests detect impossible chronology, overlapping versions, and incorrect historical
-features. Snowflake Time Travel follows warehouse ingestion history; it cannot
+features. Snowflake Time Travel follows warehouse ingestion history. It cannot
 replace these source-availability checks.
 
 ## How it works
@@ -40,7 +45,7 @@ FMCSA snapshots → S3 manifests → SQS → Airflow → PostgreSQL/dbt history
                                               features → MLflow → FastAPI
 ```
 
-The manifest commits a validated snapshot; repeated loads and backfills preserve
+The manifest commits a validated snapshot. Repeated loads and backfills preserve
 the same event versions. Python handles transactional I/O, dbt resolves history
 and deduplicates crash incidents, and Airflow coordinates arrivals and monthly
 training. Terraform provisions the AWS resources. Local development uses
@@ -55,21 +60,40 @@ explain the boundaries and trade-offs.
 
 Four months of inspections provide usable February 2024 training and September
 2024 test cohorts, seven months apart, with non-overlapping six-month outcomes.
-Dates and model parameters were fixed before fitting; the classification threshold
+Dates and model parameters were fixed before fitting. The classification threshold
 was chosen from training predictions only.
 
 ![Real-data holdout results, baseline comparison and confusion counts](docs/evidence/learning-demo/model-results.png)
 
-Overall accuracy was **88.6%**; an always-negative classifier would reach
+Overall accuracy was **88.6%**. An always-negative classifier would reach
 **89.0%** because only 11.0% of the test carriers have a qualifying recorded crash.
 The useful signal is the ranking improvement and detection of **11,792** recorded
 positive carriers. A negative label means no qualifying crash in the retained
 snapshot, rather than guaranteed absence of an actual crash.
 
-More historical snapshots and outcome records could expand training and validation
-coverage and may improve the model. We cannot reconstruct every historical
-correction, establish eventual label completeness or claim prospective accuracy
-from these retained files. [Experiment, reproduction and limitations](docs/learning-demo.md).
+**How to interpret the 48.3% precision.** Of every 100 carriers flagged positive,
+about 48 had a qualifying crash recorded in the retained outcome data. The
+**49.0% average precision** summarizes ranking performance across thresholds.
+The **40.2%** comparison is the prior-crash baseline's average precision.
+
+The experiment has several constraints:
+
+- **Limited history and features.** Training used 203,560 carriers. Historical
+  coverage and feature depth were restricted to one training cohort, one later
+  test cohort, seven aggregate features, and four months of inspection history
+  per scoring date. Historical fleet exposure and a complete archive of past
+  source versions were unavailable.
+- **Incomplete outcome history.** Labels come from a retained snapshot. Some
+  crashes may be reported later or be absent from that snapshot.
+- **A fixed modeling setup.** Only 11.0% of test carriers have a recorded positive
+  outcome. The threshold balances precision and recall using training F1.
+  The experiment uses a fixed 100-tree model, without a hyperparameter search.
+
+These constrain the experiment, but their individual effects on precision have
+not been measured. More history, richer features and model tuning could help.
+Any improvement would need validation on a later untouched cohort. The current
+result demonstrates the platform and provides a measured baseline for that work.
+[Experiment, reproduction and limitations](docs/learning-demo.md).
 
 <table>
   <tr>
@@ -78,19 +102,19 @@ from these retained files. [Experiment, reproduction and limitations](docs/learn
   </tr>
   <tr>
     <td width="50%"><img src="docs/evidence/learning-demo/mlflow-registry.png" alt="Real model in its separate MLflow registry with demo alias" width="100%"><br><strong>Isolated model registration.</strong> The experimental model has an immutable version and a separate demo alias.</td>
-    <td width="50%"><img src="docs/evidence/learning-demo/api-response.png" alt="Actual experimental FastAPI response from a real carrier with identifier withheld" width="100%"><br><strong>Real model scoring.</strong> The API exposes its feature date, model version and experimental status; the example withholds the carrier identifier.</td>
+    <td width="50%"><img src="docs/evidence/learning-demo/api-response.png" alt="Actual experimental FastAPI response from a real carrier with identifier withheld" width="100%"><br><strong>Real model scoring.</strong> The API exposes its feature date, model version and experimental status. The example withholds the carrier identifier.</td>
   </tr>
 </table>
 
 [Execution records and screenshot provenance](docs/evidence/learning-demo/README.md).
-The real demo scored **6,000/6,000** requests at an offered 200 requests/second;
-achieved throughput was **185 requests/second**, with **884 ms p99** latency.
+The real demo scored **6,000/6,000** requests at an offered 200 requests/second.
+Achieved throughput was **185 requests/second**, with **884 ms p99** latency.
 It has not met the production latency target.
 
 ### System evidence
 
 The screenshots below come from the recorded acceptance runs. They connect the
-flow above to the systems that actually executed it; the linked phase reports
+flow above to the systems that actually executed it. The linked phase reports
 retain commands, hashes, limitations, and cleanup evidence.
 
 <table>
@@ -104,7 +128,7 @@ retain commands, hashes, limitations, and cleanup evidence.
     <td width="50%">
       <img src="docs/evidence/phase-2/snowflake-after-guard-tests.jpg" alt="Isolated Snowflake warehouse suspended after temporal guard verification" width="100%"><br>
       <strong>Warehouse portability.</strong> The same history models and temporal
-      guards ran against Snowflake after PostgreSQL acceptance; the isolated
+      guards ran against Snowflake after PostgreSQL acceptance. The isolated
       trial warehouse was suspended when verification finished.
     </td>
   </tr>
@@ -138,11 +162,11 @@ recover earlier corrections or deleted rows. The [bucket counts and lineage](doc
 are retained.
 
 The separate training watermark uses earliest retained source-proxy lags for
-deduplicated eligible crash incidents across twelve mature monthly cohorts;
-historical first versions remain unavailable. Its bootstrapped p99.5
+deduplicated eligible crash incidents across twelve mature monthly cohorts.
+Historical first versions remain unavailable. Its bootstrapped p99.5
 upper bound produced the 495-day grace. The [recorded MLflow run](docs/evidence/phase-3/training-gate.json)
 skipped before building a v0 dataset or fitting. Future v0 candidates must beat both
-the recent-crash-count baseline and incumbent on a purged time holdout; no
+the recent-crash-count baseline and incumbent on a purged time holdout. No
 prospective predictive improvement is claimed. The separate retrospective
 experiment above beats the recorded baseline. [Original policy and measurement details](docs/phase-3-verification.md).
 
@@ -156,7 +180,7 @@ These are recorded September 11, 2026 results, not a continuously deployed servi
 | [Infrastructure and portability](docs/phase-2-verification.md) | Remote state locking, Athena reconciliation, ECR operations, PostgreSQL/Snowflake fixture parity and rollback |
 | [Failure demonstrations](docs/phase-4-verification.md) | Deliberate failures, recovery evidence, and screenshot scope |
 
-Disposable AWS resources were destroyed; original raw snapshots remain. Snowflake
+Disposable AWS resources were destroyed. Original raw snapshots remain. Snowflake
 was a trial-account portability exercise, and its compute was suspended after
 verification. The reports retain security findings and cleanup qualifications.
 
@@ -176,9 +200,9 @@ persistent loopback sessions. Every scheduled request completed.
 
 ![Local synthetic API latency across the measured throughput curve](docs/latency.png)
 
-**The p99 ≤120 ms at 200 rps target passed.** Scheduled-arrival p99 was 14.30 ms;
-maximum scheduler lag was 78.85 ms. Percentiles include failures. This measures
-the local synthetic serving path; production latency remains unproven. The
+**The p99 ≤120 ms at 200 rps target passed.** Scheduled-arrival p99 was 14.30 ms.
+Maximum scheduler lag was 78.85 ms. Percentiles include failures. This measures
+the local synthetic serving path. Production latency remains unproven. The
 separate real-data demo has its own [smoke-test evidence](docs/learning-demo.md).
 [Timings and hashes](docs/evidence/phase-3/latency-session-32/manifest.json)
 and [earlier failed trials](docs/evidence/phase-3/latency-investigation.md) are retained.
@@ -188,7 +212,7 @@ and [earlier failed trials](docs/evidence/phase-3/latency-investigation.md) are 
 Use Python 3.12. The [serving guide](serving/README.md) covers installation,
 connections, synthetic validation and load testing. `GET /score/{usdot_number}`
 returns `features_as_of` and `validation_fixture` with a score. Without a promoted
-model, eligible carriers receive `model_unavailable`; insufficient inspection
+model, eligible carriers receive `model_unavailable`. Insufficient inspection
 history returns `insufficient_history`. Health endpoints and Prometheus metrics
 make availability visible.
 
@@ -196,22 +220,22 @@ For other entry points, see [warehouse builds](dbt/README.md),
 [monthly training](docs/phase-3-verification.md#local-operation),
 [AWS operation](docs/phase-1-infrastructure.md),
 [state bootstrap](infra/state-bootstrap/README.md), and
-[source contracts](docs/source-schemas.md). Tests use synthetic fixtures; raw
+[source contracts](docs/source-schemas.md). Tests use synthetic fixtures. Raw
 federal data is not committed. [.env.example](.env.example) and
-[Compose services](docker-compose.yml) document local configuration; the
-[CI workflow](.github/workflows/checks.yml) lists check dependencies and commands;
-[check details](.github/checks.md) explain the quality gates.
+[Compose services](docker-compose.yml) document local configuration. The
+[CI workflow](.github/workflows/checks.yml) lists check dependencies and commands.
+[Check details](.github/checks.md) explain the quality gates.
 
 ## Deliberate exclusions
 
 | Excluded | Reason |
 |---|---|
-| Historical carrier attributes | No confirmed public archive of past vintages; current attributes would leak future information |
+| Historical carrier attributes | No confirmed public archive of past vintages. Current attributes would leak future information |
 | Separate violation feed | Inspection rows already contain every violation and out-of-service total used by v0 |
 | Kafka, Kinesis and streaming | Inputs arrive as periodic file snapshots |
 | Kubernetes | One stateless API does not need a cluster orchestrator |
 | Spark, EMR and Databricks | These data volumes fit on a laptop |
-| Managed Airflow (MWAA) | Its ongoing managed-service cost exceeds this project's needs; Airflow runs locally |
+| Managed Airflow (MWAA) | Its ongoing managed-service cost exceeds this project's needs. Airflow runs locally |
 | Federal safety-score replication | The model uses underlying event records to predict a future crash outcome |
 
 License: [MIT](LICENSE).

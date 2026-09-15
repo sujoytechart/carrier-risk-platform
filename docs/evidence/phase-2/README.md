@@ -1,7 +1,7 @@
 # Phase 2 evidence
 
 Phase 2 acceptance is complete. Native screenshots below document the console
-state at capture time. Machine-readable results document execution; they are not
+state at capture time. Machine-readable results document execution. They are not
 screenshots. Scope, cleanup and limitations are in the
 [verification record](../../phase-2-verification.md).
 
@@ -32,9 +32,9 @@ The filtered console shows the dedicated generation-1 X-Small warehouse suspende
 with zero running and queued queries after the real one-row dbt seed acceptance
 check and final killed-process check. This screenshot establishes the stopped state at capture time. The actual
 guard, failure, and killed-process results are recorded in the verification
-record; this image is not evidence of a full project dbt build. The final
+record. This image is not evidence of a full project dbt build. The final
 killed-process check also verified suspension programmatically. The console was
-recaptured with the pointer outside the frame; the displayed state is unaltered.
+recaptured with the pointer outside the frame. The displayed state is unaltered.
 
 ## Capture limitations
 
@@ -42,7 +42,7 @@ A full set of live Glue, Athena, ECR, lock-contention, dbt and teardown screensh
 was not obtained because of browser interruptions. Their execution evidence is
 recorded in the verification record and the result files above. No reconstructed
 console image substitutes for a missing native capture. The optional RDS/SQS
-runtime redeployment was outside this phase; Phase 1 records its earlier proof.
+runtime redeployment was outside this phase. Phase 1 records its earlier proof.
 
 Each saved capture must show an actual console or terminal state, have a clear
 caption explaining its scope, and link back to the relevant command/result in the

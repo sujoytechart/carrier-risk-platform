@@ -13,7 +13,7 @@ or private process instructions.
 - [Monthly replay](monthly-skip-replay.json): the measured policy replayed through
   PostgreSQL and MLflow, retaining one current immutable registry version.
 - [Independent dbt guard](maturity-dbt-negative-test.json): a deliberately changed
-  summary fails; restoring the measured value passes.
+  summary fails. Restoring the measured value passes.
 - [Production-profile response](production-model-unavailable.json): actual
   PostgreSQL/MLflow lookups return `model_unavailable`, without a score.
 - [Quality record](quality.json): full and final component test counts,
@@ -33,10 +33,10 @@ or private process instructions.
 
 See the [verification report](../../phase-3-verification.md) for commands,
 coverage provenance, latency scope, and limitations. Synthetic scores establish
-the serving path only; they do not establish predictive quality on federal data.
+the serving path only. They do not establish predictive quality on federal data.
 
 The [two-worker configuration trial](latency-two-worker-trial.json), its
 [complete request records and resource evidence](latency-two-worker-trial-files.json),
 and the [investigation notes](latency-investigation.md) retain the rejected worker
-isolation experiment. Its required 200-rps stage also failed; it does not replace
+isolation experiment. Its required 200-rps stage also failed. It does not replace
 the original complete curve.
