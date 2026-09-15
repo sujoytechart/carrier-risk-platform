@@ -11,9 +11,24 @@ of positive predictions were correct**. The model is registered and served under
 an explicitly experimental identity. This demonstrates the end-to-end platform;
 the [retrospective limitations](docs/learning-demo.md) remain visible.
 
-The original v0 maturity gate still blocks promotion: its measured **495-day**
-grace exceeds the nine-month limit. The learning experiment uses a separate
-four-month feature contract and retained-snapshot labels.
+## Training paths
+
+| Path | Purpose | How it runs |
+|---|---|---|
+| **Scheduled training** | Train candidates only when data meets the eligibility rules, then evaluate them for promotion | Monthly Airflow workflow, `train_model` |
+| **Retrospective experiment** | Exercise the full platform and measure a model on retained historical data | Manually triggered Airflow workflow, `train_demo_model` |
+
+Scheduled training is currently skipped before fitting. Its measured **495-day**
+label-maturity grace exceeds the nine-month limit. The experiment uses four
+months of inspection features and labels from a retained snapshot, so its results
+do not establish prospective performance.
+
+Both paths share ingestion, orchestration utilities, MLflow and the same fixed
+gradient-boosting parameters. Dataset preparation, model registry names and
+serving apps are separate because the data assumptions differ. The default API
+serves scheduled training models. The experiment requires its own app and returns
+an explicit experimental flag. See the [serving guide](serving/README.md) for
+both entry points.
 
 ## Why two clocks matter
 
@@ -141,9 +156,10 @@ The separate training watermark uses earliest retained source-proxy lags for
 deduplicated eligible crash incidents across twelve mature monthly cohorts;
 historical first versions remain unavailable. Its bootstrapped p99.5
 upper bound produced the 495-day grace. The [recorded MLflow run](docs/evidence/phase-3/training-gate.json)
-skipped before building a v0 dataset or fitting. Future v0 candidates must beat both
-the recent-crash-count baseline and incumbent on a purged time holdout; no
-prospective predictive improvement is claimed. The separate retrospective
+skipped before building a dataset for scheduled training or fitting. Candidates
+from scheduled training must beat both the recent-crash-count baseline and
+incumbent on a purged time holdout. No prospective predictive improvement is
+claimed. The separate retrospective
 experiment above beats the recorded baseline. [Original policy and measurement details](docs/phase-3-verification.md).
 
 ## Verified behavior
@@ -207,7 +223,7 @@ federal data is not committed. [.env.example](.env.example) and
 | Excluded | Reason |
 |---|---|
 | Historical carrier attributes | No confirmed public archive of past vintages; current attributes would leak future information |
-| Separate violation feed | Inspection rows already contain every violation and out-of-service total used by v0 |
+| Separate violation feed | Inspection rows already contain every violation and out-of-service total used by the models |
 | Kafka, Kinesis and streaming | Inputs arrive as periodic file snapshots |
 | Kubernetes | One stateless API does not need a cluster orchestrator |
 | Spark, EMR and Databricks | These data volumes fit on a laptop |

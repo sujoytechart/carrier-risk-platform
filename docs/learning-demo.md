@@ -1,10 +1,14 @@
-# Retrospective real-data demonstration
+# Retrospective experiment
 
 This experiment proves that reconciled federal snapshots can flow through
 PostgreSQL, contracted dbt features, Airflow, model training, MLflow registration
 and a FastAPI estimate. Its separate registry name is
 `carrier-risk-learning-demo`, with a `demo` alias and `experimental=true` tags.
-The original v0 maturity gate remains enforced.
+This manual workflow uses separate dataset preparation and a separate serving
+app. It shares the platform's ingestion, orchestration utilities and fixed model
+parameters with scheduled training. Scheduled training keeps its data eligibility
+and model promotion checks, and is currently skipped before fitting. The
+experiment does not promote a model to the default API.
 
 ## Frozen experiment
 
